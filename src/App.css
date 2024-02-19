@@ -1,0 +1,207 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* 1.0 */
+#am_text {
+  margin: 1rem;
+}
+
+.bg_body {
+  background: linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px, linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px, linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px, linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px, linear-gradient(90deg, #1b1b1b 10px, transparent 10px), linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
+  background-color: #131313;
+  background-size: 20px 20px;
+}
+
+.banner {
+  width: 97%;
+  background-color: #eee;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  position: relative;
+  overflow: hidden;
+  margin: 1.5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  border-radius: 8px;
+}
+.banner .p_slider {
+  display: none;
+}
+.banner:hover .slider {
+  transform: translateX(0%);
+  transition: 0.5s ease-out;
+}
+.banner:hover .slider .p_slider {
+  margin: 1%;
+  display: block;
+}
+
+.slider {
+  width: 120%;
+  position: absolute;
+  background-color: #3b5999;
+  color: #fff;
+  transform: translateX(-80%);
+  clip-path: polygon(0% 0%, 95% 0, 100% 50%, 95% 100%, 0% 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  border-radius: 8px;
+}
+
+.bg_green {
+  background-color: green;
+}
+
+.bg_blurple {
+  background-color: #5865F2;
+}
+
+.ws_box {
+  margin: 1%;
+  background-color: #222;
+}
+
+@media all and (min-width: 768px) {
+  .logo {
+    font-family: Arial, sans-serif;
+    font-size: 40px;
+    font-weight: bold;
+    color: #ff0000;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+}
+@media all and (min-width: 1000px) {
+  .main-projects {
+    margin: 0 10% 0 10%;
+  }
+  .main-index {
+    margin: 0% 15% 0% 10%;
+  }
+  .main-about {
+    margin: 0% 10%;
+  }
+  .ws_box {
+    margin: 2%;
+  }
+}
+.navbar-brand {
+  border: 2px solid white;
+  padding: 5px;
+  animation-name: fadeInOut;
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.coffee {
+  border: 2px solid white;
+  padding: 5px;
+}
+
+.am_p {
+  padding: 1% 5%;
+}
+
+.bg_perfil {
+  display: none;
+}
+@media all and (min-width: 1000px) {
+  .bg_perfil {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    height: 15vh;
+  }
+}
+
+.modal-header {
+  background-color: #1f860f;
+}
+
+.carousel .carousel-control-prev {
+  position: absolute;
+  left: -15%;
+  z-index: 1;
+  color: #0a0a0a !important;
+  font-weight: bold;
+  border-style: solid;
+  background-color: #0a0a0a;
+}
+
+.carousel .carousel-control-next {
+  position: absolute;
+  right: -15%;
+  z-index: 1;
+  color: #0a0a0a !important;
+  background-color: #080404;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .carousel .carousel-control-prev {
+    left: 0%;
+    color: #ffffff !important;
+  }
+  .carousel .carousel-control-next {
+    right: 0%;
+    color: #ffffff !important;
+  }
+}
+
+/*# sourceMappingURL=main.css.map */
