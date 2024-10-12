@@ -1,0 +1,72 @@
+/* Estilos generales para la página principal */
+.home-main {
+  padding: 20px;
+  background-color: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+
+/* Hero section */
+.home-hero {
+  text-align: center;
+  padding: 50px 0;
+  background: linear-gradient(to right, #ff7e5f, #feb47b);
+  color: white;
+}
+
+.home-title {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+/* Estilos de las secciones de banner */
+.home-banner {
+  margin-bottom: 40px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.home-heading {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.home-paragraph {
+  margin: 10px 0;
+  color: #555;
+}
+
+/* Estilos de las tarjetas */
+.home-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.home-card-title {
+  font-size: 1.4em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.home-services {
+  text-align: center;
+}
+
+.home-services-cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home-services .home-card {
+  width: 45%;
+  margin: 10px;
+}

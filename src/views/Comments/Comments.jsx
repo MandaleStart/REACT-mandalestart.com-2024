@@ -44,8 +44,8 @@ const Comments = () => {
   };
 
   return (
-    <div className="comment-section text-white d-flex">
-      <div className="col-md-6">
+    <div className=" comment-section text-white d-flex">
+      <div className="ws_box col-md-6">
         {/* Formulario para agregar comentarios */}
         <h2>Sección de Comentarios</h2>
         <form onSubmit={handleCommentSubmit}>
@@ -60,7 +60,7 @@ const Comments = () => {
             />
           </div>
 
-          <div className="mb-3">
+          <div className=" mb-3">
             <label htmlFor="lastNameInput">Apellido:</label>
             <input
               type="text"
@@ -99,11 +99,11 @@ const Comments = () => {
         </form>
       </div>
 
-      <div className="col-md-6">
+      <div className="ws_box col-md-6">
         {/* Lista de comentarios */}
         <div className="comment-list">
           {comments.length === 0 ? (
-            <p>No hay comentarios aún.</p>
+            <p>En desarrollo aun.</p>
           ) : (
             <ul>
               {comments.map((comment, index) => (

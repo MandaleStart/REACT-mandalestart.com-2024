@@ -35,6 +35,9 @@ const Navbar = () => {
             <Link className="nav-link" to="/comments">
               Comentarios
             </Link>
+            <Link className="nav-link" to="/cv">
+              CV
+            </Link>
           </div>
           <script
             className="nav-link col-5"

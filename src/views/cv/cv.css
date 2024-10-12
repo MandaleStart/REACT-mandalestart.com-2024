@@ -1,0 +1,217 @@
+/* cv.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.header-cv {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+h2 {
+    color: #333;
+    font-size: 1.5rem;
+    margin-top: 20px;
+}
+
+p, ul {
+    line-height: 1.6;
+}
+
+/* Diseño de grid */
+.cv-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Una sola columna inicialmente */
+    grid-gap: 20px;
+    padding: 20px;
+}
+
+@media (min-width: 768px) {
+    .cv-container {
+        grid-template-columns: 1fr 1fr; /* Dos columnas en pantallas grandes */
+        grid-template-areas: 
+            "extracto extracto"      /* Extracto ocupa todo el ancho */
+            "contacto habilidades"   /* Contacto y habilidades */
+            "educacion certificaciones" /* Educación y certificaciones */
+            "experiencia experiencia"; /* Experiencia ocupa todo el ancho */
+    }
+}
+
+/* Secciones */
+.extracto, .contacto, .habilidades, .educacion, .certificaciones, .experiencia {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2%;
+}
+
+.extracto { grid-area: extracto; }
+.contacto { grid-area: contacto; }
+.habilidades { grid-area: habilidades; }
+.educacion { grid-area: educacion; }
+.certificaciones { grid-area: certificaciones; }
+.experiencia { grid-area: experiencia; }
+
+/* Certificaciones */
+.certificaciones ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.certificaciones li {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.certificacion-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.certificacion-nombre {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #0073b1; /* Color del enlace */
+    text-decoration: none;
+}
+
+.certificacion-institucion {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.certificacion-nota {
+    font-size: 0.9rem;
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* cv.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.header-cv {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+h2 {
+    color: #333;
+    font-size: 1.5rem;
+    margin-top: 20px;
+}
+
+p, ul {
+    line-height: 1.6;
+}
+
+/* Diseño de grid */
+.cv-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Una sola columna inicialmente */
+    grid-gap: 20px;
+    padding: 20px;
+}
+
+@media (min-width: 768px) {
+    .cv-container {
+        grid-template-columns: 1fr 1fr; /* Dos columnas en pantallas grandes */
+        grid-template-areas: 
+            "extracto extracto"      /* Extracto ocupa todo el ancho */
+            "contacto habilidades"   /* Contacto y habilidades */
+            "educacion certificaciones" /* Educación y certificaciones */
+            "experiencia experiencia"; /* Experiencia ocupa todo el ancho */
+    }
+}
+
+/* Secciones generales */
+.extracto, .contacto, .habilidades, .educacion, .certificaciones, .experiencia {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2%;
+}
+
+.extracto { grid-area: extracto; }
+.contacto { grid-area: contacto; }
+.habilidades { grid-area: habilidades; }
+.educacion { grid-area: educacion; }
+.certificaciones { grid-area: certificaciones; }
+.experiencia { grid-area: experiencia; }
+
+/* Estilo similar a certificaciones para las otras secciones */
+.contacto ul, .habilidades ul, .educacion ul, .experiencia ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.contacto li, .habilidades li, .educacion li, .experiencia li {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contacto-info, .habilidades-info, .educacion-info, .experiencia-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.contacto-nombre, .habilidad-nombre, .educacion-nombre, .experiencia-nombre {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #0073b1; /* Color para los títulos/enlaces */
+    text-decoration: none;
+}
+
+.contacto-detalle, .habilidad-detalle, .educacion-detalle, .experiencia-detalle {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.contacto-nota, .habilidad-nota, .educacion-nota, .experiencia-nota {
+    font-size: 0.9rem;
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #333;
+    font-weight: bold;
+}
