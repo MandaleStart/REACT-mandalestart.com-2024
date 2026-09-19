@@ -1,149 +1,123 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import './comments.css';
+
+const initialTestimonials = [
+  {
+    client: 'Marina T.',
+    service: 'Desarrollo web',
+    text: 'La web quedó mucho más clara, más premium y super útil para vender. Me ayudó a ordenar la oferta y a convertir mejor.',
+    rating: 5,
+  },
+  {
+    client: 'Luciano P.',
+    service: 'Hosting + SEO',
+    text: 'Todo quedó funcionando mejor, más rápido y con mejor presencia. La diferencia fue notable desde el primer mes.',
+    rating: 5,
+  },
+  {
+    client: 'Diego R.',
+    service: 'Infraestructura',
+    text: 'Nos arregló la parte técnica y dejé de perder tiempo con fallas y configuración. Muy práctico y claro.',
+    rating: 5,
+  },
+];
 
 const Comments = () => {
-  // Estado para manejar los comentarios
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newLastName, setNewLastName] = useState('');
-  const [rating, setRating] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [testimonials, setTestimonials] = useState(initialTestimonials);
+  const [name, setName] = useState('');
+  const [service, setService] = useState('');
+  const [message, setMessage] = useState('');
+  const [rating, setRating] = useState(5);
 
-  // Función para manejar el envío de comentarios
-  const handleCommentSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
-    // Crear un nuevo comentario con nombre, apellido y estrellitas
-    const newCommentWithInfo = {
-      name: newName,
-      lastName: newLastName,
-      rating: rating,
-      comment: newComment,
+    if (!name.trim() || !service.trim() || !message.trim()) {
+      return;
+    }
+
+    const newEntry = {
+      client: name.trim(),
+      service: service.trim(),
+      text: message.trim(),
+      rating,
     };
 
-    // Agregar el nuevo comentario al estado de comentarios
-    setComments([...comments, newCommentWithInfo]);
-
-    // Limpiar los campos del formulario
-    setNewComment('');
-    setNewName('');
-    setNewLastName('');
-    setRating(0);
-
-    // Abrir el modal después de enviar el comentario
-    openModal();
-  };
-
-  // Funciones para manejar la visibilidad del modal
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
+    setTestimonials([newEntry, ...testimonials]);
+    setName('');
+    setService('');
+    setMessage('');
+    setRating(5);
   };
 
   return (
-    <div className=" comment-section text-white d-flex">
-      <div className="ws_box col-md-6">
-        {/* Formulario para agregar comentarios */}
-        <h2>Sección de Comentarios</h2>
-        <form onSubmit={handleCommentSubmit}>
-          <div className="mb-3">
-            <label htmlFor="nameInput">Nombre:</label>
-            <input
-              type="text"
-              id="nameInput"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              required
-            />
-          </div>
+    <main className="comments-page">
+      <section className="comments-header">
+        <span className="eyebrow">Opiniones</span>
+        <h1>Lo que dicen quienes confiaron en este proceso.</h1>
+        <p>
+          Trabajo claro, técnico y enfocado en resultados. Más que estética, soluciones que realmente ayudan a crecer.
+        </p>
+      </section>
 
-          <div className=" mb-3">
-            <label htmlFor="lastNameInput">Apellido:</label>
-            <input
-              type="text"
-              id="lastNameInput"
-              value={newLastName}
-              onChange={(e) => setNewLastName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="ratingInput">Estrellitas:</label>
-            <input
-              type="number"
-              id="ratingInput"
-              value={rating}
-              onChange={(e) => setRating(parseInt(e.target.value))}
-              min="0"
-              max="5"
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="commentInput">Comentario:</label>
-            <textarea
-              id="commentInput"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Escribe tu comentario aquí"
-              required
-            ></textarea>
-          </div>
-
-          <button type="submit">Enviar Comentario</button>
-        </form>
-      </div>
-
-      <div className="ws_box col-md-6">
-        {/* Lista de comentarios */}
-        <div className="comment-list">
-          {comments.length === 0 ? (
-            <p>En desarrollo aun.</p>
-          ) : (
-            <ul>
-              {comments.map((comment, index) => (
-                <li key={index}>
-                  <strong>
-                    {comment.name} {comment.lastName}
-                  </strong>
-                  <br />
-                  <span>Estrellitas: {comment.rating}</span>
-                  <p>{comment.comment}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Modal */}
-      <div className={`modal ${isModalOpen ? 'show' : ''}`} id="Alert-comments" tabIndex="-1">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Atención</h5>
-              <button type="button" className="btn-close" onClick={closeModal}></button>
-            </div>
-            <div className="modal-body">
-              <div className="">
-                Estás a punto de dejar un comentario en nuestra página. Por favor, ten en cuenta que no debes publicar información privada como números de contacto o correos electrónicos. Priorizamos la seguridad y privacidad de nuestros usuarios.
+      <section className="comments-layout">
+        <div className="comments-list">
+          {testimonials.map(({ client, service: clientService, text, rating: clientRating }, index) => (
+            <article key={`${client}-${index}`} className="testimonial-card">
+              <div className="testimonial-topline">
+                <span className="client-name">{client}</span>
+                <span className="rating">{'★'.repeat(clientRating)}{'☆'.repeat(5 - clientRating)}</span>
               </div>
-            </div>
-            <div className="modal-footer">
-              <p>¡Gracias por tu comprensión!</p>
-              <button type="button" className="btn btn-danger" onClick={closeModal}>
-                Publicar
-              </button>
+              <strong>{clientService}</strong>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+
+        <form className="review-form" onSubmit={handleSubmit}>
+          <h2>Dejá tu experiencia</h2>
+          <div className="form-field">
+            <label htmlFor="name">Nombre</label>
+            <input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" />
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="service">Servicio</label>
+            <input id="service" value={service} onChange={(e) => setService(e.target.value)} placeholder="Ej: Hosting y SEO" />
+          </div>
+
+          <div className="form-field">
+            <label>Valoración</label>
+            <div className="star-picker">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={value <= rating ? 'star active' : 'star'}
+                  onClick={() => setRating(value)}
+                  aria-label={`Calificar con ${value} estrellas`}
+                >
+                  ★
+                </button>
+              ))}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+
+          <div className="form-field">
+            <label htmlFor="message">Comentario</label>
+            <textarea
+              id="message"
+              rows="5"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Contanos qué te ayudó, qué necesitabas y cómo quedó el resultado."
+            />
+          </div>
+
+          <button type="submit" className="primary-button">Enviar comentario</button>
+        </form>
+      </section>
+    </main>
   );
 };
 

@@ -1,211 +1,64 @@
-#am_text {
-  margin: 1rem;
+:root {
+  font-family: Inter, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #edf5ff;
+  background: #050a14;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
 }
 
-/* Body (fondo) */
-.bg_body {
-  background: linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px,
-    linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px,
-    linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px,
-    linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px,
-    linear-gradient(90deg, #1b1b1b 10px, transparent 10px),
-    linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
-  background-color: #131313;
-  background-size: 20px 20px;
-}
-/*root*/
-
-/* Estilos para .banner */
-.banner {
-  width: 97%;
-  background-color: #eee;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  position: relative;
-  overflow: hidden;
-  margin: 1.5%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-  border-radius: 8px;
+* {
+  box-sizing: border-box;
 }
 
-.banner .p_slider {
-  display: none;
+html {
+  scroll-behavior: smooth;
 }
 
-.banner:hover .slider {
-  transform: translateX(0%);
-  transition: 0.5s ease-out;
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(122, 92, 255, 0.2), transparent 28%),
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.14), transparent 30%),
+    #050a14;
+  color: #edf5ff;
 }
 
-.banner:hover .slider .p_slider {
-  margin: 1%;
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+img {
+  max-width: 100%;
   display: block;
 }
 
-/* Estilos para .slider */
-.slider {
-  width: 120%;
-  position: absolute;
-  background-color: #3b5999;
-  color: #fff;
-  transform: translateX(-80%);
-  clip-path: polygon(0% 0%, 95% 0, 100% 50%, 95% 100%, 0% 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-  border-radius: 8px;
+button,
+a {
+  transition: all 0.25s ease;
 }
 
-/* Estilos para .bg_green */
-.bg_green {
-  background-color: green;
+#root {
+  min-height: 100vh;
 }
 
-/* Estilos para .bg_blurple */
-.bg_blurple {
-  background-color: #5865F2;
+h1, h2, h3, h4, p {
+  margin-top: 0;
 }
 
-/* Estilos para .ws_box */
-.ws_box {
-  margin: 1%;
-  background-color: #222;
+p {
+  margin-bottom: 0;
 }
-
-/* Estilos para .logo en media query */
-@media all and (min-width: 768px) {
-  .logo {
-    font-family: Arial, sans-serif;
-    font-size: 40px;
-    font-weight: bold;
-    color: #ff0000;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-}
-
-/* Estilos para .main-projects en media query */
-@media all and (min-width: 1000px) {
-  .main-projects {
-    margin: 0 10% 0 10%;
-  }
-
-  .main-index {
-    margin: 0% 15% 0% 10%;
-  }
-
-  .main-about {
-    margin: 0% 10%;
-  }
-
-  .ws_box {
-    margin: 2%;
-  }
-}
-
-/* Estilos para .navbar-brand con animación */
-.navbar-brand {
-  border: 2px solid white;
-  padding: 5px;
-  animation-name: fadeInOut;
-  animation-duration: 5s;
-  animation-iteration-count: infinite;
-}
-
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Estilos para .coffee */
-.coffee {
-  border: 2px solid white;
-  padding: 5px;
-}
-
-/* Estilos para .am_p */
-.am_p {
-  padding: 1% 5%;
-}
-
-/* Estilos para .bg_perfil en media query */
-.bg_perfil {
-  display: none;
-}
-
-@media all and (min-width: 1000px) {
-  .bg_perfil {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    height: 15vh;
-  }
-}
-
-/* Estilos para .modal-header */
-.modal-header {
-  background-color: #1f860f;
-}
-
-/* Estilos para controles de carousel en media query */
-.carousel .carousel-control-prev {
-  position: absolute;
-  left: -15%;
-  z-index: 1;
-  color: #0a0a0a !important;
-  font-weight: bold;
-  border-style: solid;
-  background-color: #0a0a0a;
-}
-
-.carousel .carousel-control-next {
-  position: absolute;
-  right: -15%;
-  z-index: 1;
-  color: #0a0a0a !important;
-  background-color: #080404;
-  font-weight: bold;
-}
-
-/* Estilos adicionales en media query para controles de carousel */
-@media (max-width: 768px) {
-  .carousel .carousel-control-prev {
-    left: 0%;
-    color: #ffffff !important;
-  }
-
-  .carousel .carousel-control-next {
-    right: 0%;
-    color: #ffffff !important;
-  }
-}
-
-/*THEME*/
-.bg-blk{
-  background-color: #1C1919;
-}
-.bg-oran{
- background-color: #F2771A;
-}
-.blk{
-  color: #1C1919;
-}
-.oran{
- color: #F2771A;
-}
-
 

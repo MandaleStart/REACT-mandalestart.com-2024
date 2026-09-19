@@ -2,40 +2,37 @@ import './mail.css';
 
 const MailBox = () => {
   return (
-    <form>
-      <div className="form-group">
-        <label className="text-white" htmlFor="name">
-          Nombre
-        </label>
-        <input type="text" className="form-control" id="name" placeholder="Ingresa tu nombre" />
+    <form className="contact-form">
+      <div className="form-row">
+        <div className="field-group">
+          <label htmlFor="name">Nombre</label>
+          <input type="text" id="name" placeholder="Tu nombre" />
+        </div>
+        <div className="field-group">
+          <label htmlFor="email">Email</label>
+          <input type="email" id="email" placeholder="tu@email.com" />
+        </div>
       </div>
-      <div className="form-group">
-        <label className="text-white" htmlFor="email">
-          Email
-        </label>
-        <input type="email" className="form-control" id="email" placeholder="Ingresa tu email" />
-      </div>
-      <div className="form-group">
-        <label className="text-white" htmlFor="subject">
-          Asunto:
-        </label>
-        <select className="form-control" name="subject" id="subject" defaultValue="0">
-          <option value="0" disabled>
-            Seleccione una Opción
-          </option>
-          <option value="1">Sugerencia</option>
-          <option value="2">Consulta</option>
-          <option value="3">Otros</option>
+
+      <div className="field-group">
+        <label htmlFor="subject">Servicio</label>
+        <select id="subject" defaultValue="">
+          <option value="" disabled>Selecciona una opción</option>
+          <option value="web">Desarrollo web</option>
+          <option value="ddns">DDNS / hosting</option>
+          <option value="red">Monitoreo de red</option>
+          <option value="impresion">Impresión 3D</option>
+          <option value="otro">Otro</option>
         </select>
       </div>
-      <div className="form-group">
-        <label className="text-white" htmlFor="message">
-          Mensaje
-        </label>
-        <textarea className="form-control" id="message" rows="5" placeholder="¡Hola! Te invito a que tomes unos minutos para escribir lo que tengas en mente."></textarea>
+
+      <div className="field-group">
+        <label htmlFor="message">Mensaje</label>
+        <textarea id="message" rows="6" placeholder="Contame brevemente qué necesitás, para qué lo querés y qué resultad o esperás."></textarea>
       </div>
-      <button type="submit" className="mt-5 btn-block Btn_Send">
-        Enviar
+
+      <button type="submit" className="Btn_Send">
+        Enviar consulta
       </button>
     </form>
   );
