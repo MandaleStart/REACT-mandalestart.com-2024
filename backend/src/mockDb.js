@@ -139,5 +139,42 @@ export const getMockAuthUserByToken = (token = '') => {
     return mockDb.authUsers.find((user) => user.provider === 'email') || null;
   }
 
+  if (token.startsWith('demo-register-token-')) {
+    return mockDb.authUsers.find((user) => user.uid === token.replace('demo-register-token-', '')) || null;
+  }
+
   return null;
+};
+
+export const createMockAuthUser = ({ email = '', password = '', provider = 'email', name = 'Usuario' } = {}) => {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  const existing = mockDb.authUsers.find((user) => user.email.toLowerCase() === normalizedEmail && user.provider === provider);
+  if (existing) {
+    return null;
+  }
+
+  const uid = `demo-${provider}-${Date.now()}`;
+  const user = {
+    uid,
+    email: normalizedEmail,
+    name: name || normalizedEmail.split('@')[0],
+    password: provider === 'email' ? password : null,
+    provider,
+    role: 'client',
+  };
+
+  mockDb.authUsers.push(user);
+  mockDb.clients.push({
+    uid,
+    name: user.name,
+    email: normalizedEmail,
+    services: [],
+  });
+
+  return user;
 };

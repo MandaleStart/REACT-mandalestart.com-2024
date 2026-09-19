@@ -2,26 +2,68 @@ import { useEffect, useMemo, useState } from 'react';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider, firebaseReady } from '../../firebase';
 import { getClientDataByEmail } from '../../data/clientAccounts';
+import {
+  getClientByEmailBackend,
+  getCurrentUserSession,
+  loginWithEmailBackend,
+  loginWithGoogleBackend,
+  registerWithEmailBackend,
+} from '../../services/authApi';
 import './client-area.css';
+
+const emptyForm = { name: '', email: 'clienteb@demo.com', password: 'demo1234' };
 
 const ClientArea = () => {
   const [user, setUser] = useState(null);
   const [clientData, setClientData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [authMode, setAuthMode] = useState('login');
+  const [form, setForm] = useState(emptyForm);
+  const [token, setToken] = useState(localStorage.getItem('mandalestart-token') || '');
+
+  const loadClientByEmail = async (email) => {
+    try {
+      const response = await getClientByEmailBackend(email);
+      setClientData(response || null);
+      return response || null;
+    } catch {
+      const fallback = getClientDataByEmail(email || '');
+      setClientData(fallback || null);
+      return fallback || null;
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const restoreSession = async () => {
+      try {
+        const session = await getCurrentUserSession(token);
+        setUser(session.user);
+        await loadClientByEmail(session.user.email);
+      } catch {
+        localStorage.removeItem('mandalestart-token');
+        setToken('');
+        setUser(null);
+        setClientData(null);
+      }
+    };
+
+    restoreSession();
+  }, [token]);
 
   useEffect(() => {
     if (!auth) return;
 
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
-        setClientData(null);
-        return;
-      }
-
-      const account = getClientDataByEmail(currentUser.email || '');
-      setClientData(account);
+      if (!currentUser) return;
+      setUser({
+        uid: currentUser.uid,
+        email: currentUser.email,
+        name: currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario',
+      });
+      loadClientByEmail(currentUser.email || '');
     });
 
     return () => unsubscribe();
@@ -40,26 +82,27 @@ const ClientArea = () => {
     );
   }, [clientData]);
 
-  const loginWithGoogle = async () => {
-    if (!auth || !googleProvider) {
-      setError('Firebase no está configurado. Agrega las variables de entorno del proyecto.');
-      return;
-    }
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEmailLogin = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      setLoading(true);
-      setError('');
-      const result = await signInWithPopup(auth, googleProvider);
-      const matchedClient = getClientDataByEmail(result.user?.email || '');
+      const response = await loginWithEmailBackend({
+        email: form.email,
+        password: form.password,
+      });
 
-      if (!matchedClient) {
-        await signOut(auth);
-        setClientData(null);
-        setError('Este usuario no tiene acceso al área de clientes.');
-        return;
-      }
-
-      setClientData(matchedClient);
+      const userData = response.user;
+      setUser(userData);
+      setToken(response.token);
+      localStorage.setItem('mandalestart-token', response.token);
+      await loadClientByEmail(userData.email);
     } catch (loginError) {
       setError(loginError?.message || 'No se pudo iniciar sesión.');
     } finally {
@@ -67,29 +110,68 @@ const ClientArea = () => {
     }
   };
 
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await registerWithEmailBackend({
+        email: form.email,
+        password: form.password,
+        name: form.name || form.email.split('@')[0],
+      });
+
+      const userData = response.user;
+      setUser(userData);
+      setToken(response.token);
+      localStorage.setItem('mandalestart-token', response.token);
+      await loadClientByEmail(userData.email);
+      setAuthMode('login');
+    } catch (loginError) {
+      setError(loginError?.message || 'No se pudo crear la cuenta.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      setError('Firebase no está configurado, pero puedes usar login con email y contraseña.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+      const result = await signInWithPopup(auth, googleProvider);
+      const response = await loginWithGoogleBackend({
+        idToken: result.user?.uid || 'google-demo-token',
+        email: result.user?.email || '',
+      });
+
+      const userData = response.user;
+      setUser(userData);
+      setToken(response.token);
+      localStorage.setItem('mandalestart-token', response.token);
+      await loadClientByEmail(userData.email);
+    } catch (loginError) {
+      setError(loginError?.message || 'No se pudo iniciar sesión con Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
-    if (!auth) return;
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth).catch(() => undefined);
+    }
+    localStorage.removeItem('mandalestart-token');
+    setToken('');
+    setUser(null);
     setClientData(null);
     setError('');
   };
-
-  if (!firebaseReady) {
-    return (
-      <main className="client-area-page">
-        <section className="client-login-shell">
-          <div className="login-card warning-card">
-            <span className="eyebrow">Configuración pendiente</span>
-            <h1>Firebase no está configurado</h1>
-            <p>
-              Agrega las variables VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN y demás en tu archivo .env
-              para activar el login con Google.
-            </p>
-          </div>
-        </section>
-      </main>
-    );
-  }
 
   if (!user || !clientData) {
     return (
@@ -97,17 +179,76 @@ const ClientArea = () => {
         <section className="client-login-shell">
           <div className="login-card">
             <span className="eyebrow">Atención al cliente</span>
-            <h1>Ingresá con Google para ver tus servicios.</h1>
+            <h1>{authMode === 'login' ? 'Ingresá a tu área de clientes' : 'Creá tu cuenta'}</h1>
             <p>
-              Cada cliente solo podrá acceder a los servicios asociados a su cuenta. Si compraste dominio, hosting,
-              mail o monitoreo, aparecerán aquí con costo, estado y vencimiento.
+              Podés entrar con correo y contraseña o continuar con Google si tu cuenta está configurada en Firebase.
             </p>
 
             {error && <div className="error-box">{error}</div>}
 
-            <button type="button" className="google-button" onClick={loginWithGoogle} disabled={loading}>
-              {loading ? 'Ingresando...' : 'Continuar con Google'}
-            </button>
+            <div className="auth-toggle" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+              <button type="button" className={authMode === 'login' ? 'secondary-button' : 'google-button'} onClick={() => setAuthMode('login')}>
+                Iniciar sesión
+              </button>
+              <button type="button" className={authMode === 'register' ? 'secondary-button' : 'google-button'} onClick={() => setAuthMode('register')}>
+                Registrarme
+              </button>
+            </div>
+
+            <form onSubmit={authMode === 'login' ? handleEmailLogin : handleRegister}>
+              {authMode === 'register' && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <label htmlFor="name">Nombre</label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={form.name}
+                    onChange={handleInputChange}
+                    placeholder="Tu nombre"
+                    style={{ width: '100%', marginTop: '0.35rem', padding: '0.7rem', borderRadius: '0.5rem' }}
+                  />
+                </div>
+              )}
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleInputChange}
+                  placeholder="cliente@demo.com"
+                  required
+                  style={{ width: '100%', marginTop: '0.35rem', padding: '0.7rem', borderRadius: '0.5rem' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label htmlFor="password">Contraseña</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  required
+                  style={{ width: '100%', marginTop: '0.35rem', padding: '0.7rem', borderRadius: '0.5rem' }}
+                />
+              </div>
+
+              <button type="submit" className="secondary-button" disabled={loading} style={{ width: '100%' }}>
+                {loading ? 'Procesando...' : authMode === 'login' ? 'Ingresar' : 'Crear cuenta'}
+              </button>
+            </form>
+
+            {firebaseReady && (
+              <button type="button" className="google-button" onClick={loginWithGoogle} disabled={loading} style={{ width: '100%', marginTop: '1rem' }}>
+                {loading ? 'Ingresando...' : 'Continuar con Google'}
+              </button>
+            )}
           </div>
         </section>
       </main>
@@ -119,7 +260,7 @@ const ClientArea = () => {
       <section className="client-hero client-logged-in">
         <div>
           <span className="eyebrow">Área de cliente</span>
-          <h1>Bienvenido, {clientData.name}</h1>
+          <h1>Bienvenido, {clientData.name || user.name || user.email}</h1>
           <p>
             Aquí verás solo los servicios asociados a tu cuenta, con costo, vencimiento y detalles relevantes.
           </p>
@@ -147,37 +288,48 @@ const ClientArea = () => {
       </section>
 
       <section className="services-client-list">
-        {clientData.services.map((service) => (
-          <article key={`${clientData.uid}-${service.type}`} className="client-service-card">
+        {clientData.services?.length ? (
+          clientData.services.map((service) => (
+            <article key={`${clientData.uid}-${service.type}`} className="client-service-card">
+              <div className="service-head">
+                <div>
+                  <span className="service-badge">{service.title}</span>
+                  <h2>{service.name}</h2>
+                </div>
+                <span className="service-status">{service.status}</span>
+              </div>
+
+              <div className="service-grid">
+                <div>
+                  <label>Costo</label>
+                  <strong>{service.cost}</strong>
+                </div>
+                <div>
+                  <label>Vencimiento</label>
+                  <strong>{service.expiry}</strong>
+                </div>
+              </div>
+
+              <div className="service-details">
+                {service.details?.map((detail) => (
+                  <div key={`${service.type}-${detail.label}`} className="detail-row">
+                    <span>{detail.label}</span>
+                    <strong>{detail.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))
+        ) : (
+          <article className="client-service-card">
             <div className="service-head">
               <div>
-                <span className="service-badge">{service.title}</span>
-                <h2>{service.name}</h2>
+                <span className="service-badge">Sin servicios</span>
+                <h2>Tu cuenta todavía no tiene servicios activos</h2>
               </div>
-              <span className="service-status">{service.status}</span>
-            </div>
-
-            <div className="service-grid">
-              <div>
-                <label>Costo</label>
-                <strong>{service.cost}</strong>
-              </div>
-              <div>
-                <label>Vencimiento</label>
-                <strong>{service.expiry}</strong>
-              </div>
-            </div>
-
-            <div className="service-details">
-              {service.details.map((detail) => (
-                <div key={`${service.type}-${detail.label}`} className="detail-row">
-                  <span>{detail.label}</span>
-                  <strong>{detail.value}</strong>
-                </div>
-              ))}
             </div>
           </article>
-        ))}
+        )}
       </section>
     </main>
   );

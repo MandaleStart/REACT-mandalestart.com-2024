@@ -11,6 +11,7 @@ import {
   getMockClientByEmail,
   getMockAuthUser,
   getMockAuthUserByToken,
+  createMockAuthUser,
 } from './mockDb.js';
 
 dotenv.config();
@@ -157,6 +158,42 @@ app.post('/api/auth/google', async (req, res) => {
   } catch (error) {
     console.error('Error en login con Google:', error);
     return res.status(500).json({ message: 'Error en login con Google', error: error.message });
+  }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+  const { email, password, name } = req.body || {};
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email y contraseña son obligatorios' });
+  }
+
+  try {
+    const user = createMockAuthUser({
+      email,
+      password,
+      provider: 'email',
+      name,
+    });
+
+    if (!user) {
+      return res.status(409).json({ message: 'Ya existe una cuenta con ese email' });
+    }
+
+    return res.status(201).json({
+      ok: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        name: user.name,
+        provider: 'email',
+        role: user.role,
+      },
+      token: `demo-register-token-${user.uid}`,
+    });
+  } catch (error) {
+    console.error('Error en registro:', error);
+    return res.status(500).json({ message: 'Error al crear la cuenta', error: error.message });
   }
 });
 
