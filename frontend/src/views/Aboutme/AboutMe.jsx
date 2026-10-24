@@ -3,25 +3,25 @@ import './about.css';
 const highlights = [
   {
     title: 'Desarrollo a medida',
-    text: 'Webs y herramientas que responden a una necesidad real: vender mejor, explicar mejor y operar con orden.',
+    text: 'Diseño y desarrollo sitios web y tiendas online según lo que necesita cada proyecto.',
   },
   {
     title: 'Enfoque técnico',
-    text: 'Diseño, rendimiento y mantenimiento con criterio para que todo funcione sin complicaciones.',
+    text: 'También me ocupo de la publicación, el hosting, los dominios y la configuración de redes.',
   },
   {
     title: 'Soporte real',
-    text: 'No se trata de entregar y olvidar: te acompaño en puesta en marcha, ajustes y evolución.',
+    text: 'Después de publicar, puedo ayudarte con cambios, mantenimiento y problemas técnicos.',
   },
 ];
 
 const values = [
-  'Sitios web corporativos',
-  'Landing pages y conversiones',
-  'Publicación online y DDNS',
-  'Monitoreo y diagnóstico de redes',
-  'Automatización y soporte técnico',
-  'Atención cercana y solución práctica',
+  'Sitios web y tiendas online',
+  'Landing pages',
+  'Hosting, dominios y correo',
+  'DDNS y acceso remoto',
+  'Servidores y redes',
+  'Mantenimiento y soporte técnico',
 ];
 
 const AboutMe = () => {
@@ -30,49 +30,49 @@ const AboutMe = () => {
       <section className="about-hero">
         <div className="about-copy">
           <span className="eyebrow">Sobre mí</span>
-          <h1>Diseño soluciones web y técnicas que sirven en la práctica.</h1>
+          <h1>Soy Nicolás. Desarrollo webs y también resuelvo lo que hay detrás.</h1>
           <p>
-            Soy Nicolás, desarrollador y técnico digital con foco en sitios web, infraestructura y acompañamiento
-            para negocios que quieren mejorar su presencia online sin caer en soluciones de relleno o sobrecargadas.
+            Trabajo en sitios web, hosting y redes. A veces el proyecto empieza con una web nueva; otras, con algo
+            que no funciona o que hace falta ordenar.
           </p>
           <p>
-            Mi enfoque combina diseño, programación, estrategia y soporte para que cada proyecto no solo se vea bien,
-            sino que funcione bien, sea claro para el usuario y ayude a vender, comunicar o operar mejor.
+            Antes de empezar, hablamos de lo que necesitás y definimos el alcance. Me ocupo del desarrollo o la
+            configuración y, si hace falta, seguimos con soporte.
           </p>
 
           <div className="about-metrics">
             <div>
-              <strong>+100</strong>
-              <span>proyectos/ideas</span>
+              <strong>Web</strong>
+              <span>Sitios y tiendas online</span>
             </div>
             <div>
-              <strong>360°</strong>
-              <span>visión digital</span>
+              <strong>Infraestructura</strong>
+              <span>Hosting, servidores y redes</span>
             </div>
             <div>
-              <strong>24/7</strong>
-              <span>apoyo técnico</span>
+              <strong>Soporte</strong>
+              <span>Puesta en marcha y mantenimiento</span>
             </div>
           </div>
         </div>
 
         <div className="about-card-stack">
           <div className="mini-profile-card">
-            <span className="badge">Especialización</span>
-            <h3>Web + tecnología + operación</h3>
+            <span className="badge">En qué trabajo</span>
+            <h3>Web y soporte técnico</h3>
             <ul>
-              <li>Frontend moderno</li>
-              <li>Servicios online</li>
-              <li>Infraestructura y red</li>
+              <li>Desarrollo web</li>
+              <li>Hosting y publicación</li>
+              <li>Redes y servidores</li>
             </ul>
           </div>
         </div>
       </section>
 
       <section className="about-grid">
-        {highlights.map(({ title, text }) => (
+        {highlights.map(({ title, text }, index) => (
           <article key={title} className="value-card">
-            <span className="card-index">0{highlights.indexOf({ title, text }) + 1}</span>
+            <span className="card-index">{String(index + 1).padStart(2, '0')}</span>
             <h3>{title}</h3>
             <p>{text}</p>
           </article>
@@ -82,7 +82,7 @@ const AboutMe = () => {
       <section className="about-panel">
         <div className="panel-copy">
           <span className="eyebrow small">¿Qué hago?</span>
-          <h2>Ayudo a que tus ideas se conviertan en herramientas reales.</h2>
+          <h2>En qué puedo ayudarte</h2>
         </div>
 
         <div className="panel-value-wrap">
@@ -93,8 +93,8 @@ const AboutMe = () => {
           </ul>
 
           <div className="cta-box">
-            <span>Estoy listo para ayudarte</span>
-            <strong>Si tenés una idea, te la convierto en algo útil y claro.</strong>
+            <span>¿Tenés algo en mente?</span>
+            <strong>Contame qué querés hacer o qué no está funcionando y vemos los próximos pasos.</strong>
           </div>
         </div>
       </section>
