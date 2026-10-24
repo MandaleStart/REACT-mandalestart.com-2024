@@ -134,6 +134,22 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.navbar-toggler {
+  border-color: rgba(228, 235, 255, 0.5);
+}
+
+.navbar-toggler-icon {
+  filter: brightness(0) invert(1);
+}
+
+.nav-dropdown-link:focus-visible,
+.nav-link:focus-visible,
+.nav-cta:focus-visible,
+.navbar-toggler:focus-visible {
+  outline: 2px solid #8fe0ff;
+  outline-offset: 3px;
+}
+
 @media (max-width: 1199.98px) {
   .navbar-nav {
     padding: 1rem 0 0.5rem;

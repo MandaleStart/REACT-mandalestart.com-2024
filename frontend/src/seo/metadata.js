@@ -1,10 +1,10 @@
-export const SITE_URL = 'https://mandalestart.com';
+export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://dev.mandalestart.com').replace(/\/$/, '');
 export const SOCIAL_IMAGE = `${SITE_URL}/img/og-cover.png`;
 export const DEFAULT_DESCRIPTION = 'Desarrollo web, hosting, dominios, SEO y soporte técnico para personas y negocios de todo Uruguay.';
 
 export const staticPages = {
   '/': {
-    title: 'Desarrollo web, hosting y soporte técnico en Uruguay | MandaleStart',
+    title: 'Diseño web y soporte técnico en Uruguay | MandaleStart',
     description: 'Diseño web, hosting, dominios, SEO, redes e impresión 3D para personas y negocios de todo Uruguay. Consultá por tu proyecto.',
   },
   '/aboutme': {
@@ -16,7 +16,7 @@ export const staticPages = {
     description: 'Contame qué necesitás para tu web, hosting, redes o proyecto 3D. Atención a personas y negocios de todo Uruguay.',
   },
   '/projects': {
-    title: 'Servicios y proyectos web, redes e impresión 3D | MandaleStart',
+    title: 'Soluciones web y técnicas en Uruguay | MandaleStart',
     description: 'Ejemplos de soluciones de desarrollo web, acceso remoto, monitoreo e impresión 3D disponibles en todo Uruguay.',
   },
   '/services': {

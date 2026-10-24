@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import './App.css';
@@ -20,7 +20,7 @@ import Seo from './components/Seo/Seo';
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Seo />
       <div className="app-shell">
         <Navbar />
@@ -42,7 +42,7 @@ function App() {
         <Footer />
         <SpeedInsights />
       </div>
-    </BrowserRouter>
+    </>
   );
 }
 

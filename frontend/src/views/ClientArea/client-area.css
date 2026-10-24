@@ -2,6 +2,254 @@
   padding: 2rem 0 4rem;
 }
 
+.client-login-shell {
+  display: grid;
+  min-height: 55vh;
+  place-items: center;
+}
+
+.login-card,
+.client-state-card {
+  width: min(100%, 620px);
+  padding: clamp(1.4rem, 4vw, 2.5rem);
+  border: 1px solid rgba(153, 170, 255, 0.2);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(76, 201, 240, 0.1), transparent 38%),
+    rgba(10, 15, 27, 0.94);
+  box-shadow: 0 24px 60px rgba(2, 6, 18, 0.3);
+}
+
+.login-card h1,
+.client-state-card h1 {
+  margin: 1rem 0 0.8rem;
+  color: #f4f8ff;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.login-card > p,
+.client-state-card > p {
+  color: rgba(224, 233, 255, 0.8);
+  line-height: 1.75;
+}
+
+.login-card label {
+  display: block;
+  color: rgba(228, 236, 255, 0.88);
+  font-weight: 600;
+}
+
+.login-card input {
+  min-height: 48px;
+  border: 1px solid rgba(155, 171, 255, 0.24);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f8ff;
+}
+
+.login-card input:focus-visible {
+  outline: 2px solid #8fe0ff;
+  outline-offset: 2px;
+}
+
+.login-card button,
+.client-state-actions > * {
+  min-height: 46px;
+}
+
+.client-login-note,
+.client-state-note {
+  margin-top: 1.2rem;
+  color: rgba(220, 232, 255, 0.7);
+  font-size: 0.92rem;
+}
+
+.client-login-note a,
+.client-state-card a:not(.primary-button):not(.secondary-button) {
+  color: #8fe0ff;
+}
+
+.error-box {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(255, 120, 120, 0.4);
+  border-radius: 14px;
+  background: rgba(180, 38, 38, 0.14);
+  color: #ffd6d6;
+  line-height: 1.6;
+}
+
+.client-success-box {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(99, 241, 178, 0.35);
+  border-radius: 14px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #b6f7d1;
+  line-height: 1.6;
+}
+
+.client-forgot-password {
+  display: block;
+  margin: 0.9rem auto 0;
+  padding: 0.3rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #8fe0ff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.client-forgot-password:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.client-loading-bar {
+  height: 5px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.client-loading-bar::after {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4cc9f0, #7a5cff);
+  content: '';
+  animation: client-loading 1.2s ease-in-out infinite alternate;
+}
+
+.client-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.client-state-actions .primary-button,
+.client-state-actions .secondary-button {
+  text-decoration: none;
+}
+
+.client-retry-button {
+  width: fit-content;
+  min-height: 44px;
+  margin-top: 1.2rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(153, 170, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #edf5ff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.client-retry-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.client-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.client-email {
+  color: rgba(220, 232, 255, 0.75);
+}
+
+.services-client-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.client-service-card {
+  padding: 1.4rem;
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 24px;
+  background: rgba(10, 15, 27, 0.88);
+}
+
+.service-head,
+.service-grid,
+.service-details,
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.service-head {
+  align-items: flex-start;
+  margin-bottom: 1.2rem;
+}
+
+.service-head h2 {
+  margin: 0.65rem 0 0;
+  color: #f4f8ff;
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.service-badge,
+.service-status {
+  display: inline-flex;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid rgba(153, 170, 255, 0.2);
+  border-radius: 999px;
+  color: #a7dafe;
+  font-size: 0.82rem;
+}
+
+.service-status {
+  flex-shrink: 0;
+  color: #a5f3c2;
+}
+
+.service-grid {
+  padding: 1rem 0;
+  border-top: 1px solid rgba(153, 170, 255, 0.12);
+  border-bottom: 1px solid rgba(153, 170, 255, 0.12);
+}
+
+.service-grid > div {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.service-grid label,
+.detail-row span {
+  color: rgba(220, 232, 255, 0.65);
+  font-size: 0.88rem;
+}
+
+.service-grid strong,
+.detail-row strong {
+  color: #f4f8ff;
+  overflow-wrap: anywhere;
+}
+
+.service-details {
+  flex-direction: column;
+  margin-top: 0.8rem;
+}
+
+.detail-row {
+  padding: 0.4rem 0;
+}
+
+@keyframes client-loading {
+  from { transform: translateX(-20%); }
+  to { transform: translateX(170%); }
+}
+
 .client-hero {
   display: flex;
   justify-content: space-between;
@@ -238,11 +486,16 @@
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
+  .stats-grid,
+  .services-client-list {
+    grid-template-columns: 1fr;
+  }
+
   .client-hero {
     display: flex;
     flex-direction: column;
@@ -255,5 +508,24 @@
 
   .activity-item span {
     grid-column: 2;
+  }
+
+  .client-actions,
+  .client-state-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .client-state-actions > * {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .service-head,
+  .service-grid,
+  .detail-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 async function apiRequest(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -20,37 +20,19 @@ async function apiRequest(path, options = {}) {
   return payload;
 }
 
-export async function registerWithEmailBackend({ email, password, name }) {
-  return apiRequest('/api/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, name }),
-  });
+export async function getBackendHealth() {
+  const health = await apiRequest('/api/health', { method: 'GET' });
+  if (!health || typeof health !== 'object' || health.ok !== true) {
+    throw new Error('El servicio de cuentas no respondió correctamente.');
+  }
+  return health;
 }
 
-export async function loginWithEmailBackend({ email, password }) {
-  return apiRequest('/api/auth/email', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-export async function loginWithGoogleBackend({ idToken, email }) {
-  return apiRequest('/api/auth/google', {
-    method: 'POST',
-    body: JSON.stringify({ idToken, email }),
-  });
-}
-
-export async function getCurrentUserSession(token) {
-  return apiRequest('/api/auth/me', {
+export async function getClientAccount(idToken) {
+  return apiRequest('/api/clients/me', {
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${idToken}`,
     },
   });
-}
-
-export async function getClientByEmailBackend(email) {
-  const cleanEmail = encodeURIComponent(email);
-  return apiRequest(`/api/clients/by-email?email=${cleanEmail}`);
 }

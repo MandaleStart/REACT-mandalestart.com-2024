@@ -1,17 +1,30 @@
 import './mail.css';
 
 const MailBox = () => {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  const getMessage = (form) => {
+    const formData = new FormData(form);
     const name = formData.get('name');
     const email = formData.get('email');
-    const service = formData.get('service');
+    const service = form.elements.service.selectedOptions[0]?.textContent || '';
     const message = formData.get('message');
+
+    return `Nombre: ${name}\nEmail: ${email}\nServicio: ${service}\n\nMensaje:\n${message}`;
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const service = event.currentTarget.elements.service.selectedOptions[0]?.textContent || '';
     const subject = `Consulta sobre ${service}`;
-    const body = `Nombre: ${name}\nEmail: ${email}\nServicio: ${service}\n\nMensaje:\n${message}`;
+    const body = getMessage(event.currentTarget);
 
     window.location.href = `mailto:info@mandalestart.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const handleWhatsApp = (event) => {
+    const form = event.currentTarget.form;
+    if (!form.reportValidity()) return;
+
+    window.location.href = `https://wa.me/59891598586?text=${encodeURIComponent(getMessage(form))}`;
   };
 
   return (
@@ -48,10 +61,14 @@ const MailBox = () => {
       </div>
 
       <p className="contact-form-note">
-        Se abrirá tu aplicación de correo con el mensaje preparado. Para enviarlo, confirmá el envío desde esa aplicación.
+        Por email, se abrirá tu aplicación con el mensaje preparado y vas a tener que confirmar el envío. Por WhatsApp,
+        se abrirá un chat con el mensaje listo para enviar.
       </p>
       <button type="submit" className="Btn_Send">
-        Preparar consulta
+        Preparar consulta por email
+      </button>
+      <button type="button" className="secondary-button" onClick={handleWhatsApp}>
+        Continuar por WhatsApp
       </button>
     </form>
   );

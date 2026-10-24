@@ -7,8 +7,6 @@ import { initFirebase, isFirebaseReady, getDb, verifyFirebaseToken } from './fir
 import {
   getMockServices,
   getMockServiceBySlug,
-  getMockClients,
-  getMockClientByEmail,
   getMockAuthUser,
   getMockAuthUserByToken,
   createMockAuthUser,
@@ -72,49 +70,38 @@ app.get('/api/services/:slug', async (req, res) => {
   }
 });
 
-app.get('/api/clients', async (req, res) => {
-  try {
-    if (isFirebaseReady() && getDb()) {
-      const snapshot = await getDb().collection('clients').get();
-      const clients = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      return res.json(clients);
-    }
-
-    return res.json(getMockClients());
-  } catch (error) {
-    console.error('Error al leer clientes:', error);
-    return res.status(500).json({ message: 'Error al obtener clientes', error: error.message });
+app.get('/api/clients/me', async (req, res) => {
+  if (!isFirebaseReady() || !getDb()) {
+    return res.status(503).json({ message: 'El acceso seguro al área de clientes todavía no está configurado' });
   }
-});
 
-app.get('/api/clients/by-email', async (req, res) => {
-  const email = String(req.query.email || '').trim();
-
-  if (!email) {
-    return res.status(400).json({ message: 'Debes enviar el parámetro email' });
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!token) {
+    return res.status(401).json({ message: 'Debes iniciar sesión para consultar tu cuenta' });
   }
 
   try {
-    if (isFirebaseReady() && getDb()) {
-      const snapshot = await getDb().collection('clients').where('email', '==', email).limit(1).get();
-
-      if (snapshot.empty) {
-        return res.status(404).json({ message: 'Cliente no encontrado' });
-      }
-
-      const client = snapshot.docs[0];
-      return res.json({ id: client.id, ...client.data() });
+    const decoded = await verifyFirebaseToken(token);
+    if (!decoded?.email || decoded.email_verified !== true) {
+      return res.status(401).json({ message: 'La sesión no es válida. Iniciá sesión nuevamente.' });
     }
 
-    const client = getMockClientByEmail(email);
-    if (!client) {
-      return res.status(404).json({ message: 'Cliente no encontrado' });
+    const snapshot = await getDb()
+      .collection('clients')
+      .where('email', '==', decoded.email)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: 'No encontramos servicios asociados a esta cuenta' });
     }
 
-    return res.json(client);
+    const client = snapshot.docs[0];
+    return res.json({ id: client.id, ...client.data() });
   } catch (error) {
-    console.error('Error al buscar cliente por email:', error);
-    return res.status(500).json({ message: 'Error al buscar cliente', error: error.message });
+    console.error('Error al obtener la cuenta del cliente:', error);
+    return res.status(500).json({ message: 'Error al obtener la información de tu cuenta' });
   }
 });
 
@@ -280,8 +267,7 @@ app.get('/', (req, res) => {
       '/api/health',
       '/api/services',
       '/api/services/:slug',
-      '/api/clients',
-      '/api/clients/by-email?email=clientea@demo.com',
+      '/api/clients/me',
     ],
   });
 });

@@ -64,9 +64,11 @@ GET /api/services/:slug
 ### Clientes
 
 ```http
-GET /api/clients
-GET /api/clients/by-email?email=usuario@ejemplo.com
+GET /api/clients/me
+Authorization: Bearer <Firebase ID token>
 ```
+
+El endpoint requiere un token Firebase válido con email verificado y devuelve únicamente la cuenta asociada a esa identidad. No se exponen rutas para listar clientes o buscar una cuenta mediante un email proporcionado por el visitante.
 
 ### Autenticación
 
@@ -79,8 +81,8 @@ GET /api/auth/me
 
 ## Notas importantes
 
-- El servicio se inicia en modo mock si no hay configuración de Firebase.
-- La estructura está preparada para migrar a Firebase real sin cambiar la API pública.
+- El servicio informa `mode: mock` si no hay configuración de Firebase. En ese modo el área de clientes no habilita el acceso a datos.
+- El portal requiere Firebase Authentication en el frontend y Firebase Admin/Firestore en el backend.
 - Los datos de prueba no deben usarse en producción.
 
 ## Seguridad

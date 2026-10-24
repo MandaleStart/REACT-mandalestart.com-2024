@@ -84,7 +84,9 @@ Crear un panel privado para clientes donde puedan consultar el estado del proyec
 - Todo cambio relevante debe quedar registrado en el log de actividad
 
 ## Estado actual del frontend
-La vista actual es un mock de diseño funcional para demostrar UX y estructura. Aún no está conectada a backend ni autenticación real.
+La interfaz inicia sesión mediante Firebase Authentication y consulta `GET /api/clients/me` con el ID token del usuario. El backend verifica el token, requiere un email confirmado y solo devuelve el registro asociado a esa identidad.
+
+Si el backend no responde o todavía funciona en modo mock, el portal muestra una pantalla de disponibilidad y no ofrece datos de demostración como si fueran una cuenta real. El formulario de registro público está deshabilitado; para solicitar acceso, el cliente debe contactar al administrador.
 
 ## Recomendación técnica
 - Backend en Node.js + Express o NestJS
@@ -94,4 +96,4 @@ La vista actual es un mock de diseño funcional para demostrar UX y estructura. 
 - Manejo de archivos con almacenamiento local o S3
 
 ## Siguiente paso
-Cuando se levante el backend, esta vista debe adaptarse para consumir datos reales desde la API, reemplazando los mocks actuales.
+Antes de habilitar el portal en producción, desplegar el backend, configurar Firebase Authentication/Firestore y las variables `VITE_API_BASE_URL`, `VITE_FIREBASE_*` y las credenciales seguras de Firebase Admin en el servidor.

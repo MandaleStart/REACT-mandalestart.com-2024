@@ -1,73 +1,112 @@
 import { useEffect, useMemo, useState } from 'react';
-import { signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider, firebaseReady } from '../../firebase';
-import { getClientDataByEmail } from '../../data/clientAccounts';
 import {
-  getClientByEmailBackend,
-  getCurrentUserSession,
-  loginWithEmailBackend,
-  loginWithGoogleBackend,
-  registerWithEmailBackend,
-} from '../../services/authApi';
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
+import { auth, googleProvider, firebaseReady } from '../../firebase';
+import { getBackendHealth, getClientAccount } from '../../services/authApi';
 import './client-area.css';
 
-const emptyForm = { name: '', email: 'clienteb@demo.com', password: 'demo1234' };
+const emptyForm = { email: '', password: '' };
 
 const ClientArea = () => {
   const [user, setUser] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [clientData, setClientData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState('checking');
+  const [authInitialized, setAuthInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [authMode, setAuthMode] = useState('login');
+  const [notice, setNotice] = useState('');
   const [form, setForm] = useState(emptyForm);
-  const [token, setToken] = useState(localStorage.getItem('mandalestart-token') || '');
-
-  const loadClientByEmail = async (email) => {
-    try {
-      const response = await getClientByEmailBackend(email);
-      setClientData(response || null);
-      return response || null;
-    } catch {
-      const fallback = getClientDataByEmail(email || '');
-      setClientData(fallback || null);
-      return fallback || null;
-    }
-  };
+  const [healthCheck, setHealthCheck] = useState(0);
+  const [accountRetry, setAccountRetry] = useState(0);
 
   useEffect(() => {
-    if (!token) return;
+    let active = true;
 
-    const restoreSession = async () => {
+    getBackendHealth()
+      .then((health) => {
+        if (!active) return;
+        if (health.firebaseReady !== true) {
+          setBackendStatus('demo');
+        } else {
+          setBackendStatus(firebaseReady ? 'ready' : 'misconfigured');
+        }
+      })
+      .catch(() => {
+        if (active) setBackendStatus('unavailable');
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [healthCheck]);
+
+  useEffect(() => {
+    if (!auth) {
+      setAuthInitialized(true);
+      setLoading(false);
+      return undefined;
+    }
+
+    return onAuthStateChanged(auth, (currentUser) => {
+      setFirebaseUser(currentUser);
+      setAuthInitialized(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!authInitialized || backendStatus === 'checking') return undefined;
+
+    if (!firebaseUser || backendStatus !== 'ready') {
+      setUser(null);
+      setClientData(null);
+      setError('');
+      setLoading(false);
+      return undefined;
+    }
+
+    const loadAccount = async () => {
+      setLoading(true);
+      setError('');
+
       try {
-        const session = await getCurrentUserSession(token);
-        setUser(session.user);
-        await loadClientByEmail(session.user.email);
-      } catch {
-        localStorage.removeItem('mandalestart-token');
-        setToken('');
-        setUser(null);
+        const idToken = await firebaseUser.getIdToken();
+        const account = await getClientAccount(idToken);
+        if (!active) return;
+
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: account.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Cliente',
+        });
+        setClientData(account);
+      } catch (accountError) {
+        if (!active) return;
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Cliente',
+        });
         setClientData(null);
+        setError(accountError?.message || 'No se pudo cargar la información de tu cuenta.');
+      } finally {
+        if (active) setLoading(false);
       }
     };
 
-    restoreSession();
-  }, [token]);
-
-  useEffect(() => {
-    if (!auth) return;
-
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (!currentUser) return;
-      setUser({
-        uid: currentUser.uid,
-        email: currentUser.email,
-        name: currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario',
-      });
-      loadClientByEmail(currentUser.email || '');
-    });
-
-    return () => unsubscribe();
-  }, []);
+    loadAccount();
+    return () => {
+      active = false;
+    };
+  }, [accountRetry, authInitialized, backendStatus, firebaseUser]);
 
   const totals = useMemo(() => {
     if (!clientData?.services) return { services: 0, expiresSoon: 0 };
@@ -89,128 +128,157 @@ const ClientArea = () => {
 
   const handleEmailLogin = async (event) => {
     event.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError('');
+    setNotice('');
 
     try {
-      const response = await loginWithEmailBackend({
-        email: form.email,
-        password: form.password,
-      });
-
-      const userData = response.user;
-      setUser(userData);
-      setToken(response.token);
-      localStorage.setItem('mandalestart-token', response.token);
-      await loadClientByEmail(userData.email);
+      if (!auth) throw new Error('El inicio de sesión no está configurado.');
+      await signInWithEmailAndPassword(auth, form.email.trim(), form.password);
     } catch (loginError) {
-      setError(loginError?.message || 'No se pudo iniciar sesión.');
+      setError(getFriendlyAuthError(loginError));
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await registerWithEmailBackend({
-        email: form.email,
-        password: form.password,
-        name: form.name || form.email.split('@')[0],
-      });
-
-      const userData = response.user;
-      setUser(userData);
-      setToken(response.token);
-      localStorage.setItem('mandalestart-token', response.token);
-      await loadClientByEmail(userData.email);
-      setAuthMode('login');
-    } catch (loginError) {
-      setError(loginError?.message || 'No se pudo crear la cuenta.');
-    } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   const loginWithGoogle = async () => {
     if (!auth || !googleProvider) {
-      setError('Firebase no está configurado, pero puedes usar login con email y contraseña.');
+      setError('El inicio de sesión con Google no está configurado.');
       return;
     }
 
     try {
-      setLoading(true);
+      setSubmitting(true);
       setError('');
-      const result = await signInWithPopup(auth, googleProvider);
-      const response = await loginWithGoogleBackend({
-        idToken: result.user?.uid || 'google-demo-token',
-        email: result.user?.email || '',
-      });
-
-      const userData = response.user;
-      setUser(userData);
-      setToken(response.token);
-      localStorage.setItem('mandalestart-token', response.token);
-      await loadClientByEmail(userData.email);
+      setNotice('');
+      await signInWithPopup(auth, googleProvider);
     } catch (loginError) {
-      setError(loginError?.message || 'No se pudo iniciar sesión con Google.');
+      setError(getFriendlyAuthError(loginError));
     } finally {
-      setLoading(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handlePasswordReset = async (event) => {
+    const emailInput = event.currentTarget.form.elements.email;
+    if (!emailInput.reportValidity()) return;
+
+    setSubmitting(true);
+    setError('');
+    setNotice('');
+    try {
+      if (!auth) throw new Error('La recuperación de contraseña no está configurada.');
+      await sendPasswordResetEmail(auth, form.email.trim());
+      setNotice('Si existe una cuenta con ese correo, te enviamos las instrucciones para restablecer la contraseña.');
+    } catch (resetError) {
+      setError(getFriendlyAuthError(resetError));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth).catch(() => undefined);
-    }
-    localStorage.removeItem('mandalestart-token');
-    setToken('');
-    setUser(null);
-    setClientData(null);
     setError('');
+    try {
+      if (auth) await signOut(auth);
+      setUser(null);
+      setClientData(null);
+    } catch (logoutError) {
+      setError(logoutError?.message || 'No se pudo cerrar la sesión.');
+    }
   };
 
+  if (!authInitialized || backendStatus === 'checking' || (firebaseUser && loading)) {
+    return (
+      <main className="client-area-page">
+        <section className="client-state-card" aria-live="polite">
+          <span className="eyebrow">Área de clientes</span>
+          <h1>Comprobando el acceso</h1>
+          <p>Estamos verificando la conexión y preparando la información de tu cuenta.</p>
+          <div className="client-loading-bar" role="status" aria-label="Cargando" />
+        </section>
+      </main>
+    );
+  }
+
+  if (backendStatus !== 'ready') {
+    const backendUnavailable = backendStatus === 'unavailable';
+    const backendMisconfigured = backendStatus === 'misconfigured';
+
+    return (
+      <main className="client-area-page">
+        <section className="client-state-card" role="status">
+          <span className="eyebrow">Área de clientes</span>
+          <h1>
+            {backendUnavailable
+              ? 'El portal todavía no está disponible'
+              : backendMisconfigured
+                ? 'Falta configurar el acceso'
+                : 'Acceso en preparación'}
+          </h1>
+          <p>
+            {backendUnavailable
+              ? 'El servicio de cuentas aún no está conectado. El backend de este portal todavía no está desplegado en un servidor.'
+              : backendMisconfigured
+                ? 'El backend está listo, pero falta configurar la autenticación de Firebase en el frontend.'
+                : 'El backend responde, pero todavía usa autenticación de demostración. No habilitamos el acceso a datos reales hasta configurar la autenticación segura.'}
+          </p>
+          <p className="client-state-note">
+            Tus servicios y datos no se consultan ni se guardan en este navegador. Escribinos y te ayudamos por un canal alternativo.
+          </p>
+          <div className="client-state-actions">
+            <a className="primary-button" href="mailto:info@mandalestart.com?subject=Consulta%20sobre%20el%20%C3%A1rea%20de%20clientes">
+              Contactar por email
+            </a>
+            <a className="secondary-button" href="https://wa.me/59891598586" target="_blank" rel="noreferrer">
+              Contactar por WhatsApp
+            </a>
+            <button type="button" className="client-retry-button" onClick={() => setHealthCheck((count) => count + 1)}>
+              Volver a comprobar
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   if (!user || !clientData) {
+    if (firebaseUser && error) {
+      return (
+        <main className="client-area-page">
+          <section className="client-state-card" role="alert">
+            <span className="eyebrow">Área de clientes</span>
+            <h1>No pudimos cargar tu cuenta</h1>
+            <p>{error}</p>
+            <div className="client-state-actions">
+              <button type="button" className="secondary-button" onClick={() => setAccountRetry((count) => count + 1)}>
+                Reintentar
+              </button>
+              <button type="button" className="secondary-button" onClick={handleLogout}>Cerrar sesión</button>
+              <a className="primary-button" href="mailto:info@mandalestart.com?subject=Problema%20con%20mi%20cuenta">
+                Pedir ayuda
+              </a>
+            </div>
+          </section>
+        </main>
+      );
+    }
+
     return (
       <main className="client-area-page">
         <section className="client-login-shell">
           <div className="login-card">
             <span className="eyebrow">Atención al cliente</span>
-            <h1>{authMode === 'login' ? 'Ingresá a tu área de clientes' : 'Creá tu cuenta'}</h1>
+            <h1>Ingresá a tu área de clientes</h1>
             <p>
-              Entrá con el correo y la contraseña de tu cuenta. Google está disponible para las cuentas configuradas.
+              Usá la cuenta que te indicamos para consultar los servicios asociados.
             </p>
 
-            {error && <div className="error-box">{error}</div>}
+            {error && <div className="error-box" role="alert">{error}</div>}
+            {notice && <div className="client-success-box" role="status">{notice}</div>}
 
-            <div className="auth-toggle" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-              <button type="button" className={authMode === 'login' ? 'secondary-button' : 'google-button'} onClick={() => setAuthMode('login')}>
-                Iniciar sesión
-              </button>
-              <button type="button" className={authMode === 'register' ? 'secondary-button' : 'google-button'} onClick={() => setAuthMode('register')}>
-                Registrarme
-              </button>
-            </div>
-
-            <form onSubmit={authMode === 'login' ? handleEmailLogin : handleRegister}>
-              {authMode === 'register' && (
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <label htmlFor="name">Nombre</label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={form.name}
-                    onChange={handleInputChange}
-                    placeholder="Tu nombre"
-                    style={{ width: '100%', marginTop: '0.35rem', padding: '0.7rem', borderRadius: '0.5rem' }}
-                  />
-                </div>
-              )}
-
+            <form onSubmit={handleEmailLogin}>
               <div style={{ marginBottom: '0.75rem' }}>
                 <label htmlFor="email">Email</label>
                 <input
@@ -219,7 +287,8 @@ const ClientArea = () => {
                   type="email"
                   value={form.email}
                   onChange={handleInputChange}
-                  placeholder="cliente@demo.com"
+                  autoComplete="username"
+                  placeholder="tu@email.com"
                   required
                   style={{ width: '100%', marginTop: '0.35rem', padding: '0.7rem', borderRadius: '0.5rem' }}
                 />
@@ -233,22 +302,29 @@ const ClientArea = () => {
                   type="password"
                   value={form.password}
                   onChange={handleInputChange}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   required
                   style={{ width: '100%', marginTop: '0.35rem', padding: '0.7rem', borderRadius: '0.5rem' }}
                 />
               </div>
 
-              <button type="submit" className="secondary-button" disabled={loading} style={{ width: '100%' }}>
-                {loading ? 'Procesando...' : authMode === 'login' ? 'Ingresar' : 'Crear cuenta'}
+              <button type="submit" className="secondary-button" disabled={submitting} style={{ width: '100%' }}>
+                {submitting ? 'Ingresando...' : 'Ingresar'}
+              </button>
+              <button type="button" className="client-forgot-password" onClick={handlePasswordReset} disabled={submitting}>
+                ¿Olvidaste tu contraseña?
               </button>
             </form>
 
             {firebaseReady && (
-              <button type="button" className="google-button" onClick={loginWithGoogle} disabled={loading} style={{ width: '100%', marginTop: '1rem' }}>
-                {loading ? 'Ingresando...' : 'Continuar con Google'}
+              <button type="button" className="google-button" onClick={loginWithGoogle} disabled={submitting} style={{ width: '100%', marginTop: '1rem' }}>
+                {submitting ? 'Ingresando...' : 'Continuar con Google'}
               </button>
             )}
+            <p className="client-login-note">
+              ¿Todavía no tenés acceso? <a href="mailto:info@mandalestart.com?subject=Acceso%20al%20%C3%A1rea%20de%20clientes">Contactanos</a>.
+            </p>
           </div>
         </section>
       </main>
@@ -275,7 +351,7 @@ const ClientArea = () => {
       <section className="stats-grid">
         <div className="stat-card">
           <strong>{totals.services}</strong>
-          <span>Servicios activos</span>
+          <span>Servicios asociados</span>
         </div>
         <div className="stat-card">
           <strong>{totals.expiresSoon}</strong>
@@ -334,5 +410,18 @@ const ClientArea = () => {
     </main>
   );
 };
+
+function getFriendlyAuthError(error) {
+  const messages = {
+    'auth/invalid-credential': 'El correo o la contraseña no son correctos.',
+    'auth/user-not-found': 'No encontramos una cuenta con ese correo.',
+    'auth/wrong-password': 'El correo o la contraseña no son correctos.',
+    'auth/too-many-requests': 'Hubo demasiados intentos. Esperá un momento y volvé a probar.',
+    'auth/popup-closed-by-user': 'Se cerró la ventana de inicio de sesión antes de completar el acceso.',
+    'auth/network-request-failed': 'No se pudo conectar con el servicio de autenticación. Revisá tu conexión.',
+  };
+
+  return messages[error?.code] || error?.message || 'No se pudo iniciar sesión.';
+}
 
 export default ClientArea;

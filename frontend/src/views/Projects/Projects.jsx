@@ -44,8 +44,8 @@ const Projects = () => {
   return (
     <main className="projects-page">
       <section className="projects-header">
-        <span className="eyebrow">Proyectos y soluciones</span>
-        <h1>        Ejemplos de soluciones que puedo desarrollar para tu proyecto.</h1>
+        <span className="eyebrow">Soluciones</span>
+        <h1>Soluciones que puedo desarrollar para tu proyecto.</h1>
         <p>
           Estos son ejemplos de servicios, no casos de clientes. Trabajo con personas y negocios de todo Uruguay; cada propuesta empieza por entender qué necesitás y acordar qué voy a entregar.
         </p>
