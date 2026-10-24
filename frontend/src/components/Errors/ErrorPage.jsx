@@ -8,7 +8,8 @@ const ErrorPage = () => {
       <div className="error-page-content">
         <h2 className="error-heading">Error 404 - Página no encontrada</h2>
         <p className="error-message">Lo sentimos, la página que estás buscando no existe.</p>
-        <p>¡Pero no te preocupes! Puedes volver a la <Link to="/" className="home-link">página principal</Link>.</p>
+        <p className="error-message">Esta dirección no lleva a una página disponible.</p>
+        <p>Volvé al <Link to="/" className="home-link">inicio</Link> para seguir navegando.</p>
       </div>
     </div>
   );

@@ -181,7 +181,7 @@ const ClientArea = () => {
             <span className="eyebrow">Atención al cliente</span>
             <h1>{authMode === 'login' ? 'Ingresá a tu área de clientes' : 'Creá tu cuenta'}</h1>
             <p>
-              Podés entrar con correo y contraseña o continuar con Google si tu cuenta está configurada en Firebase.
+              Entrá con el correo y la contraseña de tu cuenta. Google está disponible para las cuentas configuradas.
             </p>
 
             {error && <div className="error-box">{error}</div>}
@@ -260,9 +260,9 @@ const ClientArea = () => {
       <section className="client-hero client-logged-in">
         <div>
           <span className="eyebrow">Área de cliente</span>
-          <h1>Bienvenido, {clientData.name || user.name || user.email}</h1>
+          <h1>Hola, {clientData.name || user.name || user.email}</h1>
           <p>
-            Aquí verás solo los servicios asociados a tu cuenta, con costo, vencimiento y detalles relevantes.
+            Acá podés consultar los servicios asociados a tu cuenta, sus costos y fechas de vencimiento.
           </p>
         </div>
 
@@ -279,11 +279,11 @@ const ClientArea = () => {
         </div>
         <div className="stat-card">
           <strong>{totals.expiresSoon}</strong>
-          <span>Vencimientos</span>
+          <span>Con fecha de vencimiento</span>
         </div>
         <div className="stat-card">
-          <strong>Estado</strong>
-          <span>Todo operativo</span>
+          <strong>Cuenta</strong>
+          <span>Servicios registrados</span>
         </div>
       </section>
 
@@ -325,7 +325,7 @@ const ClientArea = () => {
             <div className="service-head">
               <div>
                 <span className="service-badge">Sin servicios</span>
-                <h2>Tu cuenta todavía no tiene servicios activos</h2>
+                <h2>Todavía no hay servicios asociados a esta cuenta</h2>
               </div>
             </div>
           </article>

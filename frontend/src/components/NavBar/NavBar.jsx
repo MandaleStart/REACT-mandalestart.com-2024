@@ -16,7 +16,7 @@ const Navbar = () => {
     { to: '/services', label: 'Todos los servicios' },
     { to: '/services/web', label: 'Desarrollo web' },
     { to: '/services/hosting', label: 'Hosting web' },
-    { to: '/services/email', label: 'Email / mail' },
+    { to: '/services/email', label: 'Correo empresarial' },
     { to: '/services/domains', label: 'Dominios' },
     { to: '/services/seo', label: 'SEO' },
     { to: '/services/ddns', label: 'DDNS' },
@@ -31,7 +31,7 @@ const Navbar = () => {
             <span className="brand-mark">M</span>
             <span>
               <strong>MandaleStart</strong>
-              <small>Growth Studio</small>
+              <small>Web y soporte técnico</small>
             </span>
           </Link>
 
@@ -69,7 +69,7 @@ const Navbar = () => {
               </div>
 
               <Link className="nav-cta" to="/contact">
-                Cotizar proyecto
+                Pedir presupuesto
               </Link>
             </div>
           </div>

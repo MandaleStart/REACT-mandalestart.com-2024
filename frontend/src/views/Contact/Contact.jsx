@@ -6,25 +6,24 @@ const Contact = () => {
     <main className="contact-page">
       <section className="contact-header">
         <span className="eyebrow">Contacto</span>
-        <h1>Hablemos de lo que necesitás resolver.</h1>
+        <h1>Contame qué necesitás resolver.</h1>
         <p>
-          Si tenés una idea, un proyecto en marcha o un problema técnico que te está frenando,
-          te ayudo a entender qué hace falta y a armar la solución más clara y útil para tu negocio.
+          Puede ser una web nueva, un proyecto en marcha o un problema técnico. Contame un poco y vemos qué hace falta.
         </p>
       </section>
 
       <section className="contact-trustbar">
         <div>
-          <strong>Respuesta rápida</strong>
-          <span>Primer contacto en menos de 24 hs</span>
+          <strong>Primer paso</strong>
+          <span>Contame qué necesitás y en qué plazo</span>
         </div>
         <div>
-          <strong>Proyecto claro</strong>
-          <span>Reunión para definir alcance y objetivos</span>
+          <strong>Alcance y presupuesto</strong>
+          <span>Los definimos antes de empezar</span>
         </div>
         <div>
-          <strong>Sin rodeos</strong>
-          <span>Soluciones útiles, prácticas y orientadas a vender</span>
+          <strong>Próximos pasos</strong>
+          <span>Te cuento cómo podemos avanzar</span>
         </div>
       </section>
 

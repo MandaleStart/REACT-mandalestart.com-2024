@@ -13,7 +13,7 @@ function CV() {
             <div className="cv-container">
                 {/* Sección de Extracto */}
                 <section className="extracto">
-                    <h2>Extracto</h2>
+                    <h2>Perfil</h2>
                     <p>{extracto}</p>
                 </section>
                 <div className="column column-1">
@@ -48,7 +48,7 @@ function CV() {
                     </section>
                     {/* Sección de Experiencia */}
                     <section className='section-cv experiencia'>
-                        <h2>Experiencia Profesional</h2>
+                        <h2>Experiencia</h2>
                         {experiencia.map((exp, index) => (
                             <div key={index}>
                                 <h3>{exp.empresa}</h3>
@@ -80,7 +80,7 @@ function CV() {
                                         </span>
                                     </div>
                                     <div className="certificacion-nota">
-                                        Nota: {certificacion.nota}
+                                        {certificacion.nota && `Nota: ${certificacion.nota}`}
                                     </div>
                                 </li>
                             ))}

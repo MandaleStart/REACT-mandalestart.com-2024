@@ -6,15 +6,12 @@ export const contacto = {
 };
 
 export const extracto = `
-¡Hola! Soy Nicolás, apasionado por el desarrollo web y la creación de videojuegos. Comencé mi formación como Desarrollador Web Front End en el programa "Jóvenes a Programar" de Ceibal, y actualmente me sigo formando en Coderhouse como Fullstack Developer y en Coursera con varios cursos de diseño de videojuegos, C# entre otros.
+Soy Nicolás. Empecé mi formación en desarrollo web frontend en el programa Jóvenes a Programar de Ceibal. Actualmente sigo estudiando desarrollo full stack en Coderhouse y cursos de diseño de videojuegos y C# en Coursera.
 
-Mi meta profesional es especializarme en el desarrollo de videojuegos, por lo que dedico gran parte de mi tiempo libre a aprender más sobre  programacion y videojuegos.
+Me interesa especializarme en el desarrollo de videojuegos y sigo aprendiendo sobre programación y diseño.
 
-Además, disfruto mucho ayudando en problemas de soporte técnico, especialmente si implica "ensuciarme las manos" con herramientas como un destornillador. En el restp de mi tiempo libre, me gusta practicar mis habiliades de DJ y tocar la guitarra o bajo, leer libros de psicología y crear objetos en blender para impresión 3D, lo que me permite explorar la creatividad y entender mejor a las personas.
-
-Me considero una persona proactiva, adaptable y siempre dispuesta a enfrentar nuevos desafíos.
-
-  `;
+También me gusta el soporte técnico, sobre todo cuando requiere revisar los equipos de cerca. En mi tiempo libre practico como DJ, toco la guitarra y el bajo, leo sobre psicología y hago modelos en Blender para impresión 3D.
+`;
 
 export const habilidades = [
     "Lenguajes Web: HTML, CSS, JavaScript , C#",

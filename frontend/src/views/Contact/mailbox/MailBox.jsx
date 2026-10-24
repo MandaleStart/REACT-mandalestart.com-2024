@@ -17,10 +17,10 @@ const MailBox = () => {
       <div className="field-group">
         <label htmlFor="subject">Servicio</label>
         <select id="subject" defaultValue="">
-          <option value="" disabled>Selecciona una opción</option>
+          <option value="" disabled>Elegí una opción</option>
           <option value="web">Desarrollo web</option>
           <option value="ddns">DDNS / hosting</option>
-          <option value="red">Monitoreo de red</option>
+          <option value="red">Redes y servidores</option>
           <option value="impresion">Impresión 3D</option>
           <option value="otro">Otro</option>
         </select>
@@ -28,7 +28,7 @@ const MailBox = () => {
 
       <div className="field-group">
         <label htmlFor="message">Mensaje</label>
-        <textarea id="message" rows="6" placeholder="Contame brevemente qué necesitás, para qué lo querés y qué resultad o esperás."></textarea>
+        <textarea id="message" rows="6" placeholder="Contame qué necesitás, para cuándo y qué resultado esperás."></textarea>
       </div>
 
       <button type="submit" className="Btn_Send">

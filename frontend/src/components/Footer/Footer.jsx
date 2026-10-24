@@ -23,13 +23,10 @@ const Footer = () => {
             <span className="brand-mark">M</span>
             <span>
               <strong>MandaleStart</strong>
-              <small>Growth Studio</small>
+              <small>Web y soporte técnico</small>
             </span>
           </div>
-          <p>
-            Soluciones digitales para negocios que quieren crecer con automatización,
-            presencia online y tecnología confiable.
-          </p>
+          <p>Desarrollo web, hosting y soporte técnico desde Canelones, Uruguay.</p>
         </div>
 
         <div className="footer-links">
@@ -44,9 +41,9 @@ const Footer = () => {
         <div className="footer-links">
           <h6>Servicios</h6>
           <span>Desarrollo web</span>
-          <span>DDNS y hosting</span>
-          <span>Monitoreo de red</span>
-          <span>Impresión 3D</span>
+          <span>Hosting, dominios y correo</span>
+          <span>Redes y servidores</span>
+          <span>Prototipos 3D</span>
         </div>
 
         <div className="footer-contact">

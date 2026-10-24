@@ -7,17 +7,16 @@ const Services = () => {
     <main className="services-page">
       <section className="services-hero">
         <span className="eyebrow">Servicios</span>
-        <h1>Soluciones digitales y técnicas para operar con más claridad.</h1>
+        <h1>Servicios web y soporte técnico.</h1>
         <p>
-          Desarrollo web, hosting, SEO, infraestructura y soporte pensado para que tu negocio esté online,
-          sea más confiable y te ayude a vender sin complicaciones técnicas.
+          Desarrollo de sitios, hosting, correo, dominios y ayuda con redes y servidores. Consultá cada servicio para ver qué incluye y su precio.
         </p>
 
         <div className="services-summary">
-          <span>Web premium</span>
-          <span>DNS & acceso online</span>
-          <span>Monitoreo</span>
-          <span>3D</span>
+          <span>Desarrollo web</span>
+          <span>Hosting y dominios</span>
+          <span>Redes y servidores</span>
+          <span>SEO</span>
         </div>
       </section>
 

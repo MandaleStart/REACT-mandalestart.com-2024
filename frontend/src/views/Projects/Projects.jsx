@@ -1,41 +1,42 @@
+import { Link } from 'react-router-dom';
 import './projects.css';
 
 const projects = [
   {
     category: 'Web',
-    title: 'Landing profesional',
-    description: 'Sitio institucional con enfoque comercial para captar clientes y vender servicios de forma clara y convincente.',
+    title: 'Sitio o landing page',
+    description: 'Una página para explicar qué ofrecés, responder dudas frecuentes y facilitar el contacto.',
     accent: 'cyan',
-    tag: 'Conversión',
-    metrics: ['UX premium', 'SEO técnico', 'Lead capture'],
-    result: '+38% de leads',
+    tag: 'Desarrollo web',
+    metrics: ['Contenido y estructura', 'Diseño adaptable', 'Vías de contacto'],
+    scope: 'Sitios y landing pages',
   },
   {
     category: 'DDNS',
-    title: 'Publicación online',
-    description: 'Configuración de DNS dinámico y publicación de servicios para que infraestructura y proyectos estén siempre accesibles.',
+    title: 'Acceso remoto',
+    description: 'Configuración de DNS dinámico para acceder a equipos y servicios fuera de la red local.',
     accent: 'orange',
     tag: 'Infraestructura',
-    metrics: ['DNS dinámico', 'Acceso remoto', 'Disponibilidad'],
-    result: '99.9% estable',
+    metrics: ['DNS dinámico', 'Configuración de red', 'Acceso remoto'],
+    scope: 'DDNS e infraestructura',
   },
   {
     category: 'Red',
-    title: 'Monitoreo y diagnóstico',
-    description: 'Supervisión de disponibilidad, alertas y análisis para mantener la red estable y detectar problemas antes de que escalen.',
+    title: 'Redes y servidores',
+    description: 'Revisión de equipos y servicios, con alertas para identificar cuándo algo deja de responder.',
     accent: 'green',
     tag: 'Monitoreo',
-    metrics: ['Alertas', 'Diagnóstico', 'Estabilidad'],
-    result: 'Menos caídas',
+    metrics: ['Revisión técnica', 'Alertas', 'Diagnóstico'],
+    scope: 'Monitoreo y soporte',
   },
   {
     category: '3D',
-    title: 'Prototipos funcionales',
-    description: 'Materialización de ideas, piezas prácticas y proyectos creativos para uso real o prueba de concepto.',
+    title: 'Piezas y prototipos 3D',
+    description: 'Modelado y fabricación de piezas para probar una idea, revisar medidas o resolver una necesidad concreta.',
     accent: 'purple',
     tag: 'Fabricación',
-    metrics: ['Prototipos', 'Iteración rápida', 'Uso real'],
-    result: 'Idea validada',
+    metrics: ['Modelado 3D', 'Impresión', 'Ajustes de diseño'],
+    scope: 'Prototipado',
   },
 ];
 
@@ -44,30 +45,29 @@ const Projects = () => {
     <main className="projects-page">
       <section className="projects-header">
         <span className="eyebrow">Proyectos y soluciones</span>
-        <h1>Diseño, infraestructura y soporte técnico en un mismo ecosistema.</h1>
+        <h1>Algunos trabajos que puedo hacer para tu proyecto.</h1>
         <p>
-          Cada proyecto se diseña para resolver una necesidad real: mejorar presencia online,
-          simplificar acceso a servicios o hacer que la operación tecnológica sea más estable.
+          Estos son ejemplos de alcance, no resultados de clientes. Cada trabajo empieza por entender qué necesitás y acordar qué se va a entregar.
         </p>
       </section>
 
       <section className="projects-stats">
         <div className="projects-stat">
-          <strong>+100</strong>
-          <span>ideas convertidas</span>
+          <strong>Web</strong>
+          <span>Sitios y landing pages</span>
         </div>
         <div className="projects-stat">
-          <strong>360°</strong>
-          <span>visión digital y técnica</span>
+          <strong>Redes</strong>
+          <span>DDNS, redes y servidores</span>
         </div>
         <div className="projects-stat">
-          <strong>24/7</strong>
-          <span>apoyo operativo</span>
+          <strong>3D</strong>
+          <span>Modelado y prototipos</span>
         </div>
       </section>
 
       <section className="projects-grid">
-        {projects.map(({ category, title, description, accent, tag, metrics, result }) => (
+        {projects.map(({ category, title, description, accent, tag, metrics, scope }) => (
           <article key={title} className={`project-card ${accent}`}>
             <div className="project-topline">
               <span>{category}</span>
@@ -83,8 +83,8 @@ const Projects = () => {
             </div>
 
             <div className="project-footer">
-              <span className="project-result">{result}</span>
-              <button type="button" className="project-button">Más información</button>
+              <span className="project-result">{scope}</span>
+              <Link to="/contact" className="project-button">Consultar</Link>
             </div>
           </article>
         ))}
