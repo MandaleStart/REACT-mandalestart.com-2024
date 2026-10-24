@@ -5,59 +5,59 @@ const services = [
   {
     icon: '💻',
     title: 'Desarrollo web',
-    description: 'Webs, landing pages y storefronts pensados para vender, explicar bien y convertir más.',
+    description: 'Sitios, landing pages y tiendas online para que tus clientes entiendan qué ofrecés y sepan cómo contactarte.',
     accent: 'cyan',
   },
   {
     icon: '🌐',
     title: 'Hosting web',
-    description: 'Alojamiento estable y mantenido para que tu sitio esté online, rápido y sin dolores de cabeza.',
+    description: 'Alojamiento y mantenimiento para que tu sitio esté disponible y al día.',
     accent: 'blue',
   },
   {
     icon: '📧',
     title: 'Email corporativo',
-    description: 'Correos con tu dominio para reforzar la imagen profesional del negocio y ordenar la comunicación.',
+    description: 'Cuentas de correo con tu dominio, configuradas para el trabajo diario.',
     accent: 'orange',
   },
   {
     icon: '🧭',
     title: 'Dominios',
-    description: 'Registro, renovación y gestión de nombres web para dejar la marca bien posicionada online.',
+    description: 'Registro y renovación de dominios. Te ayudamos a elegir y mantener el nombre de tu web.',
     accent: 'purple',
   },
   {
     icon: '📈',
     title: 'SEO',
-    description: 'Optimización técnica y de contenido para que te encuentren en buscadores y ganes más oportunidades.',
+    description: 'Revisamos la estructura y el contenido de tu sitio para facilitar que aparezca en buscadores.',
     accent: 'green',
   },
   {
     icon: '🔐',
     title: 'DDNS + acceso remoto',
-    description: 'Configuración segura de redes, servicios y acceso remoto para operar sin fricción.',
+    description: 'Configuración de DDNS y acceso remoto para conectarte con tus equipos y servicios desde fuera.',
     accent: 'red',
   },
 ];
 
 const infrastructure = [
-  { title: 'Servidores', text: 'Instalación, gestión y mantenimiento para que tus servicios sigan en funcionamiento.' },
-  { title: 'Routers / redes', text: 'Configuración sólida de redes, VLAN y conectividad para operar con menos fricción.' },
-  { title: 'Domótica', text: 'Automatización y control de ambientes con soluciones prácticas y bien integradas.' },
-  { title: 'Monitoreo', text: 'Supervisión constante para detectar fallas antes de que te afecten al negocio.' },
+  { title: 'Servidores', text: 'Instalación, configuración y mantenimiento de servidores.' },
+  { title: 'Routers / redes', text: 'Configuración de routers, redes y VLAN para conectar tus equipos y servicios.' },
+  { title: 'Domótica', text: 'Automatización y control de ambientes, adaptados a lo que necesitás.' },
+  { title: 'Monitoreo', text: 'Configuración de alertas para detectar problemas en servidores y servicios.' },
 ];
 
 const steps = [
-  { number: '01', title: 'Diagnóstico', text: 'Revisamos tu objetivo, tu público y la parte técnica para definir qué realmente hace falta.' },
-  { number: '02', title: 'Diseño', text: 'Armamos una propuesta clara, útil y alineada con tu marca y tus metas de negocio.' },
-  { number: '03', title: 'Desarrollo', text: 'Construimos la solución con foco en rendimiento, estabilidad y experiencia de uso.' },
-  { number: '04', title: 'Soporte', text: 'Te acompañamos después de la entrega con ajustes, mantenimiento y evolución continua.' },
+  { number: '01', title: 'Nos contás', text: 'Vemos qué necesitás y qué tenés hoy. Con eso, definimos por dónde conviene empezar.' },
+  { number: '02', title: 'Lo acordamos', text: 'Te detallamos el alcance, los tiempos y el presupuesto antes de empezar.' },
+  { number: '03', title: 'Lo ponemos en marcha', text: 'Desarrollamos o configuramos lo acordado y te mostramos cómo queda.' },
+  { number: '04', title: 'Seguimos en contacto', text: 'Después de la entrega, podés consultarnos por ajustes, mantenimiento o soporte.' },
 ];
 
 const stats = [
-  { value: '360°', label: 'Estrategia digital y técnica' },
-  { value: 'Web', label: 'Especialización principal' },
-  { value: '24/7', label: 'Monitoreo y soporte' },
+  { value: 'Web', label: 'Sitios y tiendas online' },
+  { value: 'Hosting', label: 'Dominios y correo' },
+  { value: 'Redes', label: 'Servidores y soporte' },
 ];
 
 const Home = () => {
@@ -67,22 +67,22 @@ const Home = () => {
         <div className="hero-copy">
           <span className="eyebrow">Web • Hosting • SEO • Infraestructura</span>
           <h1>
-            Soluciones digitales para <span className="gradient-text">que tu negocio se vea claro, esté online y venda mejor.</span>
+            Ponemos en marcha tu web <span className="gradient-text">y nos ocupamos de la parte técnica.</span>
           </h1>
           <p>
-            MandaleStart ayuda a empresas y proyectos a dejar su presencia online ordenada, rápida y profesional:
-            desde la web y el dominio hasta la infraestructura, el SEO y el soporte técnico que la sostiene.
+            Diseñamos sitios y tiendas online, y también resolvemos lo que hay detrás: dominio, hosting, correo, SEO y redes.
+            Si no sabés por dónde empezar, contanos qué necesitás y lo vemos.
           </p>
 
           <div className="hero-actions">
-            <Link to="/contact" className="primary-button">Solicitar presupuesto</Link>
+            <Link to="/contact" className="primary-button">Pedir presupuesto</Link>
             <Link to="/services" className="secondary-button">Ver servicios</Link>
           </div>
 
           <ul className="hero-proof">
-            <li>Presencia online profesional</li>
-            <li>Hosting y dominio</li>
-            <li>Infraestructura y soporte</li>
+            <li>Webs y tiendas online</li>
+            <li>Dominios, hosting y correo</li>
+            <li>Redes y soporte técnico</li>
           </ul>
         </div>
 
@@ -96,19 +96,19 @@ const Home = () => {
 
             <div className="panel-body">
               <div className="mini-card large">
-                <span className="label">Operación</span>
-                <strong>+28%</strong>
-                <small>mejora de visibilidad y uptime</small>
+                <span className="label">Servicios</span>
+                <strong>Web + hosting</strong>
+                <small>Dominio, correo y soporte técnico</small>
               </div>
 
               <div className="mini-grid">
                 <div className="mini-card">
-                  <span className="label">Web</span>
-                  <strong>Online</strong>
+                  <span className="label">Redes</span>
+                  <strong>Configuración</strong>
                 </div>
                 <div className="mini-card accent">
                   <span className="label">SEO</span>
-                  <strong>Visible</strong>
+                  <strong>Contenido y técnica</strong>
                 </div>
               </div>
 
@@ -135,7 +135,7 @@ const Home = () => {
       <section className="services-section">
         <div className="section-heading">
           <span className="eyebrow small">Lo que ofrecemos</span>
-          <h2>Todo lo necesario para estar online y operar mejor.</h2>
+          <h2>Servicios para tu web y la tecnología que usás todos los días.</h2>
         </div>
 
         <div className="services-grid">
@@ -152,7 +152,7 @@ const Home = () => {
       <section className="infrastructure-section">
         <div className="section-heading left-align">
           <span className="eyebrow small">Infraestructura</span>
-          <h2>Monitoreo y soporte para servidores, redes y automatización.</h2>
+          <h2>También trabajamos con servidores, redes y automatización.</h2>
         </div>
 
         <div className="infrastructure-grid">
@@ -184,8 +184,8 @@ const Home = () => {
 
       <section className="cta-band">
         <div>
-          <span className="eyebrow small">¿Necesitás tu presencia online clara y funcionando?</span>
-          <h2>Te ayudamos a armar una solución web, técnica y operativa que realmente sirva.</h2>
+          <span className="eyebrow small">¿Qué necesitás resolver?</span>
+          <h2>Contanos qué querés hacer o qué está fallando. Vemos juntos los próximos pasos.</h2>
         </div>
         <Link to="/contact" className="primary-button large">Hablemos de tu proyecto</Link>
       </section>

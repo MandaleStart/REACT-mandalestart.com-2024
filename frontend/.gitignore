@@ -1,0 +1,14 @@
+# Dependencias
+node_modules/
+
+# Build
+/dist/
+.vite/
+
+# Variables de entorno
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*

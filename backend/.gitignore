@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno
+.env
+.env.*
+
+# Credenciales locales
+credentials/
+credentials/*.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos temporales
+.DS_Store

@@ -1,2 +1,29 @@
-/node_modules
-dist
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Build
+/dist/
+**/dist/
+.vite/
+**/.vite/
+
+# Variables de entorno
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Credenciales locales
+backend/credentials/
+backend/credentials/*.json
+frontend/.env.local
+backend/.env.local
+frontend/README.md
