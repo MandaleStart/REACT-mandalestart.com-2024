@@ -24,6 +24,12 @@
   line-height: 1.8;
 }
 
+.services-pricing-note {
+  margin-top: 1.25rem;
+  color: rgba(220, 232, 255, 0.72);
+  line-height: 1.7;
+}
+
 .services-summary,
 .service-detail-points {
   display: flex;

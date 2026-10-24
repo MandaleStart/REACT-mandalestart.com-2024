@@ -5,53 +5,59 @@ const services = [
   {
     icon: '💻',
     title: 'Desarrollo web',
-    description: 'Sitios, landing pages y tiendas online para que tus clientes entiendan qué ofrecés y sepan cómo contactarte.',
+    description: 'Diseño sitios, landing pages y tiendas online para que tus clientes entiendan qué ofrecés y sepan cómo contactarte.',
     accent: 'cyan',
   },
   {
     icon: '🌐',
     title: 'Hosting web',
-    description: 'Alojamiento y mantenimiento para que tu sitio esté disponible y al día.',
+    description: 'Alojo y mantengo tu sitio para que esté disponible y al día.',
     accent: 'blue',
   },
   {
     icon: '📧',
-    title: 'Email corporativo',
-    description: 'Cuentas de correo con tu dominio, configuradas para el trabajo diario.',
+    title: 'Correo corporativo',
+    description: 'Configuro cuentas de correo con tu dominio para el trabajo diario.',
     accent: 'orange',
   },
   {
     icon: '🧭',
     title: 'Dominios',
-    description: 'Registro y renovación de dominios. Te ayudamos a elegir y mantener el nombre de tu web.',
+    description: 'Gestiono el registro y la renovación de dominios, y te asesoro para elegir el nombre de tu web.',
     accent: 'purple',
   },
   {
     icon: '📈',
     title: 'SEO',
-    description: 'Revisamos la estructura y el contenido de tu sitio para facilitar que aparezca en buscadores.',
+    description: 'Reviso la estructura y el contenido de tu sitio para facilitar que los buscadores lo entiendan.',
     accent: 'green',
   },
   {
     icon: '🔐',
     title: 'DDNS + acceso remoto',
-    description: 'Configuración de DDNS y acceso remoto para conectarte con tus equipos y servicios desde fuera.',
+    description: 'Configuro DDNS y acceso remoto para que te conectes con tus equipos y servicios desde fuera.',
     accent: 'red',
+  },
+  {
+    icon: '🧩',
+    title: 'Diseño e impresión 3D',
+    description: 'Diseño y fabrico piezas y prototipos 3D según las medidas y el uso que necesitás.',
+    accent: 'purple',
   },
 ];
 
 const infrastructure = [
-  { title: 'Servidores', text: 'Instalación, configuración y mantenimiento de servidores.' },
-  { title: 'Routers / redes', text: 'Configuración de routers, redes y VLAN para conectar tus equipos y servicios.' },
-  { title: 'Domótica', text: 'Automatización y control de ambientes, adaptados a lo que necesitás.' },
-  { title: 'Monitoreo', text: 'Configuración de alertas para detectar problemas en servidores y servicios.' },
+  { title: 'Servidores', text: 'Instalo, configuro y mantengo servidores según las necesidades de tu proyecto.' },
+  { title: 'Routers y redes', text: 'Configuro routers y VLAN para conectar tus equipos y servicios.' },
+  { title: 'Domótica', text: 'Automatizo dispositivos y rutinas en tu casa o espacio de trabajo.' },
+  { title: 'Monitoreo', text: 'Configuro alertas para detectar cuándo un servidor o servicio deja de responder.' },
 ];
 
 const steps = [
-  { number: '01', title: 'Nos contás', text: 'Vemos qué necesitás y qué tenés hoy. Con eso, definimos por dónde conviene empezar.' },
-  { number: '02', title: 'Lo acordamos', text: 'Te detallamos el alcance, los tiempos y el presupuesto antes de empezar.' },
-  { number: '03', title: 'Lo ponemos en marcha', text: 'Desarrollamos o configuramos lo acordado y te mostramos cómo queda.' },
-  { number: '04', title: 'Seguimos en contacto', text: 'Después de la entrega, podés consultarnos por ajustes, mantenimiento o soporte.' },
+  { number: '01', title: 'Me contás', text: 'Vemos qué necesitás y qué tenés hoy. Con eso, definimos por dónde conviene empezar.' },
+  { number: '02', title: 'Acordamos el trabajo', text: 'Te detallo el alcance, los tiempos y el presupuesto antes de empezar.' },
+  { number: '03', title: 'Lo pongo en marcha', text: 'Desarrollo o configuro lo acordado y te muestro cómo queda.' },
+  { number: '04', title: 'Seguimos en contacto', text: 'Después de la entrega, podés consultarme por ajustes, mantenimiento o soporte.' },
 ];
 
 const stats = [
@@ -62,16 +68,15 @@ const stats = [
 
 const Home = () => {
   return (
-    <div className="home-page">
+    <main className="home-page">
       <section className="hero-section">
         <div className="hero-copy">
-          <span className="eyebrow">Web • Hosting • SEO • Infraestructura</span>
           <h1>
-            Ponemos en marcha tu web <span className="gradient-text">y nos ocupamos de la parte técnica.</span>
+            Diseño tu web <span className="gradient-text">y configuro lo necesario para ponerla en marcha.</span>
           </h1>
           <p>
-            Diseñamos sitios y tiendas online, y también resolvemos lo que hay detrás: dominio, hosting, correo, SEO y redes.
-            Si no sabés por dónde empezar, contanos qué necesitás y lo vemos.
+            Trabajo con personas y negocios de todo Uruguay: diseño sitios y tiendas online y también puedo ayudarte con
+            dominios, hosting, correo, SEO y redes. Si no sabés por dónde empezar, contame qué necesitás y lo vemos.
           </p>
 
           <div className="hero-actions">
@@ -134,8 +139,8 @@ const Home = () => {
 
       <section className="services-section">
         <div className="section-heading">
-          <span className="eyebrow small">Lo que ofrecemos</span>
-          <h2>Servicios para tu web y la tecnología que usás todos los días.</h2>
+          <span className="eyebrow small">Lo que hago</span>
+          <h2>Servicios web y soluciones técnicas para personas y negocios de Uruguay.</h2>
         </div>
 
         <div className="services-grid">
@@ -152,15 +157,15 @@ const Home = () => {
       <section className="infrastructure-section">
         <div className="section-heading left-align">
           <span className="eyebrow small">Infraestructura</span>
-          <h2>También trabajamos con servidores, redes y automatización.</h2>
+          <h2>También puedo ayudarte con servidores, redes y domótica.</h2>
         </div>
 
         <div className="infrastructure-grid">
           {infrastructure.map(({ title, text }) => (
-            <div key={title} className="infra-card">
+            <article key={title} className="infra-card">
               <h3>{title}</h3>
               <p>{text}</p>
-            </div>
+            </article>
           ))}
         </div>
       </section>
@@ -168,7 +173,7 @@ const Home = () => {
       <section className="workflow-section">
         <div className="section-heading left-align">
           <span className="eyebrow small">Proceso</span>
-          <h2>Cómo trabajamos</h2>
+          <h2>Cómo trabajo</h2>
         </div>
 
         <div className="steps-grid">
@@ -185,11 +190,11 @@ const Home = () => {
       <section className="cta-band">
         <div>
           <span className="eyebrow small">¿Qué necesitás resolver?</span>
-          <h2>Contanos qué querés hacer o qué está fallando. Vemos juntos los próximos pasos.</h2>
+          <h2>Contame qué querés hacer o qué está fallando. Definimos juntos los próximos pasos.</h2>
         </div>
         <Link to="/contact" className="primary-button large">Hablemos de tu proyecto</Link>
       </section>
-    </div>
+    </main>
   );
 };
 

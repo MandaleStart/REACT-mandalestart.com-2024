@@ -30,14 +30,14 @@ const AboutMe = () => {
       <section className="about-hero">
         <div className="about-copy">
           <span className="eyebrow">Sobre mí</span>
-          <h1>Soy Nicolás. Desarrollo webs y también resuelvo lo que hay detrás.</h1>
+          <h1>Soy Nicolás. Desarrollo sitios web y también resuelvo lo que hay detrás.</h1>
           <p>
-            Trabajo en sitios web, hosting y redes. A veces el proyecto empieza con una web nueva; otras, con algo
-            que no funciona o que hace falta ordenar.
+            Trabajo con personas y negocios de todo Uruguay en sitios web, hosting y redes. A veces el proyecto empieza
+            con una web nueva; otras, con algo que no funciona o que hace falta ordenar.
           </p>
           <p>
             Antes de empezar, hablamos de lo que necesitás y definimos el alcance. Me ocupo del desarrollo o la
-            configuración y, si hace falta, seguimos con soporte.
+            configuración y, si hace falta, sigo con soporte.
           </p>
 
           <div className="about-metrics">

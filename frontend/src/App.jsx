@@ -16,13 +16,15 @@ import ClientArea from './views/ClientArea/ClientArea';
 
 import Navbar from './components/NavBar/NavBar';
 import Footer from './components/Footer/Footer';
+import Seo from './components/Seo/Seo';
 
 function App() {
   return (
     <BrowserRouter>
+      <Seo />
       <div className="app-shell">
         <Navbar />
-        <main className="page-shell">
+        <div className="page-shell">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/aboutme" element={<AboutMe />} />
@@ -36,7 +38,7 @@ function App() {
             <Route path="/client-area" element={<ClientArea />} />
             <Route path="*" element={<ErrorPage />} />
           </Routes>
-        </main>
+        </div>
         <Footer />
         <SpeedInsights />
       </div>

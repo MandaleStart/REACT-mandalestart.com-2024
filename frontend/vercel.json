@@ -1,0 +1,72 @@
+{
+  "rewrites": [
+    {
+      "source": "/aboutme",
+      "destination": "/aboutme/index.html"
+    },
+    {
+      "source": "/files",
+      "destination": "/files/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact/index.html"
+    },
+    {
+      "source": "/projects",
+      "destination": "/projects/index.html"
+    },
+    {
+      "source": "/services",
+      "destination": "/services/index.html"
+    },
+    {
+      "source": "/services/web",
+      "destination": "/services/web/index.html"
+    },
+    {
+      "source": "/services/hosting",
+      "destination": "/services/hosting/index.html"
+    },
+    {
+      "source": "/services/email",
+      "destination": "/services/email/index.html"
+    },
+    {
+      "source": "/services/domains",
+      "destination": "/services/domains/index.html"
+    },
+    {
+      "source": "/services/seo",
+      "destination": "/services/seo/index.html"
+    },
+    {
+      "source": "/services/ddns",
+      "destination": "/services/ddns/index.html"
+    },
+    {
+      "source": "/services/monitoring",
+      "destination": "/services/monitoring/index.html"
+    },
+    {
+      "source": "/services/impresion-3d",
+      "destination": "/services/impresion-3d/index.html"
+    },
+    {
+      "source": "/comments",
+      "destination": "/comments/index.html"
+    },
+    {
+      "source": "/client-area",
+      "destination": "/client-area/index.html"
+    },
+    {
+      "source": "/cv",
+      "destination": "/cv/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}

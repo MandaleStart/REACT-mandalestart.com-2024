@@ -9,7 +9,7 @@ const Services = () => {
         <span className="eyebrow">Servicios</span>
         <h1>Servicios web y soporte técnico.</h1>
         <p>
-          Desarrollo de sitios, hosting, correo, dominios y ayuda con redes y servidores. Consultá cada servicio para ver qué incluye y su precio.
+          Atiendo consultas de todo Uruguay. Revisá qué incluye cada servicio y escribime para recibir un presupuesto según tu proyecto.
         </p>
 
         <div className="services-summary">
@@ -17,6 +17,7 @@ const Services = () => {
           <span>Hosting y dominios</span>
           <span>Redes y servidores</span>
           <span>SEO</span>
+          <span>Diseño e impresión 3D</span>
         </div>
       </section>
 
@@ -38,6 +39,9 @@ const Services = () => {
           </article>
         ))}
       </section>
+      <p className="services-pricing-note">
+        El alcance, los plazos y el presupuesto se confirman con vos antes de comenzar.
+      </p>
     </main>
   );
 };

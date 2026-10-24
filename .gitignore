@@ -27,3 +27,4 @@ backend/credentials/*.json
 frontend/.env.local
 backend/.env.local
 frontend/README.md
+frontend/docs/Profile.pdf

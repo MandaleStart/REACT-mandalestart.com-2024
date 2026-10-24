@@ -1,10 +1,13 @@
 import { Link, useParams } from 'react-router-dom';
 import serviceCatalog from '../../data/serviceCatalog';
+import ErrorPage from '../../components/Errors/ErrorPage';
 import './services.css';
 
 const ServiceDetail = () => {
   const { slug } = useParams();
-  const service = serviceCatalog.find((item) => item.slug === slug) ?? serviceCatalog[0];
+  const service = serviceCatalog.find((item) => item.slug === slug);
+
+  if (!service) return <ErrorPage />;
 
   const relatedServices = serviceCatalog.filter((item) => item.slug !== service.slug).slice(0, 3);
 
@@ -43,7 +46,7 @@ const ServiceDetail = () => {
           <p>{service.outcome}</p>
           <div className="service-price-row">
             <strong>{service.price}</strong>
-            <Link to="/contact" className="primary-button large">Solicitar este servicio</Link>
+            <Link to="/contact" className="primary-button large">Consultar y pedir presupuesto</Link>
           </div>
         </div>
       </section>
@@ -51,7 +54,7 @@ const ServiceDetail = () => {
       <section className="related-services">
         <div className="section-heading left-align">
           <span className="eyebrow small">También puede interesarte</span>
-          <h2>Complementa tu proyecto</h2>
+          <h2>Completá tu proyecto</h2>
         </div>
 
         <div className="services-list compact">

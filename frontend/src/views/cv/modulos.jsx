@@ -1,131 +1,52 @@
 export const contacto = {
     telefono: "091895586",
-    email: "nico@mandalestart.com",
-    linkedin: "https://www.linkedin.com/in/mandalestart",
-    ubicacion: "Canelones, Uruguay"
+    email: "nikillogamer532@gmail.com",
+    linkedin: "https://www.linkedin.com/in/mandalestart"
 };
 
 export const extracto = `
-Soy Nicolás. Empecé mi formación en desarrollo web frontend en el programa Jóvenes a Programar de Ceibal. Actualmente sigo estudiando desarrollo full stack en Coderhouse y cursos de diseño de videojuegos y C# en Coursera.
+Soy Nicolás Jorge, desarrollador web frontend. Comencé mi formación en Jóvenes a Programar de Ceibal y sigo aprendiendo desarrollo full stack, C# y creación de videojuegos.
 
-Me interesa especializarme en el desarrollo de videojuegos y sigo aprendiendo sobre programación y diseño.
-
-También me gusta el soporte técnico, sobre todo cuando requiere revisar los equipos de cerca. En mi tiempo libre practico como DJ, toco la guitarra y el bajo, leo sobre psicología y hago modelos en Blender para impresión 3D.
+Quiero especializarme en desarrollo de videojuegos, especialmente con C# y Unity. Me interesa resolver problemas técnicos y seguir ampliando mis conocimientos.
 `;
 
 export const habilidades = [
-    "Lenguajes Web: HTML, CSS, JavaScript , C#",
-    "Frameworks y Estilos: Bootstrap, SASS",
-    "Backend: Node.js, Express",
-    "Bases de Datos: Firebase, MongoDB",
-    "Motores de juego: Unity, Unreal Engine",
-    "Control de versiones: Git, GitHub",
-    "Metodologías: Agile/Scrum"
-];
-
-export const experiencia = [
-    {
-        empresa: "Procam Seguridad",
-        puesto: "Operador en central de alarmas y CCTV",
-        fecha: "enero de 2017 - Presente",
-        ubicacion: "Uruguay"
-    }
-];
-
-export const educacion = [
-    "UTU - Educación Media Tecnológica (1º EMT Informática) (2014)",
-    "Liceo de Migues: Educación Media Básica (2009 - 2013)",
-    "Colegio San José de Migues: Educación Primaria (2000 - 2008)"
+    "Desarrollo web: HTML, CSS y JavaScript",
+    "Frameworks y estilos: React, Bootstrap y Sass",
+    "Backend: Node.js y Express",
+    "Bases de datos y servicios: Firebase y MongoDB",
+    "Control de versiones: Git y GitHub",
+    "Metodologías: Agile/Scrum",
+    "Desarrollo de videojuegos: Unity y Unreal Engine",
+    "Modelado y animación: Maya, ZBrush y Blender"
 ];
 
 export const certificaciones = [
-    {
-        nombre: "Curso de Desarrollo Web",
-        link: "",
-        institucion: "Coderhouse",
-        universidad: null
-    },
-    {
-        nombre: "ASP.NET para Desarrolladores Experimentados",
-        link: "https://www.ejemplo.com/certificado-aspnet",
-        institucion: "Microsoft",
-        universidad: null
-    },
-    {
-        nombre: "C# para Desarrolladores .NET",
-        link: "https://www.ejemplo.com/certificado-csharp",
-        institucion: "Coursera",
-        universidad: "Universidad de Michigan"
-    },
-    {
-        nombre: "Curso de JavaScript",
-        link: "https://www.coderhouse.com/uy/certificados/664be1e1c35d2267f7cb6a1c?lang=es",
-        institucion: "Coderhouse", nota: "8/10",
-        universidad: null
-    },
-    {
-        nombre: "React.js",
-        link: "https://www.coderhouse.com/uy/certificados/66ea38fa4ad6c48452cf85c4?lang=es",
-        institucion: "Coderhouse", nota: "10/10",
-        universidad: null
-    },
-    {
-        nombre: "Introduction to .NET Core",
-        link: "https://www.boardinfinity.com/certificado-dotnet-core",
-        institucion: "Board Infinity",
-        universidad: null,
-        nota: "9/10"
-    },
-    {
-        nombre: "ASP.NET for Experienced Developers Specialization",
-        link: "https://www.boardinfinity.com/certificado-aspnet",
-        institucion: "Board Infinity",
-        universidad: null,
-        nota: "8.5/10"
-    }, {
-        nombre: "Complete Git Specialization",
-        link: "https://www.learnkarts.com/certificado-git",
-        institucion: "LearnKartS",
-        universidad: null,
-        nota: "9/10"
-    }, {
-        nombre: "Soporte de Tecnologías de la Información de Google Professional Certificate",
-        link: "https://www.google.com/certificado-soporte-ti",
-        institucion: "Google",
-        universidad: null,
-        nota: "10/10"
-    }, {
-        nombre: "Linux Fundamentals",
-        link: "https://www.learnquest.com/certificado-linux-fundamentals",
-        institucion: "LearnQuest",
-        universidad: null,
-        nota: "9/10"
-    },
-    {
-        nombre: "Kali Linux",
-        link: "https://www.boardinfinity.com/certificado-kali-linux",
-        institucion: "Board Infinity",
-        universidad: null,
-        nota: "9/10"
-    },
-    {
-        nombre: "C# for .NET Developers",
-        link: "https://www.boardinfinity.com/certificado-csharp-dotnet",
-        institucion: "Board Infinity",
-        universidad: null,
-        nota: "9/10"
-    },
-    {
-        nombre: "Diseño y Creación de videojuegos Specialization",
-        link: "https://www.uab.cat/certificado-videojuegos",
-        institucion: "Coursera",
-        universidad: "Universitat Autònoma de Barcelona",
-        nota: "9.5/10"
-    },
-    {
-        nombre: "Carrera de Desarrollo Frontend React Flex",
-        link: "https://www.coderhouse.com/uy/certificados/66ea6a18e3690fae5d24c5bd?lang=es",
-        institucion: "Coderhouse", nota: "10/10",
-        universidad: null
-    }
+    { nombre: "Fundamentos Cyber de Windows", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "f47ce115eb8e4462b55a3292edb463ba" },
+    { nombre: "Fundamentos de Firewall e IDS", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "b450ffdf66d648a995b91d807707058c" },
+    { nombre: "Fundamentos de SIEM", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "392ec042eec5440baf0b9d9b40fd7b6a" },
+    { nombre: "Fundamentos Cyber de Programación y Servidores Web", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "ff3e1f6cab3f4c4cb6256c8faa806d2c" },
+    { nombre: "Fundamentos Cyber de Linux", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "8f2373afef5544918322128f44d702d1" },
+    { nombre: "Fundamentos Cyber de Bases de Datos (MySQL y SQLServer)", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "8ae9c6e30c2a47968bf66880e6f919d0" },
+    { nombre: "Fundamentos Cyber de Redes", institucion: "UTEC - Universidad Tecnológica", expedicion: "abril de 2026", id: "2a1b44538f404deba4af92b811af4b89" },
+    { nombre: "Soporte IT de Google", institucion: "Coursera", expedicion: "septiembre de 2020", id: "DIA44AFJMP4D" },
+    { nombre: "C# for .NET Developers", institucion: "Coursera", expedicion: "octubre de 2024", id: "U305EHAGA61V" },
+    { nombre: "Programa especializado: ASP.NET for Experienced Developers", institucion: "Coursera", expedicion: "octubre de 2024", id: "ZKAGMNFPO94W" },
+    { nombre: "Operador PC avanzado", institucion: "ONG Para crecer", expedicion: "marzo de 2012" },
+    { nombre: "Reparador de PC y Redes", institucion: "Escuelas IADE", expedicion: "octubre de 2013" },
+    { nombre: "Desarrollo Web (Jóvenes a Programar)", institucion: "Jóvenes a Programar", expedicion: "diciembre de 2022", id: "1671922343348" },
+    { nombre: "React Js", institucion: "Coderhouse", expedicion: "agosto de 2024", id: "66ea6a18e3690fae5d24c5bd" },
+    { nombre: "JavaScript", institucion: "Coderhouse", expedicion: "mayo de 2024", id: "664be1e1c35d2267f7cb6a1c" },
+    { nombre: "Desarrollo Web (Coderhouse)", institucion: "Coderhouse", expedicion: "marzo de 2023", id: "643d069686507800021c6237" }
+];
+
+export const aptitudes = [
+    "Políticas de seguridad (GPO)",
+    "Servidor de archivos",
+    "Active Directory"
+];
+
+export const idiomas = [
+    "Español: nativo o bilingüe",
+    "Inglés: nivel de trabajo limitado"
 ];
