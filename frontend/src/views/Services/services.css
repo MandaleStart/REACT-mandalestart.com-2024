@@ -30,6 +30,49 @@
   line-height: 1.7;
 }
 
+.services-guide {
+  margin-top: 2rem;
+  padding: 2rem;
+  border: 1px solid rgba(117, 211, 255, 0.16);
+  border-radius: 28px;
+  background: rgba(12, 18, 31, 0.76);
+}
+
+.services-guide .section-heading {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.services-guide .section-heading h2 {
+  max-width: 780px;
+  margin: 0.8rem 0 0;
+  color: #f5f9ff;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.services-guide-copy {
+  max-width: 85ch;
+}
+
+.services-guide-copy p {
+  color: rgba(221, 232, 255, 0.82);
+  line-height: 1.8;
+}
+
+.services-guide-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.services-guide-copy h3 {
+  margin: 1.4rem 0 0.6rem;
+  color: #f5f9ff;
+  font-size: 1.15rem;
+}
+
+.services-guide-copy strong {
+  color: #f5f9ff;
+}
+
 .services-summary,
 .service-detail-points {
   display: flex;
@@ -164,6 +207,38 @@
   padding: 2rem 1.6rem;
   border-radius: 30px;
   border: 1px solid rgba(160, 177, 255, 0.18);
+}
+
+.service-detail-hero .service-detail-description {
+  margin-top: 0.75rem;
+}
+
+.service-detail-guidance {
+  max-width: 85ch;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(117, 211, 255, 0.16);
+  border-radius: 24px;
+  background: rgba(12, 18, 31, 0.76);
+}
+
+.service-detail-guidance h2 {
+  margin: 0 0 1rem;
+  color: #f5f9ff;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+}
+
+.service-detail-guidance p {
+  color: rgba(221, 232, 255, 0.82);
+  line-height: 1.8;
+}
+
+.service-detail-guidance p:last-child {
+  margin-bottom: 0;
+}
+
+.service-detail-guidance strong {
+  color: #f5f9ff;
 }
 
 .service-detail-grid {

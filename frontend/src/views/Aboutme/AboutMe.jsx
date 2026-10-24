@@ -1,4 +1,5 @@
 import './about.css';
+import ShareLinks from '../../components/ShareLinks/ShareLinks';
 
 const highlights = [
   {
@@ -98,6 +99,64 @@ const AboutMe = () => {
           </div>
         </div>
       </section>
+
+      <section className="about-story">
+        <div>
+          <span className="eyebrow small">Mi recorrido</span>
+          <h2>Aprender, resolver y seguir mejorando.</h2>
+        </div>
+        <div className="about-story-copy">
+          <p>
+            Soy Nicolás Jorge, desarrollador web frontend. Empecé mi formación en Jóvenes a Programar de Ceibal y
+            continúo aprendiendo desarrollo full stack, C# y creación de videojuegos. Mi recorrido combina el desarrollo
+            de interfaces con el interés por entender cómo se conectan las distintas partes de un servicio digital.
+          </p>
+          <p>
+            En los proyectos web, trabajo con tecnologías como HTML, CSS, JavaScript y React. También tengo experiencia
+            formativa con Node.js, Express, Firebase, MongoDB, Git y GitHub. La elección de herramientas depende del
+            problema y del alcance; no se trata de agregar tecnología porque sí, sino de construir algo que sea claro y
+            útil para quien lo va a usar.
+          </p>
+          <p>
+            Mi interés por la parte técnica también incluye soporte IT, redes y servidores. Esa combinación me permite
+            conversar tanto sobre el contenido y la navegación de una página como sobre su publicación, sus dominios o
+            la configuración de los servicios relacionados. Cuando una tarea necesita conocimientos o recursos que
+            exceden el alcance acordado, lo conversamos antes de avanzar.
+          </p>
+          <p>
+            Me interesa especialmente el desarrollo de videojuegos con C# y Unity, y sigo ampliando mis conocimientos en
+            programación y herramientas de creación 3D. Mantenerme en formación es parte de mi manera de trabajar:
+            investigar una necesidad, probar alternativas y explicar con claridad qué solución se puede implementar.
+          </p>
+          <p>
+            Si tenés una idea, un sitio que quieras mejorar o una consulta técnica, podemos empezar por definir el
+            objetivo y revisar el punto de partida. <strong>La propuesta se conversa antes de comenzar</strong>: acordamos
+            qué incluye, qué información o accesos hacen falta y cuáles son los próximos pasos.
+          </p>
+          <h3>¿Con qué tipo de consultas puedo ayudarte?</h3>
+          <p>
+            Podés consultar tanto por un proyecto nuevo como por una tarea puntual: una página que necesitás publicar,
+            un sitio que querés ordenar o una configuración técnica que no está funcionando como esperabas. No hace
+            falta llegar con una solución decidida. Describir el problema, quiénes lo usan y qué resultado te gustaría
+            obtener ya es un buen comienzo para evaluar alternativas.
+          </p>
+          <h3>¿Qué pasa si ya tengo una web o proveedor?</h3>
+          <p>
+            Podemos revisar lo que existe antes de proponer cambios. Si el sitio está publicado, el dominio está
+            registrado o ya usás servicios de correo y alojamiento, esos elementos se consideran al definir el trabajo.
+            La idea es aprovechar lo que sirva y evitar cambios innecesarios. Los accesos o modificaciones se coordinan
+            solamente cuando hacen falta para el alcance acordado.
+          </p>
+          <h3>¿Cómo se define el acompañamiento?</h3>
+          <p>
+            Antes de empezar, conversamos qué incluye la entrega y cómo vamos a revisar el resultado. El mantenimiento
+            y el soporte posterior pueden depender de la plataforma, los proveedores y el tipo de tarea, por lo que se
+            definen de acuerdo con cada proyecto. Si aparece una necesidad nueva, la evaluamos y acordamos por separado
+            en vez de asumir que estaba incluida.
+          </p>
+        </div>
+      </section>
+      <ShareLinks />
     </main>
   );
 };

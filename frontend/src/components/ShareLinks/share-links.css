@@ -1,0 +1,47 @@
+.sharing-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid rgba(150, 170, 255, 0.16);
+}
+
+.sharing-section h2 {
+  margin: 0.7rem 0 0.4rem;
+  color: #f8fbff;
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+}
+
+.sharing-section p {
+  margin: 0;
+  color: rgba(214, 225, 255, 0.8);
+}
+
+.sharing-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sharing-links a {
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(143, 169, 213, 0.24);
+  border-radius: 999px;
+  color: #edf5ff;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.sharing-links a:hover,
+.sharing-links a:focus-visible {
+  border-color: rgba(117, 211, 255, 0.55);
+  background: rgba(93, 232, 255, 0.1);
+}
+
+@media (max-width: 900px) {
+  .sharing-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

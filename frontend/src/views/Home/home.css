@@ -257,8 +257,60 @@
 
 .services-section,
 .infrastructure-section,
-.workflow-section {
+.workflow-section,
+.information-section {
   padding-top: 1rem;
+}
+
+.information-section {
+  padding: 2rem;
+  border: 1px solid rgba(117, 211, 255, 0.16);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(13, 22, 39, 0.88), rgba(8, 13, 25, 0.82));
+}
+
+.information-copy {
+  max-width: 85ch;
+}
+
+.information-copy p,
+.information-card p {
+  color: rgba(214, 225, 255, 0.82);
+  line-height: 1.8;
+}
+
+.information-copy p:last-child,
+.information-card p:last-child {
+  margin-bottom: 0;
+}
+
+.information-copy strong {
+  color: #f8fbff;
+}
+
+.information-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.information-card {
+  padding: 1.25rem;
+  border: 1px solid rgba(143, 169, 213, 0.16);
+  border-radius: 20px;
+  background: rgba(16, 27, 45, 0.72);
+}
+
+.information-card h3 {
+  margin: 0 0 0.65rem;
+  color: #f5f9ff;
+  font-size: 1.15rem;
+}
+
+.technical-section .section-heading h2,
+.questions-section .section-heading h2 {
+  max-width: 780px;
 }
 
 .section-heading {
@@ -465,6 +517,10 @@
   .steps-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .information-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
@@ -490,6 +546,7 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
 }
 
 @media (max-width: 640px) {
@@ -505,6 +562,10 @@
   }
 
   .infrastructure-section {
+    padding: 1.25rem;
+  }
+
+  .information-section {
     padding: 1.25rem;
   }
 

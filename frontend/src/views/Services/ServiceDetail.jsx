@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import serviceCatalog from '../../data/serviceCatalog';
 import ErrorPage from '../../components/Errors/ErrorPage';
+import ShareLinks from '../../components/ShareLinks/ShareLinks';
 import './services.css';
 
 const ServiceDetail = () => {
@@ -23,6 +24,7 @@ const ServiceDetail = () => {
 
         <h1>{service.title}</h1>
         <p>{service.summary}</p>
+        <p className="service-detail-description">{service.description}</p>
 
         <div className="service-detail-points">
           {service.points.map((point) => (
@@ -51,6 +53,18 @@ const ServiceDetail = () => {
         </div>
       </section>
 
+      <section className="service-detail-guidance">
+        <h2>Qué conviene definir</h2>
+        {service.details.map((detail) => (
+          <p key={detail}>{detail}</p>
+        ))}
+        <p>
+          Para pedir una propuesta, contame qué resultado buscás y qué tenés actualmente. Si hay configuraciones o
+          cuentas existentes, podemos revisar qué información hace falta antes de empezar. <strong>El alcance, los
+          tiempos y el presupuesto se confirman con vos antes de realizar el trabajo.</strong>
+        </p>
+      </section>
+
       <section className="related-services">
         <div className="section-heading left-align">
           <span className="eyebrow small">También puede interesarte</span>
@@ -71,6 +85,7 @@ const ServiceDetail = () => {
           ))}
         </div>
       </section>
+      <ShareLinks />
     </main>
   );
 };

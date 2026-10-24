@@ -1,5 +1,6 @@
 import MailBox from './mailbox/MailBox';
 import SocialNet from './socialnet/SocialNet';
+import ShareLinks from '../../components/ShareLinks/ShareLinks';
 
 const Contact = () => {
   return (
@@ -37,6 +38,26 @@ const Contact = () => {
           <SocialNet />
         </div>
       </section>
+
+      <section className="contact-guidance">
+        <h2>Qué información ayuda para preparar una propuesta</h2>
+        <p>
+          Contame cuál es tu objetivo y qué servicio te interesa, si ya hay un sitio o una configuración en marcha y
+          qué plazo tenés en mente. Para una web, podés compartir las páginas que necesitás o algunos ejemplos de lo
+          que buscás. Para soporte técnico, describí qué equipo o servicio está involucrado y qué comportamiento
+          observás.
+        </p>
+        <p>
+          No envíes contraseñas ni datos sensibles en el primer mensaje. Si hacen falta accesos para realizar el trabajo,
+          coordinamos una forma apropiada de compartirlos una vez definido el alcance. Si todavía no tenés claro qué
+          servicio corresponde, explicá la necesidad con tus palabras y revisamos juntos los próximos pasos.
+        </p>
+        <p>
+          El formulario permite enviar una consulta por correo; también podés elegir WhatsApp, Telegram o LinkedIn en el
+          panel de contacto. <strong>El alcance, los tiempos y el presupuesto se confirman antes de comenzar.</strong>
+        </p>
+      </section>
+      <ShareLinks />
     </main>
   );
 };

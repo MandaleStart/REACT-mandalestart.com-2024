@@ -142,6 +142,42 @@
   border: 1px solid rgba(152, 170, 255, 0.18);
 }
 
+.about-story {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: 2rem;
+  margin: 2rem 0;
+  padding: 2rem;
+  border: 1px solid rgba(117, 211, 255, 0.16);
+  border-radius: 28px;
+  background: rgba(12, 18, 31, 0.76);
+}
+
+.about-story h2 {
+  margin: 0.8rem 0 0;
+  color: #f5f9ff;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.about-story-copy p {
+  color: rgba(221, 232, 255, 0.82);
+  line-height: 1.8;
+}
+
+.about-story-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.about-story-copy h3 {
+  margin: 1.4rem 0 0.6rem;
+  color: #f5f9ff;
+  font-size: 1.15rem;
+}
+
+.about-story-copy strong {
+  color: #f5f9ff;
+}
+
 .panel-copy h2 {
   margin: 0.8rem 0 0;
   font-size: clamp(1.8rem, 3vw, 2.8rem);
@@ -208,7 +244,8 @@
 @media (max-width: 860px) {
   .about-hero,
   .panel-value-wrap,
-  .about-grid {
+  .about-grid,
+  .about-story {
     grid-template-columns: 1fr;
   }
 
@@ -221,5 +258,9 @@
   .about-metrics,
   .check-list {
     grid-template-columns: 1fr;
+  }
+
+  .about-story {
+    padding: 1.25rem;
   }
 }

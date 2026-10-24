@@ -53,6 +53,34 @@
   gap: 1.5rem;
 }
 
+.contact-guidance {
+  max-width: 85ch;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(117, 211, 255, 0.16);
+  border-radius: 24px;
+  background: rgba(12, 18, 31, 0.76);
+}
+
+.contact-guidance h2 {
+  margin: 0 0 1rem;
+  color: #f5f9ff;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+}
+
+.contact-guidance p {
+  color: rgba(221, 232, 255, 0.82);
+  line-height: 1.8;
+}
+
+.contact-guidance p:last-child {
+  margin-bottom: 0;
+}
+
+.contact-guidance strong {
+  color: #f5f9ff;
+}
+
 .contact-form-panel,
 .contact-side-panel {
   background: rgba(12, 18, 31, 0.88);
