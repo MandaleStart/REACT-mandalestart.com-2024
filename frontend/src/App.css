@@ -2,11 +2,6 @@
   min-height: 100vh;
 }
 
-.page-shell {
-  width: min(1200px, calc(100% - 2rem));
-  margin: 0 auto;
-}
-
 .skip-link {
   position: fixed;
   top: 0.75rem;

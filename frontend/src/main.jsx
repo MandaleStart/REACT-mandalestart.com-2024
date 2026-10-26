@@ -5,6 +5,9 @@ import App from './App.jsx'
 import { SiteConfigProvider } from './config/SiteConfigProvider.jsx'
 import { ServiceCatalogProvider } from './data/ServiceCatalogProvider.jsx'
 import './index.css'
+import './styles/base.css'
+import './styles/buttons.css'
+import './styles/layout.css'
 
 const root = document.getElementById('root')
 const app = (

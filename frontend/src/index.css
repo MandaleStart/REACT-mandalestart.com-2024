@@ -1,9 +1,20 @@
 :root {
+  --color-background: #050a14;
+  --color-text-primary: #edf5ff;
+  --color-text-heading: #f5f9ff;
+  --color-accent: #4cc9f0;
+  --color-accent-light: #8fe0ff;
+  --color-accent-purple: #7a5cff;
+  --surface-dark: rgba(12, 18, 31, 0.88);
+  --border-subtle: rgba(150, 170, 255, 0.18);
+  --radius-card: 24px;
+  --radius-control: 14px;
+  --shadow-card: 0 20px 40px rgba(7, 11, 20, 0.28);
   font-family: Inter, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #edf5ff;
-  background: #050a14;
+  color: var(--color-text-primary);
+  background: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -40,8 +51,8 @@ body {
   background:
     radial-gradient(circle at top left, rgba(122, 92, 255, 0.2), transparent 28%),
     radial-gradient(circle at top right, rgba(76, 201, 240, 0.14), transparent 30%),
-    #050a14;
-  color: #edf5ff;
+    var(--color-background);
+  color: var(--color-text-primary);
 }
 
 body::before {
@@ -67,11 +78,13 @@ img {
 
 button,
 a {
-  transition: all 0.25s ease;
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 0.25s;
+  transition-timing-function: ease;
 }
 
 :focus-visible {
-  outline: 2px solid #8fe0ff;
+  outline: 2px solid var(--color-accent-light);
   outline-offset: 2px;
 }
 

@@ -54,25 +54,25 @@ const Home = () => {
         <div className="hero-visual" aria-label="Vista previa de servicios">
           <div className="dashboard-panel">
             <div className="panel-header">
-              <span className="dot red" />
-              <span className="dot yellow" />
-              <span className="dot green" />
+              <span className="home-dashboard-dot red" />
+              <span className="home-dashboard-dot yellow" />
+              <span className="home-dashboard-dot green" />
             </div>
 
             <div className="panel-body">
               <div className="mini-card large">
-                <span className="label">Servicios</span>
+                <span className="home-dashboard-label">Servicios</span>
                 <strong>Web + hosting</strong>
                 <small>Dominio, correo y soporte técnico</small>
               </div>
 
               <div className="mini-grid">
                 <div className="mini-card">
-                  <span className="label">Redes</span>
+                  <span className="home-dashboard-label">Redes</span>
                   <strong>Configuración</strong>
                 </div>
                 <div className="mini-card accent">
-                  <span className="label">SEO</span>
+                  <span className="home-dashboard-label">SEO</span>
                   <strong>Contenido y técnica</strong>
                 </div>
               </div>

@@ -59,7 +59,7 @@ const AboutMe = () => {
 
         <div className="about-card-stack">
           <div className="mini-profile-card">
-            <span className="badge">En qué trabajo</span>
+            <span className="about-badge">En qué trabajo</span>
             <h3>Web y soporte técnico</h3>
             <ul>
               <li>Desarrollo web</li>

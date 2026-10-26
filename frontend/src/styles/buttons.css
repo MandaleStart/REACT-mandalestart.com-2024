@@ -1,0 +1,30 @@
+.primary-button,
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #4cc9f0, #7a5cff 60%, #b990ff);
+  color: #fff;
+  box-shadow: 0 20px 40px rgba(81, 130, 255, 0.35);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #edf5ff;
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.nav-cta:hover,
+.footer-privacy:hover {
+  transform: translateY(-2px);
+}

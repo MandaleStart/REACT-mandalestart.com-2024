@@ -1,0 +1,16 @@
+.eyebrow {
+  display: inline-flex;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(93, 232, 255, 0.13);
+  border: 1px solid rgba(117, 211, 255, 0.35);
+  color: #8fe0ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow.small {
+  font-size: 0.68rem;
+}
