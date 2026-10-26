@@ -12,4 +12,5 @@ node_modules/
 
 # Logs
 *.log
+*.zip
 npm-debug.log*

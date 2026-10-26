@@ -1,5 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { SITE } from '../../config/site';
 import './navbar.css';
 
 const Navbar = () => {
@@ -8,6 +9,7 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const dropdownRefs = useRef({});
   const triggerRefs = useRef({});
+  const mobileTriggerRef = useRef(null);
 
   useEffect(() => {
     setOpenMenu('');
@@ -38,6 +40,20 @@ const Navbar = () => {
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [openMenu]);
+
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape' || openMenu) return;
+      event.preventDefault();
+      setMobileOpen(false);
+      mobileTriggerRef.current?.focus();
+    };
+
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [mobileOpen, openMenu]);
 
   const navItems = [
     { to: '/', label: 'Inicio' },
@@ -79,7 +95,7 @@ const Navbar = () => {
           <Link className="brand" to="/">
             <span className="brand-mark">M</span>
             <span>
-              <strong>MandaleStart</strong>
+              <strong>{SITE.name}</strong>
               <small>Web y soporte técnico</small>
             </span>
           </Link>
@@ -90,6 +106,7 @@ const Navbar = () => {
             aria-controls="main-navigation"
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            ref={mobileTriggerRef}
             onClick={() => setMobileOpen((isOpen) => !isOpen)}
           >
             <span className="navbar-toggler-icon" aria-hidden="true" />

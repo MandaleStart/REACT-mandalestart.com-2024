@@ -22,21 +22,38 @@ test('allows indexing on production when explicitly enabled', () => {
   assert.equal(metadata.getPageMetadata('/services/web', serviceCatalog).robots, 'index, follow, max-image-preview:large');
 });
 
-test('keeps staging sites noindex even when indexability is enabled', () => {
+test('keeps staging sites noindex when VITE_INDEXABLE_SITE is disabled', () => {
   const metadata = buildMetadata({
     VITE_SITE_URL: 'https://dev.mandalestart.com',
-    VITE_INDEXABLE_SITE: 'true',
+    VITE_INDEXABLE_SITE: 'false',
   });
 
   assert.equal(metadata.getPageMetadata('/').robots, 'noindex, nofollow');
   assert.equal(metadata.getPageMetadata('/services/web', serviceCatalog).robots, 'noindex, nofollow');
 });
 
+test('uses the explicit indexability setting instead of inferring from the hostname', () => {
+  const metadata = buildMetadata({
+    VITE_SITE_URL: 'https://preview.example.test',
+    VITE_INDEXABLE_SITE: 'true',
+  });
+
+  assert.equal(metadata.getPageMetadata('/').robots, 'index, follow, max-image-preview:large');
+  assert.equal(metadata.getRobots('index, follow'), 'index, follow');
+  assert.equal(metadata.getRobots('noindex, follow'), 'noindex, follow');
+
+  const stagingMetadata = buildMetadata({
+    VITE_SITE_URL: 'https://dev.mandalestart.com',
+    VITE_INDEXABLE_SITE: 'false',
+  });
+  assert.equal(stagingMetadata.getRobots('index, follow'), 'noindex, nofollow');
+});
+
 test('always keeps private and non-public pages out of search indexes', () => {
   for (const env of [
     {},
     { VITE_SITE_URL: 'https://mandalestart.com', VITE_INDEXABLE_SITE: 'true' },
-    { VITE_SITE_URL: 'https://dev.mandalestart.com', VITE_INDEXABLE_SITE: 'true' },
+    { VITE_SITE_URL: 'https://dev.mandalestart.com', VITE_INDEXABLE_SITE: 'false' },
   ]) {
     const metadata = buildMetadata(env);
     assert.equal(metadata.getPageMetadata('/admin').robots, 'noindex, nofollow');

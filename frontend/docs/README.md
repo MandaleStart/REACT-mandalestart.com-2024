@@ -81,7 +81,7 @@ Si la API todavía no está desplegada, el área de clientes y el envío del for
 | Pruebas | `https://dev.mandalestart.com` | (vacío) | `noindex`, `robots.txt` cerrado, sin sitemap |
 | Local | (vacío) | (vacío) | Igual que pruebas |
 
-En Vercel, configurar `VITE_INDEXABLE_SITE=true` **solo en Production**, no en Preview. `VITE_SITE_URL` usa `https://mandalestart.com` como fallback para canonical y etiquetas sociales; el sitio solo es indexable con la opción explícita activada y nunca en un dominio `dev.*`.
+En Vercel, configurar `VITE_INDEXABLE_SITE=true` **solo en Production**, no en Preview. La indexación se decide exclusivamente con esta variable explícita, no por el nombre del dominio: mantenerla vacía o en `false` en pruebas y desarrollo. `VITE_SITE_URL` usa `https://mandalestart.com` como fallback para canonical y etiquetas sociales.
 
 En el entorno Production de Vercel, configurar `STRICT_SEO=1` para que el build falle si el dominio es de producción pero se omitió `VITE_INDEXABLE_SITE=true`.
 
@@ -91,7 +91,7 @@ El teléfono y correo visibles se sirven desde `GET /api/site-config`. Configur�
 
 ## Backend
 
-El backend utiliza Firebase Admin/Firestore, rate limits, CORS explícito y SMTP para el formulario. Consultar `../../backend/docs/README.md` para las variables sensibles y el despliegue. Las credenciales privadas nunca van en variables `VITE_*`.
+El backend utiliza Firebase Admin para verificar identidad, PostgreSQL para fichas y catálogo, rate limits, CORS explícito y SMTP para el formulario. Consultar `../../backend/docs/README.md` para las variables sensibles y el despliegue. Las credenciales privadas nunca van en variables `VITE_*`.
 
 ## Recomendaciones
 

@@ -1,13 +1,26 @@
 export const SITE = {
   name: 'MandaleStart',
-  telegram: 'https://t.me/MandaleStart',
-  linkedin: 'https://www.linkedin.com/in/mandalestart',
-};
-
-export const fallbackContact = {
+  url: 'https://mandalestart.com',
   email: 'info@mandalestart.com',
   phone: null,
   whatsapp: null,
+  social: {
+    telegram: {
+      url: 'https://t.me/MandaleStart',
+      handle: '@MandaleStart',
+    },
+    linkedin: {
+      url: 'https://www.linkedin.com/in/mandalestart',
+      label: 'MandaleStart',
+    },
+  },
+  areaServed: 'Uruguay',
+};
+
+export const fallbackContact = {
+  email: SITE.email,
+  phone: SITE.phone,
+  whatsapp: SITE.whatsapp,
 };
 
 const emailPattern = /^[A-Z0-9._+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;

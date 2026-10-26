@@ -16,7 +16,7 @@ const Footer = () => {
               <small>Web y soporte técnico</small>
             </span>
           </div>
-          <p>Desarrollo web, hosting y soporte técnico para personas y negocios de todo Uruguay.</p>
+          <p>Desarrollo web, hosting y soporte técnico para personas y negocios de {SITE.areaServed}.</p>
         </div>
 
         <nav className="footer-links" aria-label="Explorar">
@@ -42,12 +42,12 @@ const Footer = () => {
           <h6>Contacto</h6>
           <a href={mailtoUrl(contact)}>{contact.email}</a>
           {contact.phone && <a href={telUrl(contact)}>{contact.phone.display}</a>}
-          <span>Atención en todo Uruguay</span>
+          <span>Atención en todo {SITE.areaServed}</span>
         </div>
       </div>
 
       <div className="footer-bottom">
-        <span>© 2026 MandaleStart</span>
+        <span>© 2026 {SITE.name}</span>
         <Link to="/privacidad" className="footer-privacy">
           Información de privacidad
         </Link>

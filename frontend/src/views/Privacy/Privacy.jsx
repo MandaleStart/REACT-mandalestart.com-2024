@@ -26,9 +26,10 @@ const Privacy = () => {
       <h2>Formulario de contacto</h2>
       <p>
         Si me escribís por el formulario, se envían tu nombre, tu email, el servicio de interés y tu mensaje a mi
-        servidor. Ahí se comprueba que los datos sean válidos y que no se trate de spam, y se me reenvían por correo
-        electrónico. No se guardan en una base de datos del sitio: el mensaje queda en mi casilla de correo. Lo uso
-        solo para responderte y, si trabajamos juntos, para gestionar el servicio. No lo comparto con terceros.
+        servidor. Ahí se comprueba que los datos sean válidos y que no se trate de spam. El proveedor SMTP configurado
+        en el servidor procesa el envío y el mensaje llega a mi casilla de correo. El sitio no guarda el mensaje en la
+        base PostgreSQL; lo uso para responderte y, si trabajamos juntos, para gestionar el servicio. El mensaje pasa
+        por los proveedores técnicos necesarios para enviarlo y recibirlo.
       </p>
       <p>
         Lo conservo.
@@ -40,9 +41,10 @@ const Privacy = () => {
     <section className="privacy-section about-panel">
       <h2>Área de clientes</h2>
       <p>
-        Si tenés cuenta, el acceso se gestiona con Firebase Authentication (Google): se procesan tu email, tu nombre
-        y los datos de acceso. Los servicios y proyectos que tengas conmigo se guardan en la ficha de cliente del
-        sitio y solo vos y yo podemos verlos. Para mantener tu sesión iniciada, el navegador guarda datos de sesión
+        Si tenés cuenta, Firebase Authentication procesa tu email, nombre y datos de acceso según el método de inicio
+        disponible (email y contraseña o, si está habilitado, Google). La ficha de cliente se guarda en PostgreSQL e
+        incluye los datos de contacto y los servicios y proyectos asociados. La API limita el acceso a la persona
+        asociada a la ficha y al administrador. Para mantener tu sesión iniciada, el navegador guarda datos de sesión
         en tu dispositivo.
       </p>
     </section>

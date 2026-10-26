@@ -20,8 +20,8 @@ import Footer from './components/Footer/Footer';
 import Seo from './components/Seo/Seo';
 import ClientAreaContext from './components/ClientAreaContext';
 import AdminContext from './components/AdminContext';
-import serviceCatalog from './data/serviceCatalog';
 import { getPageMetadata } from './seo/metadata';
+import useServiceCatalog from './data/useServiceCatalog';
 
 const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);
@@ -30,10 +30,11 @@ const Admin = lazy(loadAdmin);
 
 function RouteFocusManager() {
   const { pathname } = useLocation();
+  const { services } = useServiceCatalog();
   const [routeTitle, setRouteTitle] = useState('');
 
   useEffect(() => {
-    setRouteTitle(getPageMetadata(pathname, serviceCatalog).title);
+    setRouteTitle(getPageMetadata(pathname, services).title);
 
     const content = document.getElementById('contenido');
     content?.focus({ preventScroll: true });
@@ -54,7 +55,7 @@ function RouteFocusManager() {
     }
 
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [pathname, services]);
 
   return <span className="visually-hidden" aria-live="polite" aria-atomic="true">{routeTitle}</span>;
 }

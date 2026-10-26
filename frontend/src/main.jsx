@@ -3,15 +3,18 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { SiteConfigProvider } from './config/SiteConfigProvider.jsx'
+import { ServiceCatalogProvider } from './data/ServiceCatalogProvider.jsx'
 import './index.css'
 
 const root = document.getElementById('root')
 const app = (
   <React.StrictMode>
     <SiteConfigProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ServiceCatalogProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ServiceCatalogProvider>
     </SiteConfigProvider>
   </React.StrictMode>
 )

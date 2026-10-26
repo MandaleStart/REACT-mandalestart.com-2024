@@ -8,8 +8,8 @@ const SocialNet = () => {
     ...(contact.phone
       ? [{ name: 'WhatsApp', value: contact.phone.display, href: whatsappUrl(contact), icon: 'whatsapp', tone: 'cyan' }]
       : []),
-    { name: 'Telegram', value: '@MandaleStart', href: SITE.telegram, icon: 'telegram', tone: 'green' },
-    { name: 'LinkedIn', value: 'MandaleStart', href: SITE.linkedin, icon: 'linkedin', tone: 'purple' },
+    { name: 'Telegram', value: SITE.social.telegram.handle, href: SITE.social.telegram.url, icon: 'telegram', tone: 'green' },
+    { name: 'LinkedIn', value: SITE.social.linkedin.label, href: SITE.social.linkedin.url, icon: 'linkedin', tone: 'purple' },
   ];
 
   return (

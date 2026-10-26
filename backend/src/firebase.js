@@ -85,7 +85,7 @@ export async function verifyFirebaseToken(idToken) {
   }
 
   try {
-    return await getAuth(firebaseState.app).verifyIdToken(idToken);
+    return await getAuth(firebaseState.app).verifyIdToken(idToken, true);
   } catch (error) {
     console.warn('Token de Firebase inválido:', error.code || error.name);
     return null;

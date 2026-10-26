@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  SITE,
   fallbackContact,
   mailtoUrl,
   normalizeContactConfig,
@@ -8,6 +9,17 @@ import {
   whatsappShareUrl,
   whatsappUrl,
 } from './site.js';
+
+test('keeps the business identity and confirmed public channels in one configuration', () => {
+  assert.equal(SITE.name, 'MandaleStart');
+  assert.equal(SITE.url, 'https://mandalestart.com');
+  assert.equal(fallbackContact.email, SITE.email);
+  assert.equal(SITE.phone, null);
+  assert.equal(SITE.whatsapp, null);
+  assert.equal(SITE.areaServed, 'Uruguay');
+  assert.equal(SITE.social.telegram.url, 'https://t.me/MandaleStart');
+  assert.equal(SITE.social.linkedin.url, 'https://www.linkedin.com/in/mandalestart');
+});
 
 test('normalizes an email-only public contact and does not invent a phone', () => {
   assert.deepEqual(normalizeContactConfig({

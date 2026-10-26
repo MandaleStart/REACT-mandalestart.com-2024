@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, firebaseReady } from '../../firebase';
@@ -81,12 +81,17 @@ const Admin = () => {
   const [section, setSection] = useState('clients');
   const [selectedClientId, setSelectedClientId] = useState('');
   const [clientForm, setClientForm] = useState(emptyClient);
+  const [clientBaseline, setClientBaseline] = useState(emptyClient);
+  const [clientSearch, setClientSearch] = useState('');
   const [selectedServiceSlug, setSelectedServiceSlug] = useState('');
   const [serviceForm, setServiceForm] = useState(emptyPublicService);
+  const [serviceBaseline, setServiceBaseline] = useState(emptyPublicService);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [sessionExpired, setSessionExpired] = useState(false);
   const [notice, setNotice] = useState('');
+  const [pendingConfirmation, setPendingConfirmation] = useState(null);
+  const confirmationDialogRef = useRef(null);
 
   useEffect(() => {
     if (!auth) {
@@ -160,28 +165,81 @@ const Admin = () => {
     [services],
   );
 
-  const chooseClient = (id) => {
+  const clientIsDirty = useMemo(
+    () => JSON.stringify(clientForm) !== JSON.stringify(clientBaseline),
+    [clientBaseline, clientForm],
+  );
+  const serviceIsDirty = useMemo(
+    () => JSON.stringify(serviceForm) !== JSON.stringify(serviceBaseline),
+    [serviceBaseline, serviceForm],
+  );
+  const filteredClients = useMemo(() => {
+    const query = clientSearch.trim().toLocaleLowerCase();
+    if (!query) return clients;
+    return clients.filter((client) => (
+      [client.name, client.email, client.phone]
+        .some((value) => String(value || '').toLocaleLowerCase().includes(query))
+    ));
+  }, [clientSearch, clients]);
+
+  useEffect(() => {
+    const dialog = confirmationDialogRef.current;
+    if (pendingConfirmation && dialog && !dialog.open) dialog.showModal();
+    if (!pendingConfirmation && dialog?.open) dialog.close();
+  }, [pendingConfirmation]);
+
+  const loadClient = (id) => {
     setSelectedClientId(id);
     const client = clients.find((item) => item.id === id);
-    setClientForm(client
+    const form = client
       ? {
         ...client,
         services: client.services.map(serviceToForm),
         projects: (client.projects || []).map(projectToForm),
       }
-      : emptyClient);
+      : emptyClient;
+    setClientForm(form);
+    setClientBaseline(form);
+    setError('');
+    setNotice('');
+  };
+
+  const chooseClient = (id) => {
+    if (id === selectedClientId) return;
+    if (clientIsDirty) {
+      setPendingConfirmation({
+        message: 'Hay cambios sin guardar. Si cambiás de cliente, se van a descartar.',
+        confirmLabel: 'Descartar y cambiar',
+        onConfirm: () => loadClient(id),
+      });
+      return;
+    }
+    loadClient(id);
+  };
+
+  const loadService = (slug) => {
+    setSelectedServiceSlug(slug);
+    const service = services.find((item) => item.slug === slug);
+    const form = service
+      ? { ...emptyPublicService, ...service, points: service.points || [], includes: service.includes || [] }
+      : emptyPublicService;
+    setServiceForm(form);
+    setServiceBaseline(form);
     setError('');
     setNotice('');
   };
 
   const chooseService = (slug) => {
-    setSelectedServiceSlug(slug);
-    const service = services.find((item) => item.slug === slug);
-    setServiceForm(service
-      ? { ...emptyPublicService, ...service, points: service.points || [], includes: service.includes || [] }
-      : emptyPublicService);
-    setError('');
-    setNotice('');
+    if (slug === selectedServiceSlug) return;
+    if (serviceIsDirty) {
+      setPendingConfirmation({
+        message: 'Hay cambios sin guardar. Si cambiás de servicio, se van a descartar.',
+        confirmLabel: 'Descartar y cambiar',
+        onConfirm: () => loadService(slug),
+      });
+      return;
+    }
+    loadService(slug);
   };
 
   const handleClientSubmit = async (event) => {
@@ -206,11 +264,13 @@ const Admin = () => {
         : await createAdminClient(client);
       await refreshData();
       setSelectedClientId(saved.id);
-      setClientForm({
+      const savedForm = {
         ...saved,
         services: saved.services.map(serviceToForm),
         projects: (saved.projects || []).map(projectToForm),
-      });
+      };
+      setClientForm(savedForm);
+      setClientBaseline(savedForm);
       setNotice('Los datos del cliente se guardaron correctamente.');
     } catch (saveError) {
       const sessionError = isSessionError(saveError);
@@ -221,8 +281,7 @@ const Admin = () => {
     }
   };
 
-  const handleClientDelete = async () => {
-    if (!selectedClientId || !window.confirm('¿Eliminar esta ficha de cliente y sus servicios asociados? La cuenta de acceso no se elimina.')) return;
+  const deleteClient = async () => {
     setBusy(true);
     setError('');
     setNotice('');
@@ -231,6 +290,7 @@ const Admin = () => {
       await refreshData();
       setSelectedClientId('');
       setClientForm(emptyClient);
+      setClientBaseline(emptyClient);
       setNotice('El cliente se eliminó.');
     } catch (deleteError) {
       const sessionError = isSessionError(deleteError);
@@ -239,6 +299,15 @@ const Admin = () => {
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleClientDelete = () => {
+    if (!selectedClientId) return;
+    setPendingConfirmation({
+      message: `¿Eliminar la ficha de ${clientForm.name || 'este cliente'} y sus servicios asociados? La cuenta de acceso no se elimina.`,
+      confirmLabel: 'Eliminar cliente',
+      onConfirm: deleteClient,
+    });
   };
 
   const updateClientService = (index, field, value) => {
@@ -292,7 +361,7 @@ const Admin = () => {
           : serviceForm.includesText.split('\n').map((line) => line.trim()).filter(Boolean),
       });
       await refreshData();
-      chooseService(saved.slug);
+      loadService(saved.slug);
       setNotice('El catálogo público se actualizó correctamente.');
     } catch (saveError) {
       const sessionError = isSessionError(saveError);
@@ -303,15 +372,16 @@ const Admin = () => {
     }
   };
 
-  const handleServiceArchive = async () => {
-    if (!selectedServiceSlug || !window.confirm('¿Archivar este servicio? Dejará de aparecer en el sitio público, pero se podrá restaurar.')) return;
+  const archiveService = async () => {
     setBusy(true);
     setError('');
     setNotice('');
     try {
       await archiveAdminService(selectedServiceSlug);
       await refreshData();
-      setServiceForm((current) => ({ ...current, status: 'archived' }));
+      const archivedForm = { ...serviceForm, status: 'archived' };
+      setServiceForm(archivedForm);
+      setServiceBaseline(archivedForm);
       setNotice('El servicio se archivó y dejó de mostrarse en el sitio público.');
     } catch (archiveError) {
       const sessionError = isSessionError(archiveError);
@@ -320,6 +390,21 @@ const Admin = () => {
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleServiceArchive = () => {
+    if (!selectedServiceSlug) return;
+    setPendingConfirmation({
+      message: '¿Archivar este servicio? Dejará de aparecer en el sitio público, pero se podrá restaurar.',
+      confirmLabel: 'Archivar servicio',
+      onConfirm: archiveService,
+    });
+  };
+
+  const confirmPendingAction = () => {
+    const confirmAction = pendingConfirmation?.onConfirm;
+    setPendingConfirmation(null);
+    confirmAction?.();
   };
 
   if (access === 'checking' || !authReady) {
@@ -376,6 +461,29 @@ const Admin = () => {
 
   return (
     <main className="admin-page">
+      <dialog
+        ref={confirmationDialogRef}
+        className="admin-confirmation-dialog"
+        aria-labelledby="admin-confirmation-title"
+        aria-describedby="admin-confirmation-message"
+        onCancel={(event) => {
+          event.preventDefault();
+          setPendingConfirmation(null);
+        }}
+        onClose={() => setPendingConfirmation(null)}
+      >
+        <h2 id="admin-confirmation-title">Confirmar acción</h2>
+        <p id="admin-confirmation-message">{pendingConfirmation?.message}</p>
+        <div className="admin-confirmation-actions">
+          <button type="button" className="secondary-button" autoFocus onClick={() => setPendingConfirmation(null)}>
+            Cancelar
+          </button>
+          <button type="button" className="admin-danger-button" onClick={confirmPendingAction}>
+            {pendingConfirmation?.confirmLabel || 'Confirmar'}
+          </button>
+        </div>
+      </dialog>
+
       <header className="admin-header">
         <div>
           <span className="eyebrow">Administración</span>
@@ -409,8 +517,20 @@ const Admin = () => {
               <h2>Clientes</h2>
               <button type="button" onClick={() => chooseClient('')}>Nuevo</button>
             </div>
-            <div className="admin-record-list">
-              {clients.map((client) => (
+            <label className="admin-client-search">
+              Buscar por nombre, email o teléfono
+              <input
+                type="search"
+                value={clientSearch}
+                onChange={(event) => setClientSearch(event.target.value)}
+                aria-controls="admin-client-records"
+              />
+            </label>
+            <p className="admin-search-count" aria-live="polite">
+              {filteredClients.length} de {clients.length} clientes
+            </p>
+            <div className="admin-record-list" id="admin-client-records">
+              {filteredClients.map((client) => (
                 <button
                   key={client.id}
                   type="button"
@@ -422,6 +542,7 @@ const Admin = () => {
                 </button>
               ))}
               {clients.length === 0 && <p>No hay clientes cargados.</p>}
+              {clients.length > 0 && filteredClients.length === 0 && <p>No hay clientes que coincidan con la búsqueda.</p>}
             </div>
           </aside>
 
@@ -432,6 +553,9 @@ const Admin = () => {
                 <button type="button" className="admin-danger-button" onClick={handleClientDelete} disabled={busy || sessionExpired}>
                   Eliminar cliente
                 </button>
+              )}
+              {clientIsDirty && (
+                <p className="admin-feedback warning" role="status">Hay cambios sin guardar.</p>
               )}
             </div>
             <label>
@@ -674,6 +798,9 @@ const Admin = () => {
                 </button>
               )}
             </div>
+            {serviceIsDirty && (
+              <p className="admin-feedback warning" role="status">Hay cambios sin guardar.</p>
+            )}
             {!selectedServiceSlug && (
               <p className="admin-panel-help">
                 Elegí un slug estático de la lista. Para agregar un nuevo slug es necesario actualizar las rutas y

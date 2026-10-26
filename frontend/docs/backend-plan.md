@@ -2,7 +2,7 @@
 
 ## Arquitectura actual
 
-El backend de `../backend/` usa Express 5, Firebase Authentication y Firestore. No usa PostgreSQL, Prisma ni JWT propios: el frontend obtiene un ID token de Firebase y lo envía en `Authorization: Bearer ...`.
+El backend de `../backend/` usa Express 5, Firebase Authentication y PostgreSQL. No usa Prisma ni JWT propios: el frontend obtiene un ID token de Firebase y lo envía en `Authorization: Bearer ...`.
 
 Rutas implementadas:
 
@@ -26,6 +26,6 @@ El acceso de demostración con contraseñas y tokens fijos se retiró. El backen
 
 El panel `/admin` permite administrar clientes y servicios contratados, y actualizar o archivar el catálogo público. El backend valida cada operación, aplica listas permitidas y mantiene los campos internos fuera de la respuesta del cliente.
 
-Un administrador debe recibir `admin: true` mediante el script privilegiado `backend/scripts/set-admin-claim.js`; el claim no se administra desde el navegador. La eliminación de un cliente borra su ficha de Firestore, no su identidad de Firebase Authentication. Los nuevos slugs requieren una ruta estática y despliegue del frontend.
+Un administrador debe recibir `admin: true` mediante el script privilegiado `backend/scripts/set-admin-claim.js`; el claim no se administra desde el navegador. La eliminación de un cliente borra su ficha de PostgreSQL, no su identidad de Firebase Authentication. Los nuevos slugs requieren una ruta estática y despliegue del frontend.
 
 Posibles siguientes etapas: agregar bitácora de cambios, gestionar proyectos/tareas/entregables y configurar un almacén de rate limit compartido para las funciones serverless.

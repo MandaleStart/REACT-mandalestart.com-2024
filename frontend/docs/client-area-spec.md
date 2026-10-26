@@ -7,7 +7,7 @@
 - Para cuentas sin correo verificado, el frontend solicita enviar el enlace de verificación y cierra la sesión hasta que se confirme.
 - El ID token se envía al backend en `Authorization: Bearer ...`.
 - `GET /api/clients/me` valida el token y vincula la cuenta por el email verificado.
-- El backend proyecta únicamente `id`, `name`, `email`, `phone`, `services` y `projects` con los campos mostrados por la interfaz. No devuelve el documento Firestore completo.
+- El backend proyecta únicamente `id`, `name`, `email`, `phone`, `services` y `projects` con los campos mostrados por la interfaz. No devuelve registros internos completos de PostgreSQL.
 - El cliente puede actualizar nombre y teléfono mediante `PUT /api/clients/me/profile`; el email verificado, los servicios y los proyectos no son editables desde su cuenta.
 - Los proyectos incluyen estado, descripción, fechas y hasta 50 hitos/entregas con estado y fecha. El administrador los gestiona desde la ficha del cliente; el portal calcula el avance según los hitos completados.
 - Los archivos compartidos y las cargas/descargas no están incluidos todavía.
@@ -21,12 +21,12 @@ La tarjeta de vencimientos contabiliza servicios con fecha ISO `YYYY-MM-DD` desd
 
 ## Despliegue previsto
 
-El frontend de producción usa `https://mandalestart.com` y configura `VITE_API_BASE_URL=https://apisite.mandalestart.com`. El backend todavía no está desplegado; Firebase Admin, Firestore, CORS y SMTP requieren variables del entorno de servidor. El staging `dev.mandalestart.com` permanece no indexable.
+El frontend de producción usa `https://mandalestart.com` y configura `VITE_API_BASE_URL=https://apisite.mandalestart.com`. El backend requiere Firebase Admin, PostgreSQL, CORS y SMTP configurados en el entorno de servidor. Los entornos de staging permanecen no indexables al mantener `VITE_INDEXABLE_SITE` vacío o en `false`.
 
 ## Administración actual y alcance pendiente
 
 El panel privado está disponible en `/admin` para cuentas con el custom claim `admin: true`. Permite crear, editar y eliminar fichas de clientes, modificar sus servicios contratados y editar o archivar/restaurar los servicios del catálogo. Los permisos se validan tanto en el backend como en la interfaz. Para otorgar o revocar el claim, usar el script privilegiado documentado en `../../backend/docs/README.md`.
 
-La eliminación de una ficha borra el documento de Firestore y sus servicios/proyectos asociados; no elimina la identidad de Firebase Authentication. El panel no agrega almacenamiento de notas, márgenes ni otros campos internos; las actualizaciones preservan los campos privados existentes pero no los exponen.
+La eliminación de una ficha borra el registro de PostgreSQL y sus servicios/proyectos asociados; no elimina la identidad de Firebase Authentication. El panel no agrega almacenamiento de notas, márgenes ni otros campos internos; las actualizaciones preservan los campos privados existentes pero no los exponen.
 
 La gestión de proyectos e hitos está disponible en la ficha del cliente. Archivos, actividad y notificaciones siguen pendientes. Los slugs del catálogo se limitan a rutas estáticas publicadas: archivar/restaurar funciona sobre el catálogo sin cambiar rutas; cualquier texto o visibilidad actualizado se refleja también en prerender y sitemap al volver a desplegar el frontend.

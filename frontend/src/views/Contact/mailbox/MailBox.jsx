@@ -2,26 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useContact } from '../../../config/useContact';
 import { whatsappUrl } from '../../../config/site';
-import serviceCatalog from '../../../data/serviceCatalog';
+import useServiceCatalog from '../../../data/useServiceCatalog';
 import { submitContactMessage } from '../../../services/contactApi';
+import { getContactServiceOptions } from './contactServiceOptions.js';
 import './mail.css';
-
-const serviceOptions = [
-  { value: 'web', slug: 'web', fallback: 'Desarrollo web' },
-  { value: 'hosting', slug: 'hosting', fallback: 'Hosting y dominios' },
-  { value: 'correo', slug: 'email', fallback: 'Correo corporativo' },
-  { value: 'seo', slug: 'seo', fallback: 'SEO' },
-  { value: 'ddns', slug: 'ddns', fallback: 'DDNS y acceso remoto' },
-  { value: 'red', slug: 'monitoring', fallback: 'Redes, servidores y monitoreo' },
-  { value: 'impresion', slug: 'impresion-3d', fallback: 'Diseño e impresión 3D' },
-  { value: 'otro', fallback: 'Otro' },
-].map((option) => ({
-  ...option,
-  label: serviceCatalog.find((service) => service.slug === option.slug)?.title || option.fallback,
-}));
 
 const MailBox = () => {
   const contact = useContact();
+  const { services } = useServiceCatalog();
+  const serviceOptions = getContactServiceOptions(services);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [messageLength, setMessageLength] = useState(0);
@@ -88,12 +77,13 @@ const MailBox = () => {
 
       <div className="field-group">
         <label htmlFor="service">Servicio</label>
-        <select id="service" name="service" defaultValue="" required>
+        <select id="service" name="service" defaultValue="" aria-describedby="service-help" required>
           <option value="" disabled>Elegí una opción</option>
           {serviceOptions.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
+        <small id="service-help" className="contact-field-help">Elegí el servicio que mejor describe tu consulta.</small>
       </div>
 
       <div className="field-group">
@@ -122,17 +112,24 @@ const MailBox = () => {
           {feedback.message}
         </p>
       )}
-      <label className="contact-form-consent" htmlFor="privacy-consent">
-        <input id="privacy-consent" name="privacyConsent" type="checkbox" required />
-        <span>
-          Autorizo el uso de estos datos para responder mi consulta. Leé la{' '}
-          <Link to="/privacidad">política de privacidad</Link>.
-        </span>
-      </label>
+      <div className="contact-form-consent">
+        <input
+          id="privacy-consent"
+          name="privacyConsent"
+          type="checkbox"
+          aria-labelledby="privacy-consent-label"
+          required
+        />
+        <label id="privacy-consent-label" htmlFor="privacy-consent">
+          Autorizo el uso de estos datos para responder mi consulta.
+        </label>
+        <Link to="/privacidad">Política de privacidad</Link>
+      </div>
       <button type="submit" className="Btn_Send" disabled={submitting}>
         {submitting ? 'Enviando...' : 'Enviar consulta'}
       </button>
-      {/* TODO(owner): confirmar si se debe mostrar el tiempo de respuesta esperado. */}
+      {/* TODO(owner): confirmar que el tiempo de respuesta esperado sea menos de 24 h hábiles. */}
+      <small className="contact-field-help">Respondo en menos de 24 h hábiles.</small>
       {contact.phone && (
         <button type="button" className="secondary-button" onClick={handleWhatsApp}>
           Continuar por WhatsApp
