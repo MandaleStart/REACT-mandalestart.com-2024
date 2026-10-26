@@ -41,16 +41,32 @@
   font-weight: 600;
 }
 
+.client-login-field {
+  margin-bottom: 0.75rem;
+}
+
+.client-login-field.password-field {
+  margin-bottom: 1rem;
+}
+
 .login-card input {
   min-height: 48px;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.7rem;
   border: 1px solid rgba(155, 171, 255, 0.24);
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.04);
   color: #f4f8ff;
 }
 
-.login-card input:focus-visible {
-  outline: 2px solid #8fe0ff;
-  outline-offset: 2px;
+.client-login-submit,
+.google-button {
+  width: 100%;
+}
+
+.google-button {
+  margin-top: 1rem;
 }
 
 .login-card button,
@@ -104,6 +120,33 @@
 .client-forgot-password:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.client-auth-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 1.4rem 0;
+  padding: 0.3rem;
+  border: 1px solid rgba(155, 171, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.client-auth-switch button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(224, 233, 255, 0.75);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.client-auth-switch button.is-active {
+  background: rgba(76, 201, 240, 0.15);
+  color: #a7eaff;
 }
 
 .client-loading-bar {
@@ -224,7 +267,7 @@
   gap: 0.4rem;
 }
 
-.service-grid label,
+.service-grid span,
 .detail-row span {
   color: rgba(220, 232, 255, 0.65);
   font-size: 0.88rem;
@@ -243,6 +286,180 @@
 
 .detail-row {
   padding: 0.4rem 0;
+}
+
+.client-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.client-panel {
+  min-width: 0;
+  padding: 1.4rem;
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 24px;
+  background: rgba(10, 15, 27, 0.88);
+}
+
+.client-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.client-panel-heading h2 {
+  margin: 0.6rem 0 0;
+  color: #f5f9ff;
+}
+
+.client-project-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.client-project-card {
+  padding: 1.15rem;
+  border: 1px solid rgba(153, 170, 255, 0.15);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.client-project-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.client-project-header h3 {
+  margin: 0.55rem 0;
+  color: #f5f9ff;
+}
+
+.client-project-header > span,
+.client-project-card > p,
+.client-project-progress-label,
+.client-empty-state {
+  color: rgba(220, 232, 255, 0.72);
+}
+
+.client-project-status,
+.client-milestone-status {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid rgba(153, 170, 255, 0.2);
+  border-radius: 999px;
+  color: #a7dafe;
+  font-size: 0.8rem;
+}
+
+.client-project-status.completed,
+.client-milestone-status.completed {
+  color: #a5f3c2;
+}
+
+.client-project-status.paused,
+.client-milestone-status.pending {
+  color: #fcd28a;
+}
+
+.client-project-progress {
+  height: 8px;
+  margin-top: 1rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.client-project-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4cc9f0, #7a5cff);
+}
+
+.client-project-progress-label {
+  margin: 0.45rem 0;
+  font-size: 0.85rem;
+}
+
+.client-milestone-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-milestone-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(153, 170, 255, 0.12);
+}
+
+.client-milestone-list strong {
+  color: #f4f8ff;
+}
+
+.client-milestone-list p {
+  margin: 0.25rem 0 0;
+  color: rgba(220, 232, 255, 0.65);
+  font-size: 0.9rem;
+}
+
+.client-milestone-list time {
+  color: rgba(220, 232, 255, 0.7);
+  font-size: 0.82rem;
+}
+
+.client-profile-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+.client-profile-form label {
+  color: rgba(228, 236, 255, 0.88);
+  font-weight: 600;
+}
+
+.client-profile-form input {
+  min-height: 46px;
+  margin-bottom: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(155, 171, 255, 0.24);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f8ff;
+}
+
+.client-profile-form input[readonly] {
+  color: rgba(220, 232, 255, 0.62);
+}
+
+@media (max-width: 760px) {
+  .client-workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .client-project-header {
+    flex-direction: column;
+  }
+
+  .client-milestone-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .client-milestone-list time {
+    grid-column: 1 / -1;
+  }
 }
 
 @keyframes client-loading {
@@ -274,7 +491,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }
@@ -486,7 +703,7 @@
   }
 
   .stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

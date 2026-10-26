@@ -30,6 +30,12 @@
   line-height: 1.7;
 }
 
+.services-catalog-notice {
+  margin-top: 1rem;
+  color: rgba(220, 232, 255, 0.72);
+  line-height: 1.7;
+}
+
 .services-guide {
   margin-top: 2rem;
   padding: 2rem;

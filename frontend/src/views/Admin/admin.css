@@ -1,0 +1,253 @@
+.admin-page {
+  padding: 2rem 0 4rem;
+}
+
+.admin-header,
+.admin-panel-heading,
+.admin-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-header h1 {
+  margin: 1rem 0 0.5rem;
+  color: #f4f8ff;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+
+.admin-header p,
+.admin-card p {
+  color: rgba(224, 233, 255, 0.8);
+  line-height: 1.7;
+}
+
+.admin-card {
+  width: min(100%, 700px);
+  margin: 4rem auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid rgba(153, 170, 255, 0.2);
+  border-radius: 28px;
+  background: rgba(10, 15, 27, 0.94);
+}
+
+.admin-card h1 {
+  color: #f4f8ff;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(153, 170, 255, 0.18);
+}
+
+.admin-tabs button,
+.admin-panel-heading > button:not(.admin-danger-button) {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(153, 170, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #eaf2ff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.admin-tabs button.is-active {
+  border-color: rgba(117, 211, 255, 0.55);
+  background: rgba(93, 232, 255, 0.12);
+  color: #a9e8ff;
+}
+
+.admin-workspace {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.65fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.admin-list-panel,
+.admin-form-panel {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 22px;
+  background: rgba(10, 15, 27, 0.88);
+}
+
+.admin-panel-heading {
+  margin-bottom: 1rem;
+}
+
+.admin-panel-heading h2,
+.admin-panel-heading h3 {
+  margin: 0;
+  color: #f4f8ff;
+  font-size: 1.25rem;
+}
+
+.admin-panel-heading h3 {
+  font-size: 1.05rem;
+}
+
+.admin-record-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-record-list > button {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(224, 233, 255, 0.76);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.admin-record-list > button strong {
+  color: #f4f8ff;
+}
+
+.admin-record-list > button.is-selected {
+  border-color: rgba(117, 211, 255, 0.42);
+  background: rgba(93, 232, 255, 0.09);
+}
+
+.admin-record-list > p {
+  color: rgba(224, 233, 255, 0.7);
+}
+
+.admin-panel-help {
+  color: rgba(224, 233, 255, 0.72);
+  line-height: 1.7;
+}
+
+.admin-form-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-form-panel > label,
+.admin-form-grid > label {
+  display: grid;
+  gap: 0.45rem;
+  color: rgba(228, 236, 255, 0.9);
+  font-weight: 600;
+}
+
+.admin-form-panel input,
+.admin-form-panel select,
+.admin-form-panel textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(155, 171, 255, 0.24);
+  border-radius: 10px;
+  background: #111a2b;
+  color: #f4f8ff;
+  font: inherit;
+}
+
+.admin-form-panel textarea {
+  resize: vertical;
+}
+
+.admin-services-heading {
+  margin: 0;
+}
+
+.admin-client-service {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 16px;
+}
+
+.admin-client-service legend {
+  padding: 0 0.4rem;
+  color: #a9e8ff;
+  font-weight: 700;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-wide-field {
+  grid-column: 1 / -1;
+}
+
+.admin-form-actions {
+  justify-content: flex-start;
+}
+
+.admin-danger-button {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid rgba(255, 120, 120, 0.4);
+  border-radius: 10px;
+  background: rgba(180, 38, 38, 0.12);
+  color: #ffd6d6;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-danger-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.admin-feedback {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  line-height: 1.6;
+}
+
+.admin-feedback.error {
+  border: 1px solid rgba(255, 120, 120, 0.4);
+  background: rgba(180, 38, 38, 0.14);
+  color: #ffd6d6;
+}
+
+.admin-feedback.success {
+  border: 1px solid rgba(99, 241, 178, 0.35);
+  background: rgba(34, 197, 94, 0.1);
+  color: #b6f7d1;
+}
+
+@media (max-width: 850px) {
+  .admin-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-header,
+  .admin-panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-wide-field {
+    grid-column: auto;
+  }
+}

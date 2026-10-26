@@ -1,128 +1,31 @@
-# Plan de backend para Área de clientes
+# Backend actual y próximos pasos
 
-## Objetivo
-Crear una API para gestionar clientes, proyectos, tareas y entregables de forma segura y escalable.
+## Arquitectura actual
 
-## Stack sugerida
-- Node.js
-- Express.js
-- PostgreSQL
-- JWT
-- Prisma o Sequelize
-- Swagger
+El backend de `../backend/` usa Express 5, Firebase Authentication y Firestore. No usa PostgreSQL, Prisma ni JWT propios: el frontend obtiene un ID token de Firebase y lo envía en `Authorization: Bearer ...`.
 
-## Arquitectura recomendada
+Rutas implementadas:
 
-### Capas
-- app (routes/controllers)
-- domain (entities/services)
-- infrastructure (repository/database)
-- auth (JWT, middleware)
-- utils (validators, response helpers)
+- `GET /api/health`
+- `GET /api/services` y `GET /api/services/:slug`
+- `GET /api/clients/me` (solo identidad Firebase autenticada y con email verificado)
+- `/api/admin/clients` y `/api/admin/services` (requieren el custom claim Firebase `admin: true`)
+- `POST /api/contact` (validación, honeypot, rate limit y SMTP)
 
-## Modelo de datos
+El acceso de demostración con contraseñas y tokens fijos se retiró. El backend se prepara para desplegarse como Vercel project con `backend/` como raíz y `https://apisite.mandalestart.com` como dominio.
 
-### Tabla users
-- id
-- name
-- email
-- password_hash
-- role
-- created_at
-- updated_at
+## Seguridad y configuración
 
-### Tabla clients
-- id
-- user_id
-- company_name
-- contact_name
-- email
-- phone
-- status
+- CORS se configura con `FRONTEND_ORIGINS`.
+- `TRUST_PROXY_HOPS` debe reflejar la cantidad de proxies confiables delante de Express.
+- Firebase Admin, SMTP y dominios se configuran en variables del backend; no exponer secretos como `VITE_*`.
+- El endpoint de cuenta devuelve una proyección explícita. Para agregar campos al portal, ampliar el esquema de respuesta de manera deliberada y probar que campos internos se mantengan excluidos.
+- El rate limiter usa memoria local y no reemplaza un store compartido al escalar en Vercel.
 
-### Tabla projects
-- id
-- client_id
-- name
-- status
-- description
-- progress
-- start_date
-- due_date
+## Gestión administrativa
 
-### Tabla tasks
-- id
-- project_id
-- title
-- description
-- status
-- priority
-- assigned_to
-- due_date
+El panel `/admin` permite administrar clientes y servicios contratados, y actualizar o archivar el catálogo público. El backend valida cada operación, aplica listas permitidas y mantiene los campos internos fuera de la respuesta del cliente.
 
-### Tabla documents
-- id
-- project_id
-- title
-- file_url
-- uploaded_by
-- created_at
+Un administrador debe recibir `admin: true` mediante el script privilegiado `backend/scripts/set-admin-claim.js`; el claim no se administra desde el navegador. La eliminación de un cliente borra su ficha de Firestore, no su identidad de Firebase Authentication. Los nuevos slugs requieren una ruta estática y despliegue del frontend.
 
-### Tabla activity_log
-- id
-- project_id
-- user_id
-- action
-- description
-- created_at
-
-## JWT y seguridad
-- Llenar token con userId, role, clientId si aplica
-- Middleware de autorización por rol
-- Middleware para validar propiedad del recurso
-- Validación de payloads con Zod o Joi
-
-## Endpoints principales
-
-### Auth
-POST /api/auth/login
-POST /api/auth/register
-GET /api/auth/me
-
-### Clients
-GET /api/clients/:id
-GET /api/clients/:id/projects
-PATCH /api/clients/:id
-
-### Projects
-GET /api/projects/:id
-GET /api/projects/:id/tasks
-GET /api/projects/:id/activity
-POST /api/projects
-PATCH /api/projects/:id
-
-### Tasks
-POST /api/tasks
-PATCH /api/tasks/:id
-DELETE /api/tasks/:id
-
-### Documents
-POST /api/projects/:id/documents
-GET /api/projects/:id/documents
-
-## Mejoras recomendadas
-- cache de dashboard
-- logs de auditoría
-- paginación en listados
-- filtros por estado o cliente
-- notificaciones por email o WhatsApp
-- uploads con almacenamiento externo
-
-## Criterios de aceptación
-- Un cliente solo puede acceder a sus propios datos
-- Las tareas deben reflejar cambios en proyecto y historial
-- El panel debe cargar sin errores en un entorno real
-- Los endpoints deben estar documentados en Swagger
-
-## Siguiente fase
-Una vez implementado el backend, se conectará el frontend con fetch o axios y se reemplazarán los mocks por datos reales.
+Posibles siguientes etapas: agregar bitácora de cambios, gestionar proyectos/tareas/entregables y configurar un almacén de rate limit compartido para las funciones serverless.

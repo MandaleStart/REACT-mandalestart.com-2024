@@ -365,6 +365,12 @@
   line-height: 1.7;
 }
 
+.catalog-notice {
+  margin-top: 1rem;
+  color: rgba(220, 232, 255, 0.72);
+  font-size: 0.9rem;
+}
+
 .service-icon {
   width: 64px;
   height: 64px;

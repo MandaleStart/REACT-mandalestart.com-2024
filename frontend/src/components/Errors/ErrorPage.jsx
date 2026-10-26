@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
-import './ErrorPage.css';
 
 const ErrorPage = () => {
   return (
-    <main className="error-page-container text-center">
+    <main className="error-page-container">
       <div className="error-page-content">
         <h1 className="error-heading">Error 404 - Página no encontrada</h1>
         <p className="error-message">No encontramos la página que buscás.</p>

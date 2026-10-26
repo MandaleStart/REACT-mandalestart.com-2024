@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
-import serviceCatalog from '../../data/serviceCatalog';
 import ShareLinks from '../../components/ShareLinks/ShareLinks';
+import SiteIcon from '../../components/SiteIcon/SiteIcon';
+import useServiceCatalog from '../../data/useServiceCatalog';
 import './services.css';
 
 const Services = () => {
+  const { services: serviceCatalog, error: catalogError } = useServiceCatalog();
+
   return (
     <main className="services-page">
       <section className="services-hero">
@@ -26,7 +29,7 @@ const Services = () => {
         {serviceCatalog.map(({ slug, icon, title, category, description, price, accent }) => (
           <article key={slug} className={`service-showcase ${accent}`}>
             <div className="service-showcase-top">
-              <span className="service-mini-icon">{icon}</span>
+              <span className="service-mini-icon"><SiteIcon name={icon} /></span>
               <span className="service-chip">{category}</span>
             </div>
 
@@ -40,6 +43,7 @@ const Services = () => {
           </article>
         ))}
       </section>
+      {catalogError && <p className="services-catalog-notice" role="status">{catalogError} Mostramos el catálogo guardado.</p>}
       <p className="services-pricing-note">
         El alcance, los plazos y el presupuesto se confirman con vos antes de comenzar.
       </p>

@@ -1,9 +1,43 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import './navbar.css';
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
+  const dropdownRefs = useRef({});
+  const triggerRefs = useRef({});
+
+  useEffect(() => {
+    setOpenMenu('');
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!openMenu) return undefined;
+
+    const dropdown = dropdownRefs.current[openMenu];
+    const closeOnOutsideInteraction = (event) => {
+      if (!dropdown?.contains(event.target)) setOpenMenu('');
+    };
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setOpenMenu('');
+      triggerRefs.current[openMenu]?.focus();
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsideInteraction);
+    document.addEventListener('focusin', closeOnOutsideInteraction);
+    document.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideInteraction);
+      document.removeEventListener('focusin', closeOnOutsideInteraction);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [openMenu]);
 
   const navItems = [
     { to: '/', label: 'Inicio' },
@@ -26,7 +60,6 @@ const Navbar = () => {
 
   const moreLinks = [
     { to: '/client-area', label: 'Área de clientes' },
-    { to: '/comments', label: 'Opiniones' },
     { to: '/cv', label: 'CV' },
   ];
 
@@ -34,12 +67,15 @@ const Navbar = () => {
     setOpenMenu((currentMenu) => (currentMenu === menu ? '' : menu));
   };
 
-  const closeMenus = () => setOpenMenu('');
+  const closeMenus = () => {
+    setOpenMenu('');
+    setMobileOpen(false);
+  };
 
   return (
     <header className="topbar-wrap">
-      <nav className="navbar navbar-expand-xl topbar">
-        <div className="container-fluid topbar-inner">
+      <nav className="topbar navbar-container">
+        <div className="topbar-inner">
           <Link className="brand" to="/">
             <span className="brand-mark">M</span>
             <span>
@@ -51,64 +87,73 @@ const Navbar = () => {
           <button
             className="navbar-toggler"
             type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar"
-            aria-controls="mainNavbar"
-            aria-expanded="false"
-            aria-label="Abrir menú de navegación"
+            aria-controls="main-navigation"
+            aria-expanded={mobileOpen}
+            aria-label={mobileOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            onClick={() => setMobileOpen((isOpen) => !isOpen)}
           >
-            <span className="navbar-toggler-icon"></span>
+            <span className="navbar-toggler-icon" aria-hidden="true" />
           </button>
 
-          <div className="collapse navbar-collapse" id="mainNavbar">
-            <div className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <div className={`navbar-collapse${mobileOpen ? ' is-open' : ''}`} id="main-navigation">
+            <div className="navbar-nav">
               {navItems.map(({ to, label }) => (
-                <Link key={to} className="nav-link" to={to} onClick={closeMenus}>
+                <NavLink key={to} className="nav-link" to={to} onClick={closeMenus}>
                   {label}
-                </Link>
+                </NavLink>
               ))}
 
-              <div className={`nav-dropdown${openMenu === 'services' ? ' is-open' : ''}`}>
+              <div
+                className={`nav-dropdown${openMenu === 'services' ? ' is-open' : ''}`}
+                id="services-dropdown"
+                ref={(element) => { dropdownRefs.current.services = element; }}
+              >
                 <button
                   type="button"
                   className="nav-link nav-dropdown-toggle"
-                  aria-haspopup="true"
                   aria-expanded={openMenu === 'services'}
+                  aria-controls="services-menu"
+                  ref={(element) => { triggerRefs.current.services = element; }}
                   onClick={() => toggleMenu('services')}
                 >
                   Servicios
                 </button>
-                <div className="nav-dropdown-menu">
+                <div className="nav-dropdown-menu" id="services-menu">
                   {serviceLinks.map(({ to, label }) => (
-                    <Link key={to} className="nav-dropdown-link" to={to} onClick={closeMenus}>
+                    <NavLink key={to} className="nav-dropdown-link" to={to} onClick={closeMenus}>
                       {label}
-                    </Link>
+                    </NavLink>
                   ))}
                 </div>
               </div>
 
-              <div className={`nav-dropdown${openMenu === 'more' ? ' is-open' : ''}`}>
+              <div
+                className={`nav-dropdown${openMenu === 'more' ? ' is-open' : ''}`}
+                id="more-dropdown"
+                ref={(element) => { dropdownRefs.current.more = element; }}
+              >
                 <button
                   type="button"
                   className="nav-link nav-dropdown-toggle"
-                  aria-haspopup="true"
                   aria-expanded={openMenu === 'more'}
+                  aria-controls="more-menu"
+                  ref={(element) => { triggerRefs.current.more = element; }}
                   onClick={() => toggleMenu('more')}
                 >
                   Más
                 </button>
-                <div className="nav-dropdown-menu">
+                <div className="nav-dropdown-menu" id="more-menu">
                   {moreLinks.map(({ to, label }) => (
-                    <Link key={to} className="nav-dropdown-link" to={to} onClick={closeMenus}>
+                    <NavLink key={to} className="nav-dropdown-link" to={to} onClick={closeMenus}>
                       {label}
-                    </Link>
+                    </NavLink>
                   ))}
                 </div>
               </div>
 
-              <Link className="nav-cta" to="/contact" onClick={closeMenus}>
+              <NavLink className="nav-cta" to="/contact" onClick={closeMenus}>
                 Pedir presupuesto
-              </Link>
+              </NavLink>
             </div>
           </div>
         </div>

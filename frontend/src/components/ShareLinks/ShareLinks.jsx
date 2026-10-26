@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import serviceCatalog from '../../data/serviceCatalog';
 import { getPageMetadata, SITE_URL } from '../../seo/metadata';
+import { whatsappShareUrl } from '../../config/site';
 import './share-links.css';
 
 const ShareLinks = () => {
@@ -9,7 +10,7 @@ const ShareLinks = () => {
   const pageUrl = `${SITE_URL}${pagePath}`;
   const title = getPageMetadata(pagePath, serviceCatalog).title;
   const encodedUrl = encodeURIComponent(pageUrl);
-  const message = encodeURIComponent(`${title}: ${pageUrl}`);
+  const whatsappLink = whatsappShareUrl(`${title}: ${pageUrl}`);
 
   return (
     <section className="sharing-section" aria-labelledby="sharing-title">
@@ -36,7 +37,7 @@ const ShareLinks = () => {
           LinkedIn
         </a>
         <a
-          href={`https://api.whatsapp.com/send/?text=${message}`}
+          href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Compartir ${title} por WhatsApp`}

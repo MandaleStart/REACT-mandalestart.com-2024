@@ -1,4 +1,5 @@
-import * as admin from 'firebase-admin';
+import { applicationDefault, cert, getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +10,6 @@ const __dirname = path.dirname(__filename);
 export const firebaseState = {
   ready: false,
   app: null,
-  db: null,
 };
 
 function resolveServiceAccountPath(value) {
@@ -28,17 +28,16 @@ function loadServiceAccount() {
     if (!candidate) continue;
 
     try {
-      const resolvedPath = resolveServiceAccountPath(candidate);
-      if (fs.existsSync(resolvedPath)) {
-        const raw = fs.readFileSync(resolvedPath, 'utf8');
-        return JSON.parse(raw);
-      }
-
-      if (candidate.startsWith('{')) {
+      if (candidate.trimStart().startsWith('{')) {
         return JSON.parse(candidate);
       }
+
+      const resolvedPath = resolveServiceAccountPath(candidate);
+      if (fs.existsSync(resolvedPath)) {
+        return JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+      }
     } catch (error) {
-      console.warn('No se pudo cargar la credencial de Firebase:', error.message);
+      console.warn('No se pudo cargar la credencial de Firebase:', error.name);
     }
   }
 
@@ -46,38 +45,39 @@ function loadServiceAccount() {
 }
 
 export function initFirebase() {
-  if (firebaseState.ready || (admin.apps && admin.apps.length > 0)) {
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    firebaseState.app = getApp();
     firebaseState.ready = true;
-    firebaseState.app = admin.app();
-    firebaseState.db = admin.firestore();
     return firebaseState;
   }
 
   const serviceAccount = loadServiceAccount();
-  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount?.project_id;
 
   if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: process.env.FIREBASE_DATABASE_URL,
+    firebaseState.app = initializeApp({
+      credential: cert(serviceAccount),
+      ...(projectId ? { projectId } : {}),
+      ...(process.env.FIREBASE_DATABASE_URL ? { databaseURL: process.env.FIREBASE_DATABASE_URL } : {}),
     });
   } else if (projectId) {
-    admin.initializeApp({ projectId });
+    firebaseState.app = initializeApp({
+      credential: applicationDefault(),
+      projectId,
+    });
   } else {
-    console.log('Firebase Admin no configurado. El backend correrá en modo mock.');
+    console.info('Firebase Admin no configurado; las rutas que requieren autenticación quedan deshabilitadas.');
     return firebaseState;
   }
-
   firebaseState.ready = true;
-  firebaseState.app = admin.app();
-  firebaseState.db = admin.firestore();
+  firebaseState.ready = true;
+  console.info('Firebase Admin inicializado correctamente.');
 
-  console.log('Firebase Admin inicializado correctamente.');
   return firebaseState;
 }
 
 export const isFirebaseReady = () => firebaseState.ready;
-export const getDb = () => firebaseState.db;
 
 export async function verifyFirebaseToken(idToken) {
   if (!idToken || !isFirebaseReady() || !firebaseState.app) {
@@ -85,10 +85,9 @@ export async function verifyFirebaseToken(idToken) {
   }
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    return decodedToken;
+    return await getAuth(firebaseState.app).verifyIdToken(idToken);
   } catch (error) {
-    console.warn('Token de Firebase inválido:', error.message);
+    console.warn('Token de Firebase inválido:', error.code || error.name);
     return null;
   }
 }

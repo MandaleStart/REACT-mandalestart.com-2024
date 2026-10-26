@@ -1,0 +1,34 @@
+.privacy-page {
+  padding: 2rem 0 4rem;
+}
+
+.privacy-page h1 {
+  margin: 0 0 1.5rem;
+  color: #f5f9ff;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.04em;
+}
+
+.privacy-section {
+  margin-bottom: 1rem;
+}
+
+.privacy-section h2 {
+  margin: 0 0 0.75rem;
+  color: #f5f9ff;
+  font-size: 1.25rem;
+}
+
+.privacy-section p {
+  margin-bottom: 0.75rem;
+  color: rgba(221, 232, 255, 0.82);
+  line-height: 1.8;
+}
+
+.privacy-section p:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-section a {
+  color: #9fe9ff;
+}

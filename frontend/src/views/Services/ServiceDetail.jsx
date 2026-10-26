@@ -1,15 +1,23 @@
 import { Link, useParams } from 'react-router-dom';
-import serviceCatalog from '../../data/serviceCatalog';
 import ErrorPage from '../../components/Errors/ErrorPage';
+import SiteIcon from '../../components/SiteIcon/SiteIcon';
 import ShareLinks from '../../components/ShareLinks/ShareLinks';
+import useServiceCatalog from '../../data/useServiceCatalog';
 import './services.css';
 
 const ServiceDetail = () => {
   const { slug } = useParams();
+  const { services: serviceCatalog, loading, error: catalogError } = useServiceCatalog();
   const service = serviceCatalog.find((item) => item.slug === slug);
 
+  if (!service && loading) {
+    return <main className="service-detail-page" aria-live="polite">Cargando el servicio…</main>;
+  }
   if (!service) return <ErrorPage />;
 
+  const points = Array.isArray(service.points) ? service.points : [];
+  const includes = Array.isArray(service.includes) ? service.includes : [];
+  const details = Array.isArray(service.details) ? service.details : [];
   const relatedServices = serviceCatalog.filter((item) => item.slug !== service.slug).slice(0, 3);
 
   return (
@@ -18,7 +26,7 @@ const ServiceDetail = () => {
 
       <section className={`service-detail-hero ${service.accent}`}>
         <div className="service-detail-header">
-          <span className="service-mini-icon large">{service.icon}</span>
+          <span className="service-mini-icon large"><SiteIcon name={service.icon} /></span>
           <span className="service-chip">{service.category}</span>
         </div>
 
@@ -27,17 +35,18 @@ const ServiceDetail = () => {
         <p className="service-detail-description">{service.description}</p>
 
         <div className="service-detail-points">
-          {service.points.map((point) => (
+          {points.map((point) => (
             <span key={point}>{point}</span>
           ))}
         </div>
       </section>
+      {catalogError && <p className="services-catalog-notice" role="status">{catalogError} Mostramos la información guardada.</p>}
 
       <section className="service-detail-grid">
         <div className="service-panel">
           <h2>Qué incluye</h2>
           <ul>
-            {service.includes.map((item) => (
+            {includes.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -55,7 +64,7 @@ const ServiceDetail = () => {
 
       <section className="service-detail-guidance">
         <h2>Qué conviene definir</h2>
-        {service.details.map((detail) => (
+        {details.map((detail) => (
           <p key={detail}>{detail}</p>
         ))}
         <p>
@@ -75,7 +84,7 @@ const ServiceDetail = () => {
           {relatedServices.map(({ slug: relatedSlug, icon, title, description, accent }) => (
             <article key={relatedSlug} className={`service-showcase ${accent}`}>
               <div className="service-showcase-top">
-                <span className="service-mini-icon">{icon}</span>
+                <span className="service-mini-icon"><SiteIcon name={icon} /></span>
                 <span className="service-chip">Servicio</span>
               </div>
               <h2>{title}</h2>

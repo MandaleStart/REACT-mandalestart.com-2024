@@ -1,7 +1,16 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useContact } from '../../config/useContact';
 import serviceCatalog from '../../data/serviceCatalog';
-import { DEFAULT_DESCRIPTION, getPageMetadata, SITE_URL, SOCIAL_IMAGE } from '../../seo/metadata';
+import {
+  buildBusinessStructuredData,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_ROBOTS,
+  getPageMetadata,
+  SITE_URL,
+  SOCIAL_IMAGE,
+} from '../../seo/metadata';
+import { getPublicServiceBySlug } from '../../services/serviceCatalogApi';
 
 function updateMeta(selector, value) {
   let element = document.head.querySelector(selector);
@@ -16,12 +25,13 @@ function updateMeta(selector, value) {
 
 const Seo = () => {
   const { pathname } = useLocation();
+  const contact = useContact();
 
   useEffect(() => {
     const page = getPageMetadata(pathname, serviceCatalog);
     const canonicalUrl = `${SITE_URL}${page.path}`;
     const description = page.description || DEFAULT_DESCRIPTION;
-    const robots = page.robots || 'index, follow, max-image-preview:large';
+    const robots = page.robots || DEFAULT_ROBOTS;
 
     document.documentElement.lang = 'es-UY';
     document.title = page.title;
@@ -57,23 +67,41 @@ const Seo = () => {
       structuredData.type = 'application/ld+json';
       document.head.appendChild(structuredData);
     }
-    structuredData.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'ProfessionalService',
-      name: 'MandaleStart',
-      url: SITE_URL,
-      image: SOCIAL_IMAGE,
-      description: DEFAULT_DESCRIPTION,
-      email: 'info@mandalestart.com',
-      telephone: '+59891598586',
-      areaServed: {
-        '@type': 'Country',
-        name: 'Uruguay',
-      },
-      availableLanguage: 'es-UY',
-      sameAs: ['https://www.linkedin.com/in/mandalestart'],
-    });
-  }, [pathname]);
+    structuredData.id = 'business-structured-data';
+    structuredData.type = 'application/ld+json';
+    structuredData.textContent = JSON.stringify(buildBusinessStructuredData(contact, SITE_URL));
+
+    if (pathname.startsWith('/services/')) {
+      const controller = new AbortController();
+      const slug = pathname.slice('/services/'.length);
+      getPublicServiceBySlug(slug, controller.signal)
+        .then((service) => {
+          if (controller.signal.aborted) return;
+          if (!service) {
+            document.title = 'Servicio no encontrado | MandaleStart';
+            updateMeta('meta[name="robots"]', 'noindex, nofollow');
+            return;
+          }
+
+          const title = `${service.title} en Uruguay | MandaleStart`;
+          const description = `${service.description} Atención a personas y negocios de todo Uruguay.`;
+          document.title = title;
+          updateMeta('meta[name="description"]', description);
+          updateMeta('meta[property="og:title"]', title);
+          updateMeta('meta[property="og:description"]', description);
+          updateMeta('meta[name="twitter:title"]', title);
+          updateMeta('meta[name="twitter:description"]', description);
+        })
+        .catch((requestError) => {
+          if (requestError.name !== 'AbortError') {
+            console.warn('No se pudo actualizar el SEO del servicio:', requestError.message);
+          }
+        });
+      return () => controller.abort();
+    }
+
+    return undefined;
+  }, [contact, pathname]);
 
   return null;
 };

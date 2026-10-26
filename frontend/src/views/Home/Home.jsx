@@ -1,51 +1,8 @@
 import { Link } from 'react-router-dom';
 import ShareLinks from '../../components/ShareLinks/ShareLinks';
+import SiteIcon from '../../components/SiteIcon/SiteIcon';
+import useServiceCatalog from '../../data/useServiceCatalog';
 import './home.css';
-
-const services = [
-  {
-    icon: '💻',
-    title: 'Desarrollo web',
-    description: 'Diseño sitios, landing pages y tiendas online para que tus clientes entiendan qué ofrecés y sepan cómo contactarte.',
-    accent: 'cyan',
-  },
-  {
-    icon: '🌐',
-    title: 'Hosting web',
-    description: 'Alojo y mantengo tu sitio para que esté disponible y al día.',
-    accent: 'blue',
-  },
-  {
-    icon: '📧',
-    title: 'Correo corporativo',
-    description: 'Configuro cuentas de correo con tu dominio para el trabajo diario.',
-    accent: 'orange',
-  },
-  {
-    icon: '🧭',
-    title: 'Dominios',
-    description: 'Gestiono el registro y la renovación de dominios, y te asesoro para elegir el nombre de tu web.',
-    accent: 'purple',
-  },
-  {
-    icon: '📈',
-    title: 'SEO',
-    description: 'Reviso la estructura y el contenido de tu sitio para facilitar que los buscadores lo entiendan.',
-    accent: 'green',
-  },
-  {
-    icon: '🔐',
-    title: 'DDNS + acceso remoto',
-    description: 'Configuro DDNS y acceso remoto para que te conectes con tus equipos y servicios desde fuera.',
-    accent: 'red',
-  },
-  {
-    icon: '🧩',
-    title: 'Diseño e impresión 3D',
-    description: 'Diseño y fabrico piezas y prototipos 3D según las medidas y el uso que necesitás.',
-    accent: 'purple',
-  },
-];
 
 const infrastructure = [
   { title: 'Servidores', text: 'Instalo, configuro y mantengo servidores según las necesidades de tu proyecto.' },
@@ -68,6 +25,8 @@ const stats = [
 ];
 
 const Home = () => {
+  const { services, error: catalogError } = useServiceCatalog();
+
   return (
     <main className="home-page">
       <section className="hero-section">
@@ -145,14 +104,15 @@ const Home = () => {
         </div>
 
         <div className="services-grid">
-          {services.map(({ icon, title, description, accent }) => (
-            <article key={title} className={`service-card ${accent}`}>
-              <div className="service-icon">{icon}</div>
+          {services.map(({ slug, icon, title, description, accent }) => (
+            <article key={slug} className={`service-card ${accent}`}>
+              <div className="service-icon"><SiteIcon name={icon} /></div>
               <h3>{title}</h3>
               <p>{description}</p>
             </article>
           ))}
         </div>
+        {catalogError && <p className="catalog-notice" role="status">{catalogError} Mostramos el catálogo guardado.</p>}
       </section>
 
       <section className="infrastructure-section">

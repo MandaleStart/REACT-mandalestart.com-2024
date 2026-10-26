@@ -1,7 +1,7 @@
 export const serviceCatalog = [
   {
     slug: 'web',
-    icon: '💻',
+    icon: 'code',
     title: 'Desarrollo web',
     category: 'Desarrollo web',
     description: 'Diseño y desarrollo de sitios, landing pages y tiendas online según lo que necesite cada proyecto.',
@@ -22,7 +22,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'hosting',
-    icon: '🌐',
+    icon: 'globe',
     title: 'Hosting web',
     category: 'Alojamiento',
     description: 'Alojamiento web con mantenimiento, copias de seguridad y soporte técnico.',
@@ -43,7 +43,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'email',
-    icon: '📧',
+    icon: 'mail',
     title: 'Correo corporativo',
     category: 'Comunicación',
     description: 'Configuración de cuentas de correo con el dominio de tu negocio o proyecto.',
@@ -64,7 +64,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'domains',
-    icon: '🧭',
+    icon: 'compass',
     title: 'Registro y gestión de dominios',
     category: 'Marca',
     description: 'Registro, renovación y configuración de dominios para tu negocio o proyecto.',
@@ -85,7 +85,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'seo',
-    icon: '📈',
+    icon: 'chart',
     title: 'SEO y posicionamiento',
     category: 'Visibilidad',
     description: 'Revisión técnica y de contenido para que los buscadores puedan entender mejor tu sitio.',
@@ -106,7 +106,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'ddns',
-    icon: '🔐',
+    icon: 'shield',
     title: 'DDNS y acceso remoto',
     category: 'Infraestructura',
     description: 'Configuración de DNS dinámico y acceso remoto para equipos y servicios.',
@@ -127,7 +127,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'monitoring',
-    icon: '📡',
+    icon: 'activity',
     title: 'Monitoreo de infraestructura',
     category: 'Red y servidores',
     description: 'Monitoreo de servidores, routers y redes, con alertas cuando un equipo deja de responder.',
@@ -148,7 +148,7 @@ export const serviceCatalog = [
   },
   {
     slug: 'impresion-3d',
-    icon: '🧩',
+    icon: 'cube',
     title: 'Diseño e impresión 3D',
     category: 'Prototipado',
     description: 'Diseño y fabricación de piezas y prototipos 3D para probar una idea o resolver una necesidad concreta.',

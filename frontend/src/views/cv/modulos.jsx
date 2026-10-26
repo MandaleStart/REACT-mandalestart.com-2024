@@ -1,9 +1,3 @@
-export const contacto = {
-    telefono: "091895586",
-    email: "nikillogamer532@gmail.com",
-    linkedin: "https://www.linkedin.com/in/mandalestart"
-};
-
 export const extracto = `
 Soy Nicolás Jorge, desarrollador web frontend. Comencé mi formación en Jóvenes a Programar de Ceibal y sigo aprendiendo desarrollo full stack, C# y creación de videojuegos.
 

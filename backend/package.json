@@ -4,15 +4,14 @@
   "version": "1.0.0",
   "description": "Backend del sitio mandalestart.com",
   "type": "module",
-  
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate": "node-pg-migrate -m src/migrations",
-    "migrate:hub": "node-pg-migrate -m src/migrations-hub up"
+    "db:create": "node scripts/create-database.js",
+    "db:migrate": "node scripts/migrate-postgres.js",
+    "admin:claim": "node scripts/set-admin-claim.js",
+    "test": "node --test"
   },
-  
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -20,12 +19,9 @@
     "express-rate-limit": "^8.7.0",
     "firebase-admin": "^14.4.0",
     "helmet": "^8.3.0",
-    "nodemailer": "^7.0.6",
-    "node-pg-migrate": "^9.0.0",
-    "pg": "^8.23.0",
-    "ssh2": "^1.17.0"
+    "nodemailer": "^10.2.1",
+    "pg": "^8.23.1"
   },
-
   "devDependencies": {
     "nodemon": "^3.1.14"
   }

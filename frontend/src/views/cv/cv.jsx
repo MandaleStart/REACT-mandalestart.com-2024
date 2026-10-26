@@ -1,7 +1,11 @@
 import './cv.css';
-import { contacto, extracto, habilidades, certificaciones, aptitudes, idiomas } from './modulos';
+import { useContact } from '../../config/useContact';
+import { SITE, mailtoUrl, telUrl } from '../../config/site';
+import { extracto, habilidades, certificaciones, aptitudes, idiomas } from './modulos';
 
-function CV() {
+function CurriculumVitae() {
+    const contact = useContact();
+
     return (
         <main className="cv-page">
             <header className='header-cv'>
@@ -18,9 +22,9 @@ function CV() {
                     <section className="contacto">
                         <h2>Contacto</h2>
                         <ul>
-                            <li>Teléfono: <a href={`tel:+598${contacto.telefono}`}>{contacto.telefono}</a></li>
-                            <li>Email: <a href={`mailto:${contacto.email}`}>{contacto.email}</a></li>
-                            <li>LinkedIn: <a href={contacto.linkedin} target="_blank" rel="noopener noreferrer">Perfil de LinkedIn</a></li>
+                            {contact.phone && <li>Teléfono: <a href={telUrl(contact)}>{contact.phone.display}</a></li>}
+                            <li>Email: <a href={mailtoUrl(contact)}>{contact.email}</a></li>
+                            <li>LinkedIn: <a href={SITE.linkedin} target="_blank" rel="noopener noreferrer">Perfil de LinkedIn</a></li>
                         </ul>
                     </section>
 
@@ -82,4 +86,4 @@ function CV() {
     );
 }
 
-export default CV;
+export default CurriculumVitae;

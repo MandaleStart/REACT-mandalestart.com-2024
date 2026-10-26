@@ -59,9 +59,20 @@ img {
   display: block;
 }
 
+.site-icon-svg {
+  display: block;
+  width: 1.25em;
+  height: 1.25em;
+}
+
 button,
 a {
   transition: all 0.25s ease;
+}
+
+:focus-visible {
+  outline: 2px solid #8fe0ff;
+  outline-offset: 2px;
 }
 
 #root {
