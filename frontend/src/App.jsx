@@ -29,7 +29,7 @@ const loadProjects = () => import('./views/Projects/Projects');
 const Projects = lazy(loadProjects);
 const loadComments = () => import('./views/Comments/Comments');
 const Comments = lazy(loadComments);
-const loadCV = () => import('./views/CV/CV');
+const loadCV = () => import('./views/cv/cv');
 const CV = lazy(loadCV);
 const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);

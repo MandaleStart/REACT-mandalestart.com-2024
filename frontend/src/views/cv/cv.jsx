@@ -1,7 +1,7 @@
-import './CV.css';
+import './cv.css';
 import { useContact } from '../../config/useContact';
 import { SITE, mailtoUrl, telUrl } from '../../config/site';
-import { extracto, habilidades, certificaciones, aptitudes, idiomas } from './cvData';
+import { extracto, habilidades, certificaciones, aptitudes, idiomas } from '../CV/cvData';
 
 function CurriculumVitae() {
   const contact = useContact();
