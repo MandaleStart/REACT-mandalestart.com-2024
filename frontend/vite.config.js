@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => {
   });
 
   return {
+    define: {
+      'import.meta.env.VERCEL_ENV': JSON.stringify(env.VERCEL_ENV || ''),
+    },
     plugins: [
       react(),
       {

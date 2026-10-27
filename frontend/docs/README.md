@@ -92,7 +92,7 @@ Si la API todavía no está desplegada, el área de clientes y el envío del for
 | Pruebas    | `https://dev.mandalestart.com` | (vacío)               | `noindex`, `robots.txt` cerrado, sin sitemap |
 | Local      | (vacío)                        | (vacío)               | Igual que pruebas                            |
 
-En Vercel, configurar `VITE_INDEXABLE_SITE=true` **solo en Production**, no en Preview. La indexación se decide exclusivamente con esta variable explícita, no por el nombre del dominio: mantenerla vacía o en `false` en pruebas y desarrollo. `VITE_SITE_URL` usa `https://mandalestart.com` como fallback para canonical y etiquetas sociales.
+En Vercel, Production se indexa por defecto; Preview no. Para controlar el comportamiento explícitamente, configurar `VITE_INDEXABLE_SITE=true` solo en Production y mantenerla vacía o en `false` en Preview y desarrollo. `VITE_SITE_URL` usa `https://mandalestart.com` como fallback para canonical y etiquetas sociales.
 
 En el entorno Production de Vercel, configurar `STRICT_SEO=1` para que el build falle si el dominio es de producción pero se omitió `VITE_INDEXABLE_SITE=true`.
 
