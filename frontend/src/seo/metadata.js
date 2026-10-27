@@ -27,7 +27,9 @@ export function buildBusinessStructuredData(contact = fallbackContact, siteUrl =
 export function buildMetadata(env = {}) {
   const siteUrl = (env.VITE_SITE_URL || SITE.url).replace(/\/$/, '');
   const socialImage = `${siteUrl}/img/og-cover.png`;
-  const isIndexableSite = env.VITE_INDEXABLE_SITE === 'true';
+  const isIndexableSite =
+    env.VITE_INDEXABLE_SITE === 'true' ||
+    (env.VITE_INDEXABLE_SITE !== 'false' && env.VERCEL_ENV === 'production');
   const defaultRobots = isIndexableSite
     ? 'index, follow, max-image-preview:large'
     : 'noindex, nofollow';
@@ -113,11 +115,6 @@ export function buildMetadata(env = {}) {
       title: `Área de clientes | ${SITE.name}`,
       description: `Acceso privado para clientes de ${SITE.name}.`,
       robots: 'noindex, nofollow',
-    },
-    '/cv': {
-      title: `Currículum de Nicolás Jorge | ${SITE.name}`,
-      description: 'Perfil profesional, habilidades y certificaciones de Nicolás Jorge.',
-      robots: 'noindex, follow',
     },
     '/privacidad': {
       title: `Política de privacidad | ${SITE.name}`,

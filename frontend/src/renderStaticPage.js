@@ -6,7 +6,6 @@ import StaticRouteComponentsContext from './components/StaticRouteComponentsCont
 import AboutMe from './views/Aboutme/AboutMe';
 import Projects from './views/Projects/Projects';
 import Comments from './views/Comments/Comments';
-import CV from './views/cv/cv';
 import { SiteConfigProvider } from './config/SiteConfigProvider';
 import { ServiceCatalogProvider } from './data/ServiceCatalogProvider';
 
@@ -23,7 +22,7 @@ export async function renderStaticPage(location, siteConfig, serviceCatalog) {
           { initialServices: serviceCatalog },
           React.createElement(
             StaticRouteComponentsContext.Provider,
-            { value: { AboutMe, Projects, Comments, CV } },
+            { value: { AboutMe, Projects, Comments } },
             React.createElement(App),
           ),
         ),

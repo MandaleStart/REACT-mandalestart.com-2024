@@ -44,6 +44,17 @@ test('keeps staging sites noindex when VITE_INDEXABLE_SITE is disabled', () => {
   );
 });
 
+test('enables indexing by default in Vercel production but not in previews', () => {
+  const productionMetadata = buildMetadata({ VERCEL_ENV: 'production' });
+  const previewMetadata = buildMetadata({ VERCEL_ENV: 'preview' });
+
+  assert.equal(
+    productionMetadata.getPageMetadata('/').robots,
+    'index, follow, max-image-preview:large',
+  );
+  assert.equal(previewMetadata.getPageMetadata('/').robots, 'noindex, nofollow');
+});
+
 test('uses the explicit indexability setting instead of inferring from the hostname', () => {
   const metadata = buildMetadata({
     VITE_SITE_URL: 'https://preview.example.test',
@@ -101,7 +112,8 @@ test('always keeps private and non-public pages out of search indexes', () => {
     assert.equal(metadata.getPageMetadata('/client-area').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/area-cliente').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/comments').robots, 'noindex, follow');
-    assert.equal(metadata.getPageMetadata('/cv').robots, 'noindex, follow');
+    assert.equal(metadata.getPageMetadata('/cv').title, 'Página no encontrada | MandaleStart');
+    assert.equal(metadata.getPageMetadata('/cv').robots, 'noindex, nofollow');
   }
 });
 

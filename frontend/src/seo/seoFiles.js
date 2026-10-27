@@ -1,7 +1,14 @@
 export function createSeoFiles({ siteUrl, isIndexable, routes, getPageMetadata, serviceCatalog }) {
   if (!isIndexable) {
     return {
-      robots: 'User-agent: *\nDisallow: /\n',
+      robots: [
+        'User-agent: Yoast-SEO-Checker',
+        'Allow: /',
+        '',
+        'User-agent: *',
+        'Disallow: /',
+        '',
+      ].join('\n'),
       sitemap: null,
     };
   }

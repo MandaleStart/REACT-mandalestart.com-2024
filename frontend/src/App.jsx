@@ -29,8 +29,6 @@ const loadProjects = () => import('./views/Projects/Projects');
 const Projects = lazy(loadProjects);
 const loadComments = () => import('./views/Comments/Comments');
 const Comments = lazy(loadComments);
-const loadCV = () => import('./views/cv/cv');
-const CV = lazy(loadCV);
 const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);
 const loadAdmin = () => import('./views/Admin/Admin');
@@ -161,7 +159,6 @@ function App() {
   const AboutMeComponent = staticRouteComponents.AboutMe || AboutMe;
   const ProjectsComponent = staticRouteComponents.Projects || Projects;
   const CommentsComponent = staticRouteComponents.Comments || Comments;
-  const CVComponent = staticRouteComponents.CV || CV;
 
   return (
     <>
@@ -189,7 +186,6 @@ function App() {
               <Route path="/services/:slug" element={<ServiceDetail />} />
               <Route path="/comments" element={<CommentsComponent />} />
               <Route path="/files" element={<Navigate to="/aboutme" replace />} />
-              <Route path="/cv" element={<CVComponent />} />
               <Route path="/privacidad" element={<Privacy />} />
               <Route
                 path="/login"

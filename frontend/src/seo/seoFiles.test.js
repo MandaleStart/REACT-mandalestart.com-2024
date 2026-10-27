@@ -18,7 +18,17 @@ test('creates a closed robots file and no sitemap for non-indexable sites', () =
     serviceCatalog,
   });
 
-  assert.equal(files.robots, 'User-agent: *\nDisallow: /\n');
+  assert.equal(
+    files.robots,
+    [
+      'User-agent: Yoast-SEO-Checker',
+      'Allow: /',
+      '',
+      'User-agent: *',
+      'Disallow: /',
+      '',
+    ].join('\n'),
+  );
   assert.equal(files.sitemap, null);
 });
 
