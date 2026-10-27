@@ -99,6 +99,16 @@ export function buildMetadata(env = {}) {
       description: `Panel privado de administración de clientes y servicios de ${SITE.name}.`,
       robots: 'noindex, nofollow',
     },
+    '/configuraciones': {
+      title: `Configuraciones | ${SITE.name}`,
+      description: `Configuración privada del sitio de ${SITE.name}.`,
+      robots: 'noindex, nofollow',
+    },
+    '/configuraciones/catalogo': {
+      title: `Catálogo público | ${SITE.name}`,
+      description: `Administración del catálogo público de servicios de ${SITE.name}.`,
+      robots: 'noindex, nofollow',
+    },
     '/area-cliente': {
       title: `Área de clientes | ${SITE.name}`,
       description: `Acceso privado para clientes de ${SITE.name}.`,

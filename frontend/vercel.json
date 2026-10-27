@@ -28,6 +28,14 @@
     {
       "source": "/perfil",
       "destination": "/index.html"
+    },
+    {
+      "source": "/configuraciones",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/configuraciones/catalogo",
+      "destination": "/index.html"
     }
   ],
   "headers": [

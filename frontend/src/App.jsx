@@ -35,6 +35,8 @@ const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);
 const loadAdmin = () => import('./views/Admin/Admin');
 const Admin = lazy(loadAdmin);
+const loadConfigurations = () => import('./views/Configurations/Configurations');
+const Configurations = lazy(loadConfigurations);
 const loadProfile = () => import('./views/Profile/Profile');
 const Profile = lazy(loadProfile);
 
@@ -78,8 +80,13 @@ function LoginRouter() {
   const ClientAreaComponent = useContext(ClientAreaContext) || ClientArea;
   const AdminComponent = useContext(AdminContext) || Admin;
   const { pathname } = useLocation();
+  const isConfigurationRoute = pathname.startsWith('/configuraciones');
   const requiredRole =
-    pathname === '/administracion' ? 'admin' : pathname === '/area-cliente' ? 'client' : null;
+    pathname === '/administracion' || isConfigurationRoute
+      ? 'admin'
+      : pathname === '/area-cliente'
+        ? 'client'
+        : null;
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authUser, setAuthUser] = useState(null);
@@ -145,7 +152,8 @@ function LoginRouter() {
     return <Navigate to={isAdmin ? '/administracion' : '/area-cliente'} replace />;
   }
 
-  return isAdmin ? <AdminComponent /> : <ClientAreaComponent />;
+  if (!isAdmin) return <ClientAreaComponent />;
+  return isConfigurationRoute ? <Configurations /> : <AdminComponent />;
 }
 
 function App() {
@@ -217,6 +225,14 @@ function App() {
                 path="/administracion"
                 element={
                   <Suspense fallback={<main className="page-shell">Cargando administración…</main>}>
+                    <LoginRouter />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/configuraciones/*"
+                element={
+                  <Suspense fallback={<main className="page-shell">Cargando configuraciones…</main>}>
                     <LoginRouter />
                   </Suspense>
                 }

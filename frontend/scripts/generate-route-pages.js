@@ -77,7 +77,15 @@ try {
   const routes = [
     ...Object.keys(staticPages).filter(
       (route) =>
-        !['/admin', '/client-area', '/administracion', '/area-cliente', '/perfil'].includes(route),
+        ![
+          '/admin',
+          '/client-area',
+          '/administracion',
+          '/area-cliente',
+          '/perfil',
+          '/configuraciones',
+          '/configuraciones/catalogo',
+        ].includes(route),
     ),
     ...serviceCatalog.map(({ slug }) => `/services/${slug}`),
   ];

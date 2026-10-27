@@ -21,10 +21,10 @@ import {
 } from '../src/services/adminValidation.js';
 import { projectAdminUserRecord } from '../src/services/adminUserProjection.js';
 import {
-  apiErrorHandler,
   buildAdminDashboard,
   buildClientDashboard,
-} from '../src/controllers/apiController.js';
+} from '../src/services/dashboardMetrics.js';
+import { apiErrorHandler } from '../src/controllers/apiErrors.js';
 import { validateContactMessage } from '../src/services/contactMail.js';
 import { logger } from '../src/logger.js';
 

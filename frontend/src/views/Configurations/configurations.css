@@ -1,0 +1,61 @@
+.configurations-page {
+    width: min(1200px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+}
+
+.configurations-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.configurations-header h1 {
+    margin: 0.75rem 0 0;
+    color: #f4f8ff;
+    font-size: 2rem;
+}
+
+.configuration-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 1rem;
+}
+
+.configuration-option {
+    display: grid;
+    gap: 0.55rem;
+    min-height: 150px;
+    padding: 1.25rem;
+    border: 1px solid rgba(153, 170, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(10, 15, 27, 0.88);
+    color: rgba(224, 233, 255, 0.78);
+    text-decoration: none;
+}
+
+.configuration-option:hover,
+.configuration-option:focus-visible {
+    border-color: rgba(117, 211, 255, 0.45);
+    background: rgba(93, 232, 255, 0.06);
+}
+
+.configuration-option-label {
+    color: #a9e8ff;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.configuration-option strong {
+    color: #f4f8ff;
+    font-size: 1.15rem;
+}
+
+@media (max-width: 560px) {
+    .configurations-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

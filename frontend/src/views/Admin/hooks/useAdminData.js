@@ -4,7 +4,6 @@ import { auth, firebaseReady } from '../../../firebase';
 import {
   getAdminClients,
   getAdminDashboard,
-  getAdminServices,
   getAdminUsers,
 } from '../../../services/adminApi';
 import { expiredSessionMessage, isSessionError } from '../adminModel';
@@ -16,7 +15,6 @@ export default function useAdminData() {
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersError, setUsersError] = useState('');
-  const [services, setServices] = useState([]);
   const [dashboard, setDashboard] = useState({
     overview: { clients: 0, activeServices: 0, projects: 0, priorityItems: 0 },
     priorityItems: [],
@@ -39,13 +37,11 @@ export default function useAdminData() {
   }, []);
 
   const refreshData = useCallback(async () => {
-    const [clientList, serviceList, adminDashboard] = await Promise.all([
+    const [clientList, adminDashboard] = await Promise.all([
       getAdminClients(),
-      getAdminServices(),
       getAdminDashboard(),
     ]);
     setClients(clientList);
-    setServices(serviceList);
     setDashboard(adminDashboard || {
       overview: { clients: 0, activeServices: 0, projects: 0, priorityItems: 0 },
       priorityItems: [],
@@ -118,7 +114,6 @@ export default function useAdminData() {
     clients,
     users,
     usersError,
-    services,
     error,
     setError,
     sessionExpired,

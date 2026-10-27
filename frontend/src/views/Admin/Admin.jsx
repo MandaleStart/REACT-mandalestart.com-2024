@@ -3,16 +3,13 @@ import { Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import {
-  archiveAdminService,
   createAdminClient,
   deleteAdminClient,
   updateAdminUserStatus,
-  saveAdminService,
   updateAdminClient,
 } from '../../services/adminApi';
 import {
   emptyClient,
-  emptyPublicService,
   getContractedServices,
   expiredSessionMessage,
   forbiddenMessage,
@@ -27,8 +24,6 @@ import AdminClientList from './components/AdminClientList';
 import AdminClientEditor from './components/AdminClientEditor';
 import AdminConfirmationDialog from './components/AdminConfirmationDialog';
 import AdminContractedServices from './components/AdminContractedServices';
-import AdminServiceEditor from './components/AdminServiceEditor';
-import AdminServiceList from './components/AdminServiceList';
 import AdminUserDirectory from './components/AdminUserDirectory';
 import useAdminData from './hooks/useAdminData';
 import './admin.css';
@@ -42,7 +37,6 @@ const Admin = () => {
     clients,
     users,
     usersError,
-    services,
     error,
     setError,
     sessionExpired,
@@ -57,21 +51,14 @@ const Admin = () => {
   const [clientSearch, setClientSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [selectedUserUid, setSelectedUserUid] = useState('');
-  const [selectedServiceSlug, setSelectedServiceSlug] = useState('');
-  const [serviceForm, setServiceForm] = useState(emptyPublicService);
-  const [serviceBaseline, setServiceBaseline] = useState(emptyPublicService);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [pendingConfirmation, setPendingConfirmation] = useState(null);
   const confirmationDialogRef = useRef(null);
 
-  const visibleServices = useMemo(
-    () => services.filter((service) => service.status !== 'archived'),
-    [services],
-  );
   const dashboardStats = dashboard?.overview || {
     clients: clients.length,
-    activeServices: visibleServices.length,
+    activeServices: 0,
     projects: 0,
     priorityItems: 0,
   };
@@ -80,10 +67,6 @@ const Admin = () => {
   const clientIsDirty = useMemo(
     () => JSON.stringify(clientForm) !== JSON.stringify(clientBaseline),
     [clientBaseline, clientForm],
-  );
-  const serviceIsDirty = useMemo(
-    () => JSON.stringify(serviceForm) !== JSON.stringify(serviceBaseline),
-    [serviceBaseline, serviceForm],
   );
   const filteredClients = useMemo(() => {
     const query = clientSearch.trim().toLocaleLowerCase();
@@ -130,36 +113,6 @@ const Admin = () => {
       return;
     }
     loadClient(id);
-  };
-
-  const loadService = (slug) => {
-    setSelectedServiceSlug(slug);
-    const service = services.find((item) => item.slug === slug);
-    const form = service
-      ? {
-        ...emptyPublicService,
-        ...service,
-        points: service.points || [],
-        includes: service.includes || [],
-      }
-      : emptyPublicService;
-    setServiceForm(form);
-    setServiceBaseline(form);
-    setError('');
-    setNotice('');
-  };
-
-  const chooseService = (slug) => {
-    if (slug === selectedServiceSlug) return;
-    if (serviceIsDirty) {
-      setPendingConfirmation({
-        message: 'Hay cambios sin guardar. Si cambiás de servicio, se van a descartar.',
-        confirmLabel: 'Descartar y cambiar',
-        onConfirm: () => loadService(slug),
-      });
-      return;
-    }
-    loadService(slug);
   };
 
   const handleClientSubmit = async (event) => {
@@ -282,88 +235,6 @@ const Admin = () => {
     }));
   };
 
-  const handlePublicServiceSubmit = async (event) => {
-    event.preventDefault();
-    setBusy(true);
-    setError('');
-    setNotice('');
-
-    try {
-      const saved = await saveAdminService(serviceForm.slug, {
-        ...serviceForm,
-        points:
-          serviceForm.pointsText === undefined
-            ? serviceForm.points
-            : serviceForm.pointsText
-              .split('\n')
-              .map((line) => line.trim())
-              .filter(Boolean),
-        includes:
-          serviceForm.includesText === undefined
-            ? serviceForm.includes
-            : serviceForm.includesText
-              .split('\n')
-              .map((line) => line.trim())
-              .filter(Boolean),
-      });
-      await refreshData();
-      loadService(saved.slug);
-      setNotice('El catálogo público se actualizó correctamente.');
-    } catch (saveError) {
-      const sessionError = isSessionError(saveError);
-      const authorizationError = isAuthorizationError(saveError);
-      setSessionExpired(sessionError);
-      if (sessionError || authorizationError) setAccess(sessionError ? 'signed-out' : 'forbidden');
-      setError(
-        sessionError
-          ? expiredSessionMessage
-          : authorizationError
-            ? forbiddenMessage
-            : saveError.message || 'No se pudo guardar el servicio.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const archiveService = async () => {
-    setBusy(true);
-    setError('');
-    setNotice('');
-    try {
-      await archiveAdminService(selectedServiceSlug);
-      await refreshData();
-      const archivedForm = { ...serviceForm, status: 'archived' };
-      setServiceForm(archivedForm);
-      setServiceBaseline(archivedForm);
-      setNotice('El servicio se archivó y dejó de mostrarse en el sitio público.');
-    } catch (archiveError) {
-      const sessionError = isSessionError(archiveError);
-      const authorizationError = isAuthorizationError(archiveError);
-      setSessionExpired(sessionError);
-      if (sessionError || authorizationError) setAccess(sessionError ? 'signed-out' : 'forbidden');
-      setError(
-        sessionError
-          ? expiredSessionMessage
-          : authorizationError
-            ? forbiddenMessage
-            : archiveError.message || 'No se pudo archivar el servicio.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleServiceArchive = () => {
-    if (!selectedServiceSlug) return;
-    setPendingConfirmation({
-      message:
-        '¿Archivar este servicio? Dejará de aparecer en el sitio público, pero se podrá restaurar.',
-      confirmLabel: 'Archivar servicio',
-      onConfirm: archiveService,
-    });
-  };
-
   const handleUserStatusChange = (user) => {
     const disabled = !user.disabled;
     setPendingConfirmation({
@@ -406,7 +277,7 @@ const Admin = () => {
       setSection('clients');
       loadClient(clientId);
     };
-    if (serviceIsDirty || clientIsDirty) {
+    if (clientIsDirty) {
       setPendingConfirmation({
         message: 'Hay cambios sin guardar. Si continuás, se descartarán.',
         confirmLabel: 'Descartar y continuar',
@@ -431,7 +302,7 @@ const Admin = () => {
       setError('');
       setNotice('');
     };
-    if (clientIsDirty || serviceIsDirty) {
+    if (clientIsDirty) {
       setPendingConfirmation({
         message: 'Hay cambios sin guardar. Si continuás, se descartarán.',
         confirmLabel: 'Descartar y continuar',
@@ -473,9 +344,14 @@ const Admin = () => {
           <h1>Gestioná clientes y servicios</h1>
           <p>Sesión administrativa: {firebaseUser.email}</p>
         </div>
-        <button type="button" className="secondary-button" onClick={() => signOut(auth)}>
-          Cerrar sesión
-        </button>
+        <div className="admin-header-actions">
+          <Link className="secondary-button" to="/configuraciones">
+            Configuraciones
+          </Link>
+          <button type="button" className="secondary-button" onClick={() => signOut(auth)}>
+            Cerrar sesión
+          </button>
+        </div>
       </header>
 
       <section className="admin-summary-grid">
@@ -542,14 +418,6 @@ const Admin = () => {
         >
           Servicios contratados ({contractedServices.length})
         </button>
-        <button
-          type="button"
-          className={section === 'services' ? 'is-active' : ''}
-          aria-pressed={section === 'services'}
-          onClick={() => setSection('services')}
-        >
-          Catálogo público ({visibleServices.length})
-        </button>
       </nav>
 
       {sessionExpired ? (
@@ -589,7 +457,7 @@ const Admin = () => {
         />
       ) : section === 'contracts' ? (
         <AdminContractedServices clients={clients} onManageClient={manageClient} />
-      ) : section === 'clients' ? (
+      ) : (
         <section className="admin-workspace">
           <AdminClientList
             clients={clients}
@@ -613,25 +481,6 @@ const Admin = () => {
             onUpdateService={updateClientService}
             onUpdateProject={updateClientProject}
             onUpdateMilestone={updateProjectMilestone}
-          />
-        </section>
-      ) : (
-        <section className="admin-workspace">
-          <AdminServiceList
-            services={services}
-            selectedSlug={selectedServiceSlug}
-            onSelect={chooseService}
-          />
-
-          <AdminServiceEditor
-            selectedSlug={selectedServiceSlug}
-            service={serviceForm}
-            setService={setServiceForm}
-            isDirty={serviceIsDirty}
-            busy={busy}
-            sessionExpired={sessionExpired}
-            onSubmit={handlePublicServiceSubmit}
-            onArchive={handleServiceArchive}
           />
         </section>
       )}

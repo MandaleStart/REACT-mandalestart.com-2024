@@ -1,29 +1,28 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 
+import { getHealth, getSiteConfig } from '../controllers/healthController.js';
+import { listServices, getServiceBySlug } from '../controllers/publicServicesController.js';
 import {
-    apiErrorHandler,
-    apiLanding,
-    createAdminClient,
-    deleteAdminClient,
-    deleteAdminService,
-    getAdminDashboard,
-    listAdminUsers,
     getClientDashboard,
     getCurrentClient,
-    getHealth,
-    getServiceBySlug,
-    getSiteConfig,
-    listAdminClients,
-    listAdminServices,
-    listServices,
-    notFound,
-    submitContact,
-    updateAdminClient,
-    updateAdminService,
-    updateAdminUserStatus,
     updateCurrentClientProfile,
-} from '../controllers/apiController.js';
+} from '../controllers/clientController.js';
+import { getAdminDashboard } from '../controllers/adminDashboardController.js';
+import {
+    createAdminClient,
+    deleteAdminClient,
+    listAdminClients,
+    updateAdminClient,
+} from '../controllers/adminClientsController.js';
+import { listAdminUsers, updateAdminUserStatus } from '../controllers/adminUsersController.js';
+import {
+    deleteAdminService,
+    listAdminServices,
+    updateAdminService,
+} from '../controllers/adminCatalogController.js';
+import { submitContact } from '../controllers/contactController.js';
+import { apiErrorHandler, apiLanding, notFound } from '../controllers/apiErrors.js';
 import { requireFirebaseAdmin, requireVerifiedFirebaseUser } from '../middleware/firebaseAuth.js';
 
 const router = Router();
