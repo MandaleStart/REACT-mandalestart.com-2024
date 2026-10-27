@@ -30,7 +30,7 @@ export default function AdminAccessState({ access, authReady, error, sessionExpi
         <section className="admin-card">
           <h1>Ingresá con tu cuenta administrativa</h1>
           <p>Iniciá sesión en el área de clientes y luego volvé a esta dirección.</p>
-          <Link className="primary-button" to="/client-area">
+          <Link className="primary-button" to="/login">
             Ir al inicio de sesión
           </Link>
         </section>
@@ -56,7 +56,7 @@ export default function AdminAccessState({ access, authReady, error, sessionExpi
           <h1>{sessionExpired ? expiredSessionMessage : 'No se pudo abrir el panel'}</h1>
           <p>{error}</p>
           {sessionExpired ? (
-            <Link className="primary-button" to="/client-area">
+            <Link className="primary-button" to="/login">
               Volver a ingresar
             </Link>
           ) : (

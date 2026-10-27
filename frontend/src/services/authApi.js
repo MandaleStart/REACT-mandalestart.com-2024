@@ -17,6 +17,15 @@ export async function getClientAccount(idToken) {
   });
 }
 
+export async function getClientDashboard(idToken) {
+  return apiRequest('/api/clients/me/dashboard', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+}
+
 export async function updateClientProfile(idToken, profile) {
   return apiRequest('/api/clients/me/profile', {
     method: 'PUT',

@@ -1,11 +1,15 @@
 import app from './app.js';
 import dotenv from 'dotenv';
+import { logger } from './logger.js';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(`Backend de mandalestart ejecutándose en http://localhost:${PORT}`);
-  console.log('Usa /api/health para comprobar que el backend responde correctamente.');
+  logger.info('backend_started', {
+    port: PORT,
+    healthCheckPath: '/api/health',
+    environment: process.env.NODE_ENV || 'development',
+  });
 });

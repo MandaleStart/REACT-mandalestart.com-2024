@@ -19,7 +19,14 @@ import {
   validateClientRecord,
   validatePublicService,
 } from '../src/services/adminValidation.js';
+import { projectAdminUserRecord } from '../src/services/adminUserProjection.js';
+import {
+  apiErrorHandler,
+  buildAdminDashboard,
+  buildClientDashboard,
+} from '../src/controllers/apiController.js';
 import { validateContactMessage } from '../src/services/contactMail.js';
+import { logger } from '../src/logger.js';
 
 let server;
 let baseUrl;
@@ -116,6 +123,22 @@ test('contact payload validation rejects invalid input and recognizes honeypot s
   };
   assert.equal(validateContactMessage(valid).ok, true);
   assert.equal(validateContactMessage({ ...valid, website: 'spam' }).honeypotFilled, true);
+});
+
+test('logger emits structured entries with timestamp, level and message', () => {
+  const entry = logger.info('healthcheck', { ok: true });
+
+  assert.equal(entry.level, 'info');
+  assert.equal(entry.message, 'healthcheck');
+  assert.equal(entry.meta.ok, true);
+  assert.ok(entry.timestamp);
+});
+
+test('unknown routes expose a request id in the response headers', async () => {
+  const response = await fetch(`${baseUrl}/api/unknown`);
+
+  assert.equal(response.status, 404);
+  assert.ok(response.headers.get('x-request-id'));
 });
 
 test('admin records are whitelisted and validate nested client services', () => {
@@ -220,6 +243,32 @@ test('admin claim must be explicitly true', () => {
   assert.equal(hasAdminClaim({ role: 'admin' }), false);
 });
 
+test('admin user projection exposes account status and only an email-linked client reference', () => {
+  const projection = projectAdminUserRecord({
+    uid: 'user-1',
+    email: 'CLIENT@example.com',
+    displayName: 'Cliente',
+    emailVerified: true,
+    disabled: false,
+    customClaims: { admin: true, internal: 'secret' },
+    passwordHash: 'secret',
+  }, new Map([
+    ['client@example.com', { id: 'client-1', name: 'Cliente vinculado', phone: 'secret' }],
+  ]));
+
+  assert.deepEqual(projection, {
+    uid: 'user-1',
+    email: 'CLIENT@example.com',
+    displayName: 'Cliente',
+    emailVerified: true,
+    disabled: false,
+    isAdmin: true,
+    clientId: 'client-1',
+    clientName: 'Cliente vinculado',
+  });
+  assert.equal('passwordHash' in projection, false);
+});
+
 test('removed mock authentication endpoints are not available', async () => {
   const endpoints = [
     { path: '/api/auth/register', method: 'POST' },
@@ -234,10 +283,12 @@ test('removed mock authentication endpoints are not available', async () => {
 });
 
 test('admin routes do not expose records without Firebase authentication', async () => {
-  const response = await fetch(`${baseUrl}/api/admin/clients`);
-  assert.equal(response.status, 503);
-  const body = await response.json();
-  assert.equal('error' in body, false);
+  for (const path of ['/api/admin/clients', '/api/admin/users']) {
+    const response = await fetch(`${baseUrl}${path}`);
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.equal('error' in body, false);
+  }
 });
 
 test('public catalog fallback contains only statically routable service slugs', async () => {
@@ -296,6 +347,32 @@ test('health reports when PostgreSQL is not configured', async () => {
   assert.equal(health.databaseReady, false);
 });
 
+test('production hardening strips framework fingerprints and sets safe response headers', async () => {
+  const response = await fetch(`${baseUrl}/api/health`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('x-powered-by'), null);
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(response.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+});
+
+test('public catalog and service detail routes use a short cache window for CDN reuse', async () => {
+  const listResponse = await fetch(`${baseUrl}/api/services`);
+  assert.equal(listResponse.status, 200);
+  assert.equal(listResponse.headers.get('cache-control'), 'public, max-age=300, stale-while-revalidate=300');
+
+  const detailResponse = await fetch(`${baseUrl}/api/services/web`);
+  assert.equal(detailResponse.status, 200);
+  assert.equal(detailResponse.headers.get('cache-control'), 'public, max-age=300, stale-while-revalidate=300');
+});
+
+test('private client and admin routes explicitly disable caching to avoid leaking sensitive data', async () => {
+  const clientResponse = await fetch(`${baseUrl}/api/clients/me`);
+  assert.match(clientResponse.headers.get('cache-control') || '', /no-store/i);
+
+  const adminResponse = await fetch(`${baseUrl}/api/admin/clients`);
+  assert.match(adminResponse.headers.get('cache-control') || '', /no-store/i);
+});
+
 test('public site config exposes only the configured contact fields and a short cache window', async () => {
   const response = await fetch(`${baseUrl}/api/site-config`);
   assert.equal(response.status, 200);
@@ -310,4 +387,92 @@ test('public site config exposes only the configured contact fields and a short 
   } else {
     assert.equal(config.whatsapp, null);
   }
+});
+
+test('API error logs include the request id for faster incident tracing', () => {
+  const originalConsoleError = console.error;
+  const entries = [];
+  console.error = (...args) => { entries.push(args[0]); };
+
+  try {
+    const req = {
+      id: 'req-trace-123',
+      method: 'POST',
+      originalUrl: '/api/admin/clients',
+      route: { path: '/admin/clients' },
+    };
+    const res = {
+      headersSent: false,
+      status(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json(body) {
+        this.body = body;
+        return this;
+      },
+    };
+
+    apiErrorHandler(new Error('database failure'), req, res, () => { });
+
+    assert.equal(entries.length, 1);
+    const logged = JSON.parse(entries[0]);
+    assert.equal(logged.message, 'Error de API');
+    assert.equal(logged.meta.requestId, 'req-trace-123');
+    assert.equal(logged.meta.method, 'POST');
+    assert.equal(logged.meta.url, '/api/admin/clients');
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test('client and admin dashboard summaries surface key operational signals', () => {
+  const client = {
+    id: 'client-1',
+    name: 'Cliente Demo',
+    email: 'demo@example.com',
+    phone: '+59899123456',
+    services: [
+      { id: 'service-1', type: 'web', title: 'Sitio web', name: 'demo.com', status: 'active', expiry: '2026-12-01' },
+      { id: 'service-2', type: 'hosting', title: 'Hosting', name: 'demo.com', status: 'active', expiry: '2026-11-15' },
+      { id: 'service-3', type: 'seo', title: 'SEO', name: 'demo.com', status: 'archived', expiry: '2026-03-01' },
+    ],
+    projects: [{
+      id: 'project-1',
+      title: 'Rediseño',
+      status: 'in-progress',
+      milestones: [
+        { id: 'm-1', title: 'Brief', status: 'completed', dueDate: '2026-09-01' },
+        { id: 'm-2', title: 'Entrega', status: 'pending', dueDate: '2026-10-20' },
+      ],
+    }],
+  };
+
+  const clientDashboard = buildClientDashboard(client);
+  assert.equal(clientDashboard.overview.totalServices, 3);
+  assert.equal(clientDashboard.overview.activeServices, 2);
+  assert.equal(clientDashboard.nextMilestone.title, 'Entrega');
+  assert.equal(clientDashboard.nextMilestone.projectTitle, 'Rediseño');
+
+  const adminDashboard = buildAdminDashboard([
+    client,
+    {
+      id: 'client-2',
+      name: 'Cliente Dos',
+      email: 'dos@example.com',
+      phone: '+59899123457',
+      services: [{ id: 'service-4', type: 'email', title: 'Correo', name: 'dos.com', status: 'active', expiry: '2026-10-28' }],
+      projects: [{
+        id: 'project-2',
+        title: 'Migración',
+        status: 'planned',
+        milestones: [{ id: 'm-3', title: 'Planificación', status: 'pending', dueDate: '2026-10-28' }],
+      }],
+    },
+  ]);
+
+  assert.equal(adminDashboard.overview.clients, 2);
+  assert.equal(adminDashboard.overview.activeServices, 3);
+  assert.equal(adminDashboard.overview.projects, 2);
+  assert.equal(adminDashboard.priorityItems.length >= 2, true);
 });

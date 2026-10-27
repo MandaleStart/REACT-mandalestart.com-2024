@@ -4,6 +4,53 @@ export const SITE = {
   email: 'info@mandalestart.com',
   phone: null,
   whatsapp: null,
+  areaServed: 'Uruguay',
+  brand: {
+    subtitle: 'Web y soporte técnico',
+    ctaLabel: 'Pedir presupuesto',
+  },
+  nav: {
+    home: 'Inicio',
+    projects: 'Proyectos',
+    about: 'Sobre mí',
+    contact: 'Contacto',
+    services: 'Servicios',
+    more: 'Más',
+    clientArea: 'Ingresar',
+  },
+  home: {
+    heroTitle: 'Diseño tu web',
+    heroHighlight: 'y configuro lo necesario para ponerla en marcha.',
+    intro:
+      'Trabajo con personas y negocios de todo Uruguay: diseño sitios y tiendas online y también puedo ayudarte con dominios, hosting, correo, SEO y redes. Si no sabés por dónde empezar, contame qué necesitás y lo vemos.',
+    proof: ['Webs y tiendas online', 'Dominios, hosting y correo', 'Redes y soporte técnico'],
+    ctaPrimary: 'Pedir presupuesto',
+    ctaSecondary: 'Ver servicios',
+    whatIDo: 'Lo que hago',
+    servicesHeadline: 'Servicios web y soluciones técnicas para personas y negocios de Uruguay.',
+    infrastructure: 'Infraestructura',
+    infrastructureHeadline: 'También puedo ayudarte con servidores, redes y domótica.',
+    process: 'Proceso',
+    processHeadline: 'Cómo trabajo',
+    faqLabel: 'Antes de consultar',
+    faqHeadline: 'Preguntas frecuentes',
+    ctaBandLabel: '¿Qué necesitás resolver?',
+    ctaBandHeadline: 'Contame qué querés hacer o qué está fallando. Definimos juntos los próximos pasos.',
+    ctaBandButton: 'Hablemos de tu proyecto',
+  },
+  services: {
+    menu: [
+      { to: '/services', label: 'Todos los servicios' },
+      { to: '/services/web', label: 'Desarrollo web' },
+      { to: '/services/hosting', label: 'Hosting web' },
+      { to: '/services/email', label: 'Correo empresarial' },
+      { to: '/services/domains', label: 'Dominios' },
+      { to: '/services/seo', label: 'SEO' },
+      { to: '/services/ddns', label: 'DDNS' },
+      { to: '/services/monitoring', label: 'Infraestructura' },
+      { to: '/services/impresion-3d', label: 'Diseño e impresión 3D' },
+    ],
+  },
   social: {
     telegram: {
       url: 'https://t.me/MandaleStart',
@@ -14,7 +61,6 @@ export const SITE = {
       label: 'MandaleStart',
     },
   },
-  areaServed: 'Uruguay',
 };
 
 export const fallbackContact = {

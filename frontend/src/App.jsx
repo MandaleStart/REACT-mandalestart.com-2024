@@ -1,6 +1,9 @@
 import { lazy, Suspense, useContext, useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+
+import { auth } from './firebase';
 
 import './App.css';
 
@@ -32,6 +35,8 @@ const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);
 const loadAdmin = () => import('./views/Admin/Admin');
 const Admin = lazy(loadAdmin);
+const loadProfile = () => import('./views/Profile/Profile');
+const Profile = lazy(loadProfile);
 
 function RouteFocusManager() {
   const { pathname } = useLocation();
@@ -69,9 +74,81 @@ function RouteFocusManager() {
   );
 }
 
-function App() {
+function LoginRouter() {
   const ClientAreaComponent = useContext(ClientAreaContext) || ClientArea;
   const AdminComponent = useContext(AdminContext) || Admin;
+  const { pathname } = useLocation();
+  const requiredRole =
+    pathname === '/administracion' ? 'admin' : pathname === '/area-cliente' ? 'client' : null;
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    if (!auth) {
+      setAuthReady(true);
+      setIsAdmin(false);
+      setIsAuthenticated(false);
+      setAuthUser(null);
+      return undefined;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setIsAdmin(false);
+        setIsAuthenticated(false);
+        setAuthUser(null);
+        setAuthReady(true);
+        return;
+      }
+
+      setAuthReady(false);
+      setIsAuthenticated(true);
+      setAuthUser(user);
+      try {
+        const tokenResult = await user.getIdTokenResult(true);
+        setIsAdmin(tokenResult.claims.admin === true);
+      } catch {
+        setIsAdmin(false);
+      } finally {
+        setAuthReady(true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (!authReady) {
+    return (
+      <main className="page-shell" aria-live="polite">
+        Comprobando permisos…
+      </main>
+    );
+  }
+
+  if (!requiredRole) {
+    if (pathname === '/perfil') {
+      return isAuthenticated ? <Profile user={authUser} isAdmin={isAdmin} /> : <Navigate to="/login" replace />;
+    }
+
+    return isAuthenticated ? (
+      <Navigate to={isAdmin ? '/administracion' : '/area-cliente'} replace />
+    ) : (
+      <ClientAreaComponent />
+    );
+  }
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  if (isAdmin !== (requiredRole === 'admin')) {
+    return <Navigate to={isAdmin ? '/administracion' : '/area-cliente'} replace />;
+  }
+
+  return isAdmin ? <AdminComponent /> : <ClientAreaComponent />;
+}
+
+function App() {
   const staticRouteComponents = useContext(StaticRouteComponentsContext);
   const AboutMeComponent = staticRouteComponents.AboutMe || AboutMe;
   const ProjectsComponent = staticRouteComponents.Projects || Projects;
@@ -107,33 +184,45 @@ function App() {
               <Route path="/cv" element={<CVComponent />} />
               <Route path="/privacidad" element={<Privacy />} />
               <Route
-                path="/admin"
+                path="/login"
                 element={
                   <Suspense
                     fallback={
                       <main className="page-shell" aria-live="polite">
-                        Cargando el panel administrativo…
+                        Cargando acceso…
                       </main>
                     }
                   >
-                    <AdminComponent />
+                    <LoginRouter />
                   </Suspense>
                 }
               />
               <Route
-                path="/client-area"
+                path="/perfil"
                 element={
-                  <Suspense
-                    fallback={
-                      <main className="page-shell" aria-live="polite">
-                        Cargando el área de clientes…
-                      </main>
-                    }
-                  >
-                    <ClientAreaComponent />
+                  <Suspense fallback={<main className="page-shell">Cargando perfil…</main>}>
+                    <LoginRouter />
                   </Suspense>
                 }
               />
+              <Route
+                path="/area-cliente"
+                element={
+                  <Suspense fallback={<main className="page-shell">Cargando área de clientes…</main>}>
+                    <LoginRouter />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/administracion"
+                element={
+                  <Suspense fallback={<main className="page-shell">Cargando administración…</main>}>
+                    <LoginRouter />
+                  </Suspense>
+                }
+              />
+              <Route path="/admin" element={<Navigate to="/administracion" replace />} />
+              <Route path="/client-area" element={<Navigate to="/area-cliente" replace />} />
               <Route path="*" element={<ErrorPage />} />
             </Routes>
           </Suspense>

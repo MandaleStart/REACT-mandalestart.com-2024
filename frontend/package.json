@@ -10,6 +10,7 @@
     "preview": "vite preview --host",
     "start": "vite preview --host 0.0.0.0 --port 4173",
     "test": "node --test",
+    "test:e2e": "playwright test",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\" \"scripts/**/*.js\" \"docs/**/*.md\" .prettierrc.json vite.config.js index.html package.json",
     "format:check": "prettier --check \"src/**/*.{js,jsx,css}\" \"scripts/**/*.js\" \"docs/**/*.md\" .prettierrc.json vite.config.js index.html package.json"
@@ -29,6 +30,7 @@
     "@eslint/js": "^9.17.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "@playwright/test": "^1.49.1",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.0",

@@ -1,5 +1,11 @@
 import { isFirebaseReady, verifyFirebaseToken } from '../firebase.js';
 
+function setPrivateNoStore(res) {
+  res.set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+}
+
 export async function requireVerifiedFirebaseUser(req, res, next) {
   const decoded = await getVerifiedFirebaseUser(req, res);
   if (!decoded) return;
@@ -21,6 +27,7 @@ export async function requireFirebaseAdmin(req, res, next) {
 export const hasAdminClaim = (decoded) => decoded?.admin === true;
 
 async function getVerifiedFirebaseUser(req, res) {
+  setPrivateNoStore(res);
   if (!isFirebaseReady()) {
     res.status(503).json({ message: 'El área de clientes no está disponible en este momento.' });
     return null;

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, firebaseReady } from '../../../firebase';
-import { getAdminClients, getAdminServices } from '../../../services/adminApi';
+import {
+  getAdminClients,
+  getAdminDashboard,
+  getAdminServices,
+  getAdminUsers,
+} from '../../../services/adminApi';
 import { expiredSessionMessage, isSessionError } from '../adminModel';
 
 export default function useAdminData() {
@@ -9,7 +14,14 @@ export default function useAdminData() {
   const [authReady, setAuthReady] = useState(false);
   const [access, setAccess] = useState('checking');
   const [clients, setClients] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [usersError, setUsersError] = useState('');
   const [services, setServices] = useState([]);
+  const [dashboard, setDashboard] = useState({
+    overview: { clients: 0, activeServices: 0, projects: 0, priorityItems: 0 },
+    priorityItems: [],
+    recentClients: [],
+  });
   const [error, setError] = useState('');
   const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -27,9 +39,25 @@ export default function useAdminData() {
   }, []);
 
   const refreshData = useCallback(async () => {
-    const [clientList, serviceList] = await Promise.all([getAdminClients(), getAdminServices()]);
+    const [clientList, serviceList, adminDashboard] = await Promise.all([
+      getAdminClients(),
+      getAdminServices(),
+      getAdminDashboard(),
+    ]);
     setClients(clientList);
     setServices(serviceList);
+    setDashboard(adminDashboard || {
+      overview: { clients: 0, activeServices: 0, projects: 0, priorityItems: 0 },
+      priorityItems: [],
+      recentClients: [],
+    });
+    try {
+      setUsers(await getAdminUsers());
+      setUsersError('');
+    } catch (requestError) {
+      setUsers([]);
+      setUsersError(requestError.message || 'No se pudieron cargar las cuentas de usuario.');
+    }
   }, []);
 
   useEffect(() => {
@@ -88,11 +116,14 @@ export default function useAdminData() {
     access,
     setAccess,
     clients,
+    users,
+    usersError,
     services,
     error,
     setError,
     sessionExpired,
     setSessionExpired,
     refreshData,
+    dashboard,
   };
 }

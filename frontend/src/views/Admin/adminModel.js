@@ -57,6 +57,57 @@ export function serviceToForm(service) {
   return { ...service, detailsText: formatDetails(service.details) };
 }
 
+export function filterPublicServices(services, query, status) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+
+  return services.filter((service) => {
+    const matchesStatus =
+      status === 'all' || (status === 'archived' ? service.status === 'archived' : service.status !== 'archived');
+    const searchableText = [service.title, service.category, service.slug]
+      .filter(Boolean)
+      .join(' ')
+      .toLocaleLowerCase();
+
+    return matchesStatus && (!normalizedQuery || searchableText.includes(normalizedQuery));
+  });
+}
+
+export function getContractedServices(clients) {
+  return clients.flatMap((client) =>
+    (Array.isArray(client.services) ? client.services : []).map((service, index) => ({
+      ...service,
+      key: `${client.id}:${service.id || index}`,
+      clientId: client.id,
+      clientName: client.name,
+      clientEmail: client.email,
+    })),
+  );
+}
+
+export function filterContractedServices(services, query, status) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+
+  return services.filter((service) => {
+    const serviceStatus = service.status || 'Sin estado';
+    const searchableText = [
+      service.clientName,
+      service.clientEmail,
+      service.title,
+      service.name,
+      service.type,
+      service.status,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLocaleLowerCase();
+
+    return (
+      (status === 'all' || serviceStatus === status) &&
+      (!normalizedQuery || searchableText.includes(normalizedQuery))
+    );
+  });
+}
+
 export function projectToForm(project) {
   return {
     ...project,

@@ -8,7 +8,7 @@
 }
 
 .topbar {
-  width: min(1200px, calc(100% - 2rem));
+  width: min(1440px, calc(100% - 3rem));
   margin: 0 auto;
   padding: 0;
 }
@@ -65,9 +65,23 @@
 
 .navbar-nav {
   display: flex;
+  width: 100%;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.2rem;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.navbar-primary,
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.navbar-actions {
+  margin-left: auto;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(155, 174, 255, 0.2);
 }
 
 .navbar-collapse {
@@ -161,6 +175,13 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.nav-account-link {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .navbar-toggler {
   display: none;
   width: 44px;
@@ -223,11 +244,29 @@
     flex-direction: column;
     padding: 1rem 0 0.5rem;
     align-items: stretch;
+    gap: 0;
+  }
+
+  .navbar-primary,
+  .navbar-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navbar-actions {
+    margin: 0.5rem 0 0;
+    padding: 0.75rem 0 0;
+    border-left: 0;
+    border-top: 1px solid rgba(155, 174, 255, 0.2);
   }
 
   .navbar-nav .nav-link {
     width: 100%;
     text-align: left;
+  }
+
+  .nav-account-link {
+    max-width: 100%;
   }
 
   .nav-dropdown-menu {

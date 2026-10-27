@@ -88,8 +88,13 @@ test('always keeps private and non-public pages out of search indexes', () => {
     { VITE_SITE_URL: 'https://dev.mandalestart.com', VITE_INDEXABLE_SITE: 'false' },
   ]) {
     const metadata = buildMetadata(env);
+    assert.equal(metadata.staticPages['/login'].robots, 'noindex, nofollow');
+    assert.equal(metadata.getPageMetadata('/login').robots, 'noindex, nofollow');
+    assert.equal(metadata.getPageMetadata('/perfil').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/admin').robots, 'noindex, nofollow');
+    assert.equal(metadata.getPageMetadata('/administracion').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/client-area').robots, 'noindex, nofollow');
+    assert.equal(metadata.getPageMetadata('/area-cliente').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/comments').robots, 'noindex, follow');
     assert.equal(metadata.getPageMetadata('/cv').robots, 'noindex, follow');
   }

@@ -28,7 +28,7 @@ const Footer = () => {
           <Link to="/projects">Proyectos</Link>
           <Link to="/aboutme">Sobre mí</Link>
           <Link to="/contact">Contacto</Link>
-          <Link to="/client-area">Área de clientes</Link>
+          <Link to="/login">Ingresar</Link>
         </nav>
 
         <nav className="footer-links" aria-label="Servicios">

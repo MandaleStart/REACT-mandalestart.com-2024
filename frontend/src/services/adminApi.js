@@ -20,7 +20,15 @@ async function adminRequest(path, options = {}) {
   });
 }
 
+export const getAdminDashboard = () => adminRequest('/api/admin/dashboard');
+
 export const getAdminClients = () => adminRequest('/api/admin/clients');
+export const getAdminUsers = () => adminRequest('/api/admin/users');
+export const updateAdminUserStatus = (uid, disabled) =>
+  adminRequest(`/api/admin/users/${encodeURIComponent(uid)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ disabled }),
+  });
 export const createAdminClient = (client) =>
   adminRequest('/api/admin/clients', {
     method: 'POST',

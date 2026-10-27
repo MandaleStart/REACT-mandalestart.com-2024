@@ -74,14 +74,34 @@ export function buildMetadata(env = {}) {
       description: `Opiniones verificadas de clientes de ${SITE.name}.`,
       robots: 'noindex, follow',
     },
+    '/login': {
+      title: `Acceso privado | ${SITE.name}`,
+      description: `Ingresá para acceder al área de clientes o al panel administrativo de ${SITE.name}.`,
+      robots: 'noindex, nofollow',
+    },
+    '/perfil': {
+      title: `Mi perfil | ${SITE.name}`,
+      description: `Perfil de usuario de ${SITE.name}.`,
+      robots: 'noindex, nofollow',
+    },
     '/client-area': {
       title: `Área de clientes | ${SITE.name}`,
       description: `Acceso al área de clientes de ${SITE.name}.`,
       robots: 'noindex, nofollow',
     },
     '/admin': {
-      title: `Administración | ${SITE.name}`,
+      title: 'Panel de gestión',
       description: `Panel privado de administración de clientes y servicios de ${SITE.name}.`,
+      robots: 'noindex, nofollow',
+    },
+    '/administracion': {
+      title: 'Panel de gestión',
+      description: `Panel privado de administración de clientes y servicios de ${SITE.name}.`,
+      robots: 'noindex, nofollow',
+    },
+    '/area-cliente': {
+      title: `Área de clientes | ${SITE.name}`,
+      description: `Acceso privado para clientes de ${SITE.name}.`,
       robots: 'noindex, nofollow',
     },
     '/cv': {

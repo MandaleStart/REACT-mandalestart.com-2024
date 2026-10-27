@@ -18,6 +18,7 @@ import ClientProfileForm from './components/ClientProfileForm';
 import BackendStatusCard from './components/BackendStatusCard';
 import ClientProjectsPanel from './components/ClientProjectsPanel';
 import ClientServicesList from './components/ClientServicesList';
+import { getClientAreaGuidance } from './clientAreaHelpers';
 import useClientAccount from './hooks/useClientAccount';
 import './client-area.css';
 
@@ -36,6 +37,7 @@ const ClientArea = () => {
     firebaseUser,
     clientData,
     setClientData,
+    dashboardData,
     profileForm,
     setProfileForm,
     accountPending,
@@ -54,6 +56,15 @@ const ClientArea = () => {
   const [form, setForm] = useState(emptyForm);
 
   const totals = useMemo(() => {
+    if (dashboardData?.overview) {
+      return {
+        services: dashboardData.overview.totalServices || 0,
+        expiresSoon: dashboardData.alerts?.length || 0,
+        projects: dashboardData.overview.totalProjects || 0,
+        pendingMilestones: dashboardData.overview.upcomingMilestones || 0,
+      };
+    }
+
     if (!clientData) return { services: 0, expiresSoon: 0, projects: 0, pendingMilestones: 0 };
 
     const projects = Array.isArray(clientData.projects) ? clientData.projects : [];
@@ -69,11 +80,18 @@ const ClientArea = () => {
           (project.status === 'completed'
             ? 0
             : (project.milestones || []).filter((milestone) => milestone.status !== 'completed')
-                .length),
+              .length),
         0,
       ),
     };
-  }, [clientData]);
+  }, [clientData, dashboardData]);
+
+  const guidance = getClientAreaGuidance({
+    servicesCount: totals.services,
+    alertsCount: totals.expiresSoon,
+    pendingMilestones: totals.pendingMilestones,
+    nextMilestone: dashboardData?.nextMilestone,
+  });
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -378,6 +396,61 @@ const ClientArea = () => {
           {notice}
         </div>
       )}
+
+      <section className={`client-guidance-panel ${guidance.priority}`}>
+        <div>
+          <span className="eyebrow">Qué sigue</span>
+          <h2>{guidance.title}</h2>
+          <p>{guidance.description}</p>
+        </div>
+        <div className="client-guidance-actions">
+          <a className="primary-button" href={supportEmail}>
+            Pedir ayuda
+          </a>
+          <a
+            className="secondary-button"
+            href={supportWhatsApp}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Contactar por WhatsApp
+          </a>
+        </div>
+      </section>
+
+      {dashboardData?.nextMilestone || dashboardData?.alerts?.length ? (
+        <section className="client-dashboard-panel">
+          <div className="client-dashboard-summary">
+            <div>
+              <span className="eyebrow">Resumen operativo</span>
+              <h2>Próximo hito</h2>
+            </div>
+            {dashboardData.nextMilestone ? (
+              <div className="client-dashboard-highlight">
+                <strong>{dashboardData.nextMilestone.title}</strong>
+                <span>{dashboardData.nextMilestone.projectTitle}</span>
+                <small>{dashboardData.nextMilestone.dueDate}</small>
+              </div>
+            ) : (
+              <p className="client-dashboard-empty">No tenés hitos pendientes próximos.</p>
+            )}
+          </div>
+
+          {dashboardData.alerts?.length ? (
+            <ul className="client-dashboard-alerts">
+              {dashboardData.alerts.slice(0, 4).map((alert, index) => (
+                <li key={`${alert.serviceTitle}-${index}`}>
+                  <span className="alert-tag">{alert.diffDays} días</span>
+                  <div>
+                    <strong>{alert.serviceTitle}</strong>
+                    <small>vence el {alert.dueDate}</small>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="client-workspace-grid">
         <ClientProjectsPanel projects={clientData.projects} />

@@ -3,7 +3,10 @@ import { test } from 'node:test';
 import {
   emptyClient,
   emptyPublicService,
+  filterContractedServices,
+  filterPublicServices,
   formatDetails,
+  getContractedServices,
   isAuthorizationError,
   isSessionError,
   parseDetails,
@@ -60,4 +63,39 @@ test('converts a public service into its editable representation', () => {
       detailsText: 'Tipo: Landing',
     },
   );
+});
+
+test('filters public services by searchable fields and visibility status', () => {
+  const services = [
+    { slug: 'web', title: 'Desarrollo web', category: 'Digital', status: 'active' },
+    { slug: 'hosting', title: 'Hosting', category: 'Infraestructura', status: 'active' },
+    { slug: 'seo', title: 'SEO', category: 'Digital', status: 'archived' },
+  ];
+
+  assert.deepEqual(filterPublicServices(services, 'DIGITAL', 'all'), [services[0], services[2]]);
+  assert.deepEqual(filterPublicServices(services, 'host', 'active'), [services[1]]);
+  assert.deepEqual(filterPublicServices(services, '', 'archived'), [services[2]]);
+});
+
+test('lists and filters contracted services with their client references', () => {
+  const clients = [
+    {
+      id: 'client-1',
+      name: 'Ana Pérez',
+      email: 'ana@example.com',
+      services: [{ id: 'hosting-1', title: 'Hosting', name: 'ana.uy', status: 'Activo' }],
+    },
+    {
+      id: 'client-2',
+      name: 'Luis Díaz',
+      email: 'luis@example.com',
+      services: [{ id: 'domain-1', title: 'Dominio', name: 'luis.uy', status: 'Vencido' }],
+    },
+  ];
+  const contracts = getContractedServices(clients);
+
+  assert.equal(contracts.length, 2);
+  assert.equal(contracts[0].clientId, 'client-1');
+  assert.deepEqual(filterContractedServices(contracts, 'ana.uy', 'Activo'), [contracts[0]]);
+  assert.deepEqual(filterContractedServices(contracts, 'luis@example.com', 'all'), [contracts[1]]);
 });

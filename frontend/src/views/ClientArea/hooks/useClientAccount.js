@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, firebaseReady } from '../../../firebase';
-import { getBackendHealth, getClientAccount } from '../../../services/authApi';
+import { getBackendHealth, getClientAccount, getClientDashboard } from '../../../services/authApi';
 
 export default function useClientAccount() {
   const [user, setUser] = useState(null);
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [clientData, setClientData] = useState(null);
+  const [dashboardData, setDashboardData] = useState({
+    overview: { totalServices: 0, activeServices: 0, totalProjects: 0, upcomingMilestones: 0 },
+    alerts: [],
+    activeServices: [],
+    nextMilestone: null,
+  });
   const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
   const [accountPending, setAccountPending] = useState(false);
   const [backendStatus, setBackendStatus] = useState('checking');
@@ -72,7 +78,10 @@ export default function useClientAccount() {
 
       try {
         const idToken = await firebaseUser.getIdToken();
-        const account = await getClientAccount(idToken);
+        const [account, dashboard] = await Promise.all([
+          getClientAccount(idToken),
+          getClientDashboard(idToken),
+        ]);
         if (!active) return;
 
         setUser({
@@ -85,6 +94,12 @@ export default function useClientAccount() {
             'Cliente',
         });
         setClientData(account);
+        setDashboardData(dashboard || {
+          overview: { totalServices: 0, activeServices: 0, totalProjects: 0, upcomingMilestones: 0 },
+          alerts: [],
+          activeServices: [],
+          nextMilestone: null,
+        });
         setProfileForm({ name: account.name || '', phone: account.phone || '' });
         setAccountPending(false);
       } catch (accountError) {
@@ -114,6 +129,7 @@ export default function useClientAccount() {
     firebaseUser,
     clientData,
     setClientData,
+    dashboardData,
     profileForm,
     setProfileForm,
     accountPending,

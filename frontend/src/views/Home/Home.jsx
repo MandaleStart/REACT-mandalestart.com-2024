@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import ShareLinks from '../../components/ShareLinks/ShareLinks';
 import SiteIcon from '../../components/SiteIcon/SiteIcon';
+import { SITE } from '../../config/site';
 import useServiceCatalog from '../../data/useServiceCatalog';
 import homeFaq from '../../data/homeFaq';
 import './home.css';
@@ -52,28 +53,24 @@ const Home = () => {
       <section className="hero-section">
         <div className="hero-copy">
           <h1>
-            Diseño tu web{' '}
-            <span className="gradient-text">y configuro lo necesario para ponerla en marcha.</span>
+            {SITE.home.heroTitle}{' '}
+            <span className="gradient-text">{SITE.home.heroHighlight}</span>
           </h1>
-          <p>
-            Trabajo con personas y negocios de todo Uruguay: diseño sitios y tiendas online y
-            también puedo ayudarte con dominios, hosting, correo, SEO y redes. Si no sabés por dónde
-            empezar, contame qué necesitás y lo vemos.
-          </p>
+          <p>{SITE.home.intro}</p>
 
           <div className="hero-actions">
             <Link to="/contact" className="primary-button">
-              Pedir presupuesto
+              {SITE.home.ctaPrimary}
             </Link>
             <Link to="/services" className="secondary-button">
-              Ver servicios
+              {SITE.home.ctaSecondary}
             </Link>
           </div>
 
           <ul className="hero-proof">
-            <li>Webs y tiendas online</li>
-            <li>Dominios, hosting y correo</li>
-            <li>Redes y soporte técnico</li>
+            {SITE.home.proof.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </div>
 
@@ -116,8 +113,8 @@ const Home = () => {
 
       <section className="services-section">
         <div className="section-heading">
-          <span className="eyebrow small">Lo que hago</span>
-          <h2>Servicios web y soluciones técnicas para personas y negocios de Uruguay.</h2>
+          <span className="eyebrow small">{SITE.home.whatIDo}</span>
+          <h2>{SITE.home.servicesHeadline}</h2>
         </div>
 
         <div className="services-grid">
@@ -140,8 +137,8 @@ const Home = () => {
 
       <section className="infrastructure-section">
         <div className="section-heading left-align">
-          <span className="eyebrow small">Infraestructura</span>
-          <h2>También puedo ayudarte con servidores, redes y domótica.</h2>
+          <span className="eyebrow small">{SITE.home.infrastructure}</span>
+          <h2>{SITE.home.infrastructureHeadline}</h2>
         </div>
 
         <div className="infrastructure-grid">
@@ -156,8 +153,8 @@ const Home = () => {
 
       <section className="workflow-section">
         <div className="section-heading left-align">
-          <span className="eyebrow small">Proceso</span>
-          <h2>Cómo trabajo</h2>
+          <span className="eyebrow small">{SITE.home.process}</span>
+          <h2>{SITE.home.processHeadline}</h2>
         </div>
 
         <div className="steps-grid">
@@ -173,8 +170,8 @@ const Home = () => {
 
       <section className="information-section questions-section">
         <div className="section-heading left-align">
-          <span className="eyebrow small">Antes de consultar</span>
-          <h2>Preguntas frecuentes</h2>
+          <span className="eyebrow small">{SITE.home.faqLabel}</span>
+          <h2>{SITE.home.faqHeadline}</h2>
         </div>
         <div className="home-faq">
           {homeFaq.map(({ question, answer }) => (
@@ -188,13 +185,11 @@ const Home = () => {
 
       <section className="cta-band">
         <div>
-          <span className="eyebrow small">¿Qué necesitás resolver?</span>
-          <h2>
-            Contame qué querés hacer o qué está fallando. Definimos juntos los próximos pasos.
-          </h2>
+          <span className="eyebrow small">{SITE.home.ctaBandLabel}</span>
+          <h2>{SITE.home.ctaBandHeadline}</h2>
         </div>
         <Link to="/contact" className="primary-button large">
-          Hablemos de tu proyecto
+          {SITE.home.ctaBandButton}
         </Link>
       </section>
 

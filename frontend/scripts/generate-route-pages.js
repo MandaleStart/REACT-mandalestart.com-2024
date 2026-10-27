@@ -75,7 +75,10 @@ try {
   ]);
   const { getPageMetadata, IS_INDEXABLE_SITE, SITE_URL, staticPages } = metadata;
   const routes = [
-    ...Object.keys(staticPages).filter((route) => route !== '/admin' && route !== '/client-area'),
+    ...Object.keys(staticPages).filter(
+      (route) =>
+        !['/admin', '/client-area', '/administracion', '/area-cliente', '/perfil'].includes(route),
+    ),
     ...serviceCatalog.map(({ slug }) => `/services/${slug}`),
   ];
 
