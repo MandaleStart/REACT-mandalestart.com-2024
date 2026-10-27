@@ -105,9 +105,15 @@
   display: inline-block;
 }
 
-.home-dashboard-dot.red { background: #ff5f57; }
-.home-dashboard-dot.yellow { background: #febc2e; }
-.home-dashboard-dot.green { background: #28c840; }
+.home-dashboard-dot.red {
+  background: #ff5f57;
+}
+.home-dashboard-dot.yellow {
+  background: #febc2e;
+}
+.home-dashboard-dot.green {
+  background: #28c840;
+}
 
 .panel-body {
   display: flex;
@@ -174,10 +180,21 @@
   animation: pulseBar 1.4s ease-in-out infinite;
 }
 
-.signal-bars span:nth-child(1) { height: 28%; }
-.signal-bars span:nth-child(2) { height: 46%; animation-delay: 0.1s; }
-.signal-bars span:nth-child(3) { height: 68%; animation-delay: 0.2s; }
-.signal-bars span:nth-child(4) { height: 100%; animation-delay: 0.3s; }
+.signal-bars span:nth-child(1) {
+  height: 28%;
+}
+.signal-bars span:nth-child(2) {
+  height: 46%;
+  animation-delay: 0.1s;
+}
+.signal-bars span:nth-child(3) {
+  height: 68%;
+  animation-delay: 0.2s;
+}
+.signal-bars span:nth-child(4) {
+  height: 100%;
+  animation-delay: 0.3s;
+}
 
 .stats-strip {
   display: grid;
@@ -265,6 +282,34 @@
   max-width: 780px;
 }
 
+.home-faq {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.home-faq-item {
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(143, 169, 213, 0.2);
+  border-radius: 16px;
+  background: rgba(16, 27, 45, 0.72);
+}
+
+.home-faq-item summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: #f5f9ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-faq-item p {
+  max-width: 75ch;
+  margin: 0.5rem 0 0;
+  color: rgba(214, 225, 255, 0.82);
+  line-height: 1.7;
+}
+
 .section-heading {
   display: flex;
   flex-direction: column;
@@ -295,8 +340,11 @@
   border-radius: 26px;
   background: rgba(12, 16, 28, 0.8);
   border: 1px solid rgba(166, 177, 255, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .service-card:hover {
@@ -330,14 +378,22 @@
   place-items: center;
   border-radius: 18px;
   font-size: 2rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.service-card.cyan .service-icon { background: rgba(76, 201, 240, 0.12); }
-.service-card.orange .service-icon { background: rgba(251, 146, 60, 0.12); }
-.service-card.green .service-icon { background: rgba(34, 197, 94, 0.12); }
-.service-card.purple .service-icon { background: rgba(168, 85, 247, 0.12); }
+.service-card.cyan .service-icon {
+  background: rgba(76, 201, 240, 0.12);
+}
+.service-card.orange .service-icon {
+  background: rgba(251, 146, 60, 0.12);
+}
+.service-card.green .service-icon {
+  background: rgba(34, 197, 94, 0.12);
+}
+.service-card.purple .service-icon {
+  background: rgba(168, 85, 247, 0.12);
+}
 
 .infrastructure-section {
   position: relative;
@@ -371,7 +427,10 @@
   border: 1px solid rgba(143, 169, 213, 0.16);
   border-radius: 20px;
   background: rgba(16, 27, 45, 0.72);
-  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
 .infra-card:hover {
@@ -431,7 +490,12 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  background: linear-gradient(135deg, rgba(76, 201, 240, 0.12), rgba(122, 92, 255, 0.2), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+    135deg,
+    rgba(76, 201, 240, 0.12),
+    rgba(122, 92, 255, 0.2),
+    rgba(255, 255, 255, 0.02)
+  );
   border: 1px solid rgba(126, 167, 255, 0.2);
   border-radius: 28px;
   padding: 2rem 2.2rem;
@@ -451,13 +515,25 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulseBar {
-  0%, 100% { opacity: 0.7; transform: scaleY(0.9); }
-  50% { opacity: 1; transform: scaleY(1); }
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scaleY(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -504,7 +580,6 @@
     flex-direction: column;
     align-items: flex-start;
   }
-
 }
 
 @media (max-width: 640px) {

@@ -1,10 +1,5 @@
 /* eslint-disable react/prop-types */
-export default function AdminConfirmationDialog({
-  dialogRef,
-  confirmation,
-  onCancel,
-  onConfirm,
-}) {
+export default function AdminConfirmationDialog({ dialogRef, confirmation, onCancel, onConfirm }) {
   return (
     <dialog
       ref={dialogRef}

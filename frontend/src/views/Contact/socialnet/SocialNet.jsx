@@ -6,10 +6,30 @@ const SocialNet = () => {
   const contact = useContact();
   const channels = [
     ...(contact.phone
-      ? [{ name: 'WhatsApp', value: contact.phone.display, href: whatsappUrl(contact), icon: 'whatsapp', tone: 'cyan' }]
+      ? [
+          {
+            name: 'WhatsApp',
+            value: contact.phone.display,
+            href: whatsappUrl(contact),
+            icon: 'whatsapp',
+            tone: 'cyan',
+          },
+        ]
       : []),
-    { name: 'Telegram', value: SITE.social.telegram.handle, href: SITE.social.telegram.url, icon: 'telegram', tone: 'green' },
-    { name: 'LinkedIn', value: SITE.social.linkedin.label, href: SITE.social.linkedin.url, icon: 'linkedin', tone: 'purple' },
+    {
+      name: 'Telegram',
+      value: SITE.social.telegram.handle,
+      href: SITE.social.telegram.url,
+      icon: 'telegram',
+      tone: 'green',
+    },
+    {
+      name: 'LinkedIn',
+      value: SITE.social.linkedin.label,
+      href: SITE.social.linkedin.url,
+      icon: 'linkedin',
+      tone: 'purple',
+    },
   ];
 
   return (
@@ -20,8 +40,16 @@ const SocialNet = () => {
       </div>
 
       {channels.map(({ name, value, href, icon, tone }) => (
-        <a key={name} className={`contact-link-item ${tone}`} href={href} target="_blank" rel="noreferrer">
-          <span className="contact-icon"><SiteIcon name={icon} /></span>
+        <a
+          key={name}
+          className={`contact-link-item ${tone}`}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span className="contact-icon">
+            <SiteIcon name={icon} />
+          </span>
           <span className="contact-link-copy">
             <strong>{name}</strong>
             <small>{value}</small>

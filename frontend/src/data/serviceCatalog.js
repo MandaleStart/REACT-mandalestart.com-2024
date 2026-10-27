@@ -4,7 +4,8 @@ export const serviceCatalog = [
     icon: 'code',
     title: 'Desarrollo web',
     category: 'Desarrollo web',
-    description: 'Diseño y desarrollo de sitios, landing pages y tiendas online según lo que necesite cada proyecto.',
+    description:
+      'Diseño y desarrollo de sitios, landing pages y tiendas online según lo que necesite cada proyecto.',
     summary: 'Una web para presentar tu trabajo, recibir consultas o vender online.',
     details: [
       'Definimos a quién se dirige el sitio, qué contenido debe incluir y qué acción querés facilitar, como recibir consultas o mostrar un catálogo.',
@@ -32,14 +33,16 @@ export const serviceCatalog = [
       'El plan de mantenimiento y las copias de seguridad se definen según el proveedor, el acceso disponible y las tareas acordadas; no se modifica una configuración existente sin conversarlo.',
     ],
     accent: 'blue',
-    outcome: 'Tu sitio queda alojado con las opciones de mantenimiento y respaldo definidas para el servicio.',
+    outcome:
+      'Tu sitio queda alojado con las opciones de mantenimiento y respaldo definidas para el servicio.',
     price: 'Presupuesto a medida',
-    points: [
-      'Servidor optimizado',
-      'Monitoreo de disponibilidad',
-      'Mantenimiento y rendimiento',
+    points: ['Servidor optimizado', 'Monitoreo de disponibilidad', 'Mantenimiento y rendimiento'],
+    includes: [
+      'Alojamiento web',
+      'Copia de seguridad',
+      'Optimización de rendimiento',
+      'Soporte técnico',
     ],
-    includes: ['Alojamiento web', 'Copia de seguridad', 'Optimización de rendimiento', 'Soporte técnico'],
   },
   {
     slug: 'email',
@@ -55,12 +58,13 @@ export const serviceCatalog = [
     accent: 'orange',
     outcome: 'Cuentas de correo configuradas según la cantidad y los dispositivos acordados.',
     price: 'Presupuesto a medida',
-    points: [
-      'Correos con tu dominio',
-      'Configuración profesional',
-      'Seguridad y organización',
+    points: ['Correos con tu dominio', 'Configuración profesional', 'Seguridad y organización'],
+    includes: [
+      'Correo empresarial',
+      'Migración',
+      'Protección contra spam',
+      'Soporte de configuración',
     ],
-    includes: ['Correo empresarial', 'Migración', 'Protección contra spam', 'Soporte de configuración'],
   },
   {
     slug: 'domains',
@@ -88,21 +92,24 @@ export const serviceCatalog = [
     icon: 'chart',
     title: 'SEO y posicionamiento',
     category: 'Visibilidad',
-    description: 'Revisión técnica y de contenido para que los buscadores puedan entender mejor tu sitio.',
+    description:
+      'Revisión técnica y de contenido para que los buscadores puedan entender mejor tu sitio.',
     summary: 'Reviso la estructura de tu web y priorizo posibles mejoras para buscadores.',
     details: [
       'La revisión puede considerar títulos, descripciones, jerarquía de encabezados, enlaces y aspectos técnicos visibles para los buscadores, de acuerdo con el tamaño y la plataforma del sitio.',
       'Las recomendaciones se ordenan para que puedas decidir qué implementar. El SEO no garantiza posiciones ni plazos concretos, porque también depende de la competencia y de los buscadores.',
     ],
     accent: 'green',
-    outcome: 'Recibís una revisión y una lista de mejoras. El posicionamiento también depende de factores externos y no se puede garantizar.',
+    outcome:
+      'Recibís una revisión y una lista de mejoras. El posicionamiento también depende de factores externos y no se puede garantizar.',
     price: 'Presupuesto a medida',
-    points: [
-      'SEO técnico',
-      'Búsquedas y estructura',
-      'Contenido y optimización',
+    points: ['SEO técnico', 'Búsquedas y estructura', 'Contenido y optimización'],
+    includes: [
+      'Revisión SEO',
+      'Meta tags',
+      'Estructura de contenido',
+      'Recomendaciones de optimización',
     ],
-    includes: ['Revisión SEO', 'Meta tags', 'Estructura de contenido', 'Recomendaciones de optimización'],
   },
   {
     slug: 'ddns',
@@ -110,19 +117,17 @@ export const serviceCatalog = [
     title: 'DDNS y acceso remoto',
     category: 'Infraestructura',
     description: 'Configuración de DNS dinámico y acceso remoto para equipos y servicios.',
-    summary: 'Preparo el acceso remoto según tu conexión, tus equipos y los requisitos de seguridad.',
+    summary:
+      'Preparo el acceso remoto según tu conexión, tus equipos y los requisitos de seguridad.',
     details: [
       'Primero revisamos el tipo de conexión a internet, el router, los equipos involucrados y qué servicio necesitás alcanzar desde fuera de la red local.',
       'La posibilidad de acceso depende de factores como la dirección IP pública y las restricciones del proveedor. La configuración y las medidas de protección se acuerdan según el caso.',
     ],
     accent: 'red',
-    outcome: 'Dejo configurados los equipos acordados para el acceso remoto definido en el proyecto.',
+    outcome:
+      'Dejo configurados los equipos acordados para el acceso remoto definido en el proyecto.',
     price: 'Presupuesto a medida',
-    points: [
-      'DNS dinámico',
-      'Acceso remoto',
-      'Publicación de servicios',
-    ],
+    points: ['DNS dinámico', 'Acceso remoto', 'Publicación de servicios'],
     includes: ['Registro DNS', 'Configuración de servidor', 'Acceso remoto', 'Soporte técnico'],
   },
   {
@@ -130,20 +135,18 @@ export const serviceCatalog = [
     icon: 'activity',
     title: 'Monitoreo de infraestructura',
     category: 'Red y servidores',
-    description: 'Monitoreo de servidores, routers y redes, con alertas cuando un equipo deja de responder.',
+    description:
+      'Monitoreo de servidores, routers y redes, con alertas cuando un equipo deja de responder.',
     summary: 'Configuro alertas para los equipos y servicios que necesites supervisar.',
     details: [
       'Definimos qué equipos o servicios se van a supervisar, desde dónde se comprobará su disponibilidad y qué situaciones deberían generar una alerta.',
       'Acordamos el canal de notificación y el alcance de la revisión. El monitoreo informa sobre los eventos configurados, pero no reemplaza el diagnóstico ni la respuesta ante cada incidente.',
     ],
     accent: 'teal',
-    outcome: 'Recibís alertas sobre los equipos configurados cuando se detectan los eventos acordados.',
+    outcome:
+      'Recibís alertas sobre los equipos configurados cuando se detectan los eventos acordados.',
     price: 'Presupuesto a medida',
-    points: [
-      'Servidores',
-      'Routers y redes',
-      'Domótica y automatización',
-    ],
+    points: ['Servidores', 'Routers y redes', 'Domótica y automatización'],
     includes: ['Monitoreo de equipos', 'Alertas', 'Diagnóstico', 'Revisión técnica'],
   },
   {
@@ -151,17 +154,24 @@ export const serviceCatalog = [
     icon: 'cube',
     title: 'Diseño e impresión 3D',
     category: 'Prototipado',
-    description: 'Diseño y fabricación de piezas y prototipos 3D para probar una idea o resolver una necesidad concreta.',
-    summary: 'Reviso la idea, las medidas y el uso para definir el diseño y la fabricación de la pieza.',
+    description:
+      'Diseño y fabricación de piezas y prototipos 3D para probar una idea o resolver una necesidad concreta.',
+    summary:
+      'Reviso la idea, las medidas y el uso para definir el diseño y la fabricación de la pieza.',
     details: [
       'Para evaluar una pieza, conversamos sobre su función, las medidas disponibles, el entorno de uso y cualquier referencia, dibujo o modelo que ya tengas.',
       'El diseño y el material se determinan según la geometría y el uso previsto. Cuando corresponda, se puede revisar un prototipo y ajustar el modelo antes de confirmar la fabricación final.',
     ],
     accent: 'purple',
-    outcome: 'Confirmo con vos el alcance, el material, los plazos y el presupuesto antes de comenzar.',
+    outcome:
+      'Confirmo con vos el alcance, el material, los plazos y el presupuesto antes de comenzar.',
     price: 'Presupuesto a medida',
     points: ['Modelado de piezas', 'Prototipos funcionales', 'Impresión 3D'],
-    includes: ['Revisión de la idea y medidas', 'Diseño o ajuste del modelo', 'Definición de material y fabricación'],
+    includes: [
+      'Revisión de la idea y medidas',
+      'Diseño o ajuste del modelo',
+      'Definición de material y fabricación',
+    ],
   },
 ];
 

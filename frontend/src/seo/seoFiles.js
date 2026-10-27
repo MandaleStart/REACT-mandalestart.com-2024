@@ -1,4 +1,4 @@
-export function createSeoFiles({ siteUrl, isIndexable, routes, getPageMetadata, serviceCatalog, date }) {
+export function createSeoFiles({ siteUrl, isIndexable, routes, getPageMetadata, serviceCatalog }) {
   if (!isIndexable) {
     return {
       robots: 'User-agent: *\nDisallow: /\n',
@@ -6,12 +6,12 @@ export function createSeoFiles({ siteUrl, isIndexable, routes, getPageMetadata, 
     };
   }
 
-  const sitemapRoutes = routes.filter((route) => (
-    !getPageMetadata(route, serviceCatalog).robots?.startsWith('noindex')
-  ));
+  const sitemapRoutes = routes.filter(
+    (route) => !getPageMetadata(route, serviceCatalog).robots?.startsWith('noindex'),
+  );
   const sitemapEntries = sitemapRoutes.map((route) => {
     const page = getPageMetadata(route, serviceCatalog);
-    return `  <url><loc>${siteUrl}${page.path}</loc><lastmod>${date}</lastmod></url>`;
+    return `  <url><loc>${siteUrl}${page.path}</loc></url>`;
   });
   const sitemap = [
     '<?xml version="1.0" encoding="UTF-8"?>',

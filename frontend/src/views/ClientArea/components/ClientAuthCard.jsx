@@ -28,21 +28,35 @@ export default function ClientAuthCard({
           <h1>Ingresá a tu área de clientes</h1>
           <p>Usá la cuenta que te indicamos para consultar los servicios asociados.</p>
 
-          {error && <div className="error-box" role="alert">{error}</div>}
-          {notice && <div className="client-success-box" role="status">{notice}</div>}
+          {error && (
+            <div className="error-box" role="alert">
+              {error}
+            </div>
+          )}
+          {notice && (
+            <div className="client-success-box" role="status">
+              {notice}
+            </div>
+          )}
 
           <div className="client-auth-switch" role="group" aria-label="Tipo de acceso">
             <button
               type="button"
               className={authMode === 'login' ? 'is-active' : ''}
-              onClick={() => { setAuthMode('login'); clearMessages(); }}
+              onClick={() => {
+                setAuthMode('login');
+                clearMessages();
+              }}
             >
               Iniciar sesión
             </button>
             <button
               type="button"
               className={authMode === 'register' ? 'is-active' : ''}
-              onClick={() => { setAuthMode('register'); clearMessages(); }}
+              onClick={() => {
+                setAuthMode('register');
+                clearMessages();
+              }}
             >
               Crear cuenta
             </button>
@@ -109,23 +123,42 @@ export default function ClientAuthCard({
               </div>
             )}
 
-            <button type="submit" className="secondary-button client-login-submit" disabled={submitting}>
-              {submitting ? 'Procesando…' : authMode === 'register' ? 'Crear cuenta y verificar email' : 'Ingresar'}
+            <button
+              type="submit"
+              className="secondary-button client-login-submit"
+              disabled={submitting}
+            >
+              {submitting
+                ? 'Procesando…'
+                : authMode === 'register'
+                  ? 'Crear cuenta y verificar email'
+                  : 'Ingresar'}
             </button>
             {authMode === 'login' && (
-              <button type="button" className="client-forgot-password" onClick={onPasswordReset} disabled={submitting}>
+              <button
+                type="button"
+                className="client-forgot-password"
+                onClick={onPasswordReset}
+                disabled={submitting}
+              >
                 ¿Olvidaste tu contraseña?
               </button>
             )}
           </form>
 
           {firebaseReady && (
-            <button type="button" className="google-button" onClick={onGoogleLogin} disabled={submitting}>
+            <button
+              type="button"
+              className="google-button"
+              onClick={onGoogleLogin}
+              disabled={submitting}
+            >
               {submitting ? 'Ingresando...' : 'Continuar con Google'}
             </button>
           )}
           <p className="client-login-note">
-            El registro crea tu cuenta de acceso; para ver información del portal, el administrador debe asociar tu email verificado a una ficha de cliente.
+            El registro crea tu cuenta de acceso; para ver información del portal, el administrador
+            debe asociar tu email verificado a una ficha de cliente.
           </p>
         </div>
       </section>

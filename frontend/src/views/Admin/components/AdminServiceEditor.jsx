@@ -18,16 +18,25 @@ export default function AdminServiceEditor({
       <div className="admin-panel-heading">
         <h2>{selectedSlug ? 'Editar servicio público' : 'Seleccioná un servicio'}</h2>
         {selectedSlug && service.status !== 'archived' && (
-          <button type="button" className="admin-danger-button" onClick={onArchive} disabled={busy || sessionExpired}>
+          <button
+            type="button"
+            className="admin-danger-button"
+            onClick={onArchive}
+            disabled={busy || sessionExpired}
+          >
             Archivar
           </button>
         )}
       </div>
-      {isDirty && <p className="admin-feedback warning" role="status">Hay cambios sin guardar.</p>}
+      {isDirty && (
+        <p className="admin-feedback warning" role="status">
+          Hay cambios sin guardar.
+        </p>
+      )}
       {!selectedSlug && (
         <p className="admin-panel-help">
-          Elegí un slug estático de la lista. Para agregar un nuevo slug es necesario actualizar las rutas y
-          desplegar nuevamente el frontend.
+          Elegí un slug estático de la lista. Para agregar un nuevo slug es necesario actualizar las
+          rutas y desplegar nuevamente el frontend.
         </p>
       )}
       <div className="admin-form-grid">
@@ -48,7 +57,12 @@ export default function AdminServiceEditor({
         </label>
         <label>
           Categoría
-          <input value={service.category} onChange={updateField('category')} maxLength="100" required />
+          <input
+            value={service.category}
+            onChange={updateField('category')}
+            maxLength="100"
+            required
+          />
         </label>
         <label>
           Precio visible
@@ -71,15 +85,31 @@ export default function AdminServiceEditor({
         </label>
         <label className="admin-wide-field">
           Descripción
-          <textarea value={service.description} onChange={updateField('description')} maxLength="1000" rows="3" required />
+          <textarea
+            value={service.description}
+            onChange={updateField('description')}
+            maxLength="1000"
+            rows="3"
+            required
+          />
         </label>
         <label className="admin-wide-field">
           Resumen
-          <textarea value={service.summary} onChange={updateField('summary')} maxLength="500" rows="2" />
+          <textarea
+            value={service.summary}
+            onChange={updateField('summary')}
+            maxLength="500"
+            rows="2"
+          />
         </label>
         <label className="admin-wide-field">
           Resultado esperado
-          <textarea value={service.outcome} onChange={updateField('outcome')} maxLength="1000" rows="2" />
+          <textarea
+            value={service.outcome}
+            onChange={updateField('outcome')}
+            maxLength="1000"
+            rows="2"
+          />
         </label>
         <label className="admin-wide-field">
           Puntos destacados (uno por línea)

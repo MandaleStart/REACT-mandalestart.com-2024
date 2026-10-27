@@ -6,9 +6,8 @@ import './share-links.css';
 
 const ShareLinks = () => {
   const { pathname } = useLocation();
-  const pagePath = pathname === '/files' ? '/aboutme' : pathname;
-  const pageUrl = `${SITE_URL}${pagePath}`;
-  const title = getPageMetadata(pagePath, serviceCatalog).title;
+  const pageUrl = `${SITE_URL}${pathname}`;
+  const title = getPageMetadata(pathname, serviceCatalog).title;
   const encodedUrl = encodeURIComponent(pageUrl);
   const whatsappLink = whatsappShareUrl(`${title}: ${pageUrl}`);
 

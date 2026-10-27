@@ -148,10 +148,10 @@
 .admin-client-search input {
   min-height: 44px;
   padding: 0.65rem 0.8rem;
-  border: 1px solid rgba(155, 171, 255, 0.24);
+  border: 1px solid var(--color-control-border);
   border-radius: 10px;
-  background: #111a2b;
-  color: #f4f8ff;
+  background: var(--color-control-surface);
+  color: var(--color-text-heading);
   font: inherit;
 }
 
@@ -213,10 +213,10 @@
   width: 100%;
   min-width: 0;
   padding: 0.7rem 0.8rem;
-  border: 1px solid rgba(155, 171, 255, 0.24);
+  border: 1px solid var(--color-control-border);
   border-radius: 10px;
-  background: #111a2b;
-  color: #f4f8ff;
+  background: var(--color-control-surface);
+  color: var(--color-text-heading);
   font: inherit;
 }
 
@@ -258,6 +258,7 @@
 }
 
 .admin-danger-button {
+  min-height: 44px;
   padding: 0.55rem 0.8rem;
   border: 1px solid rgba(255, 120, 120, 0.4);
   border-radius: 10px;

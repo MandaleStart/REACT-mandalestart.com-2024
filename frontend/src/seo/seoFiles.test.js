@@ -16,7 +16,6 @@ test('creates a closed robots file and no sitemap for non-indexable sites', () =
     routes,
     getPageMetadata,
     serviceCatalog,
-    date: '2026-10-26',
   });
 
   assert.equal(files.robots, 'User-agent: *\nDisallow: /\n');
@@ -30,19 +29,22 @@ test('creates an open robots file and sitemap containing only indexable routes',
     routes,
     getPageMetadata,
     serviceCatalog,
-    date: '2026-10-26',
   });
 
-  assert.equal(files.robots, [
-    'User-agent: *',
-    'Allow: /',
-    'Disallow: /admin',
-    'Disallow: /client-area',
-    'Sitemap: https://mandalestart.com/sitemap.xml',
-    '',
-  ].join('\n'));
+  assert.equal(
+    files.robots,
+    [
+      'User-agent: *',
+      'Allow: /',
+      'Disallow: /admin',
+      'Disallow: /client-area',
+      'Sitemap: https://mandalestart.com/sitemap.xml',
+      '',
+    ].join('\n'),
+  );
   assert.ok(files.sitemap.includes('<loc>https://mandalestart.com/</loc>'));
   assert.ok(files.sitemap.includes('<loc>https://mandalestart.com/services/web</loc>'));
+  assert.ok(!files.sitemap.includes('<lastmod>'));
   assert.ok(!files.sitemap.includes('/admin'));
   assert.ok(!files.sitemap.includes('/client-area'));
 });

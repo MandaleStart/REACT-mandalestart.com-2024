@@ -30,5 +30,8 @@
 }
 
 .privacy-section a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: #9fe9ff;
 }

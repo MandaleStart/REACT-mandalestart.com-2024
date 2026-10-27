@@ -1,4 +1,4 @@
 .page-shell {
-  width: min(1200px, calc(100% - 2rem));
+  width: min(var(--page-width), calc(100% - var(--page-gutter) - var(--page-gutter)));
   margin: 0 auto;
 }

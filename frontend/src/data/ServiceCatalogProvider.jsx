@@ -38,7 +38,8 @@ export function ServiceCatalogProvider({ children, initialServices }) {
       return undefined;
     }
 
-    serviceCatalogCache.refresh()
+    serviceCatalogCache
+      .refresh()
       .then((catalog) => {
         if (active) setServices(catalog);
       })

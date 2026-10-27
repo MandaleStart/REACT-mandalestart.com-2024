@@ -78,7 +78,11 @@ export default function useClientAccount() {
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          name: account.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Cliente',
+          name:
+            account.name ||
+            firebaseUser.displayName ||
+            firebaseUser.email?.split('@')[0] ||
+            'Cliente',
         });
         setClientData(account);
         setProfileForm({ name: account.name || '', phone: account.phone || '' });

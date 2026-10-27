@@ -54,7 +54,7 @@
   width: 100%;
   margin-top: 0.35rem;
   padding: 0.7rem;
-  border: 1px solid rgba(155, 171, 255, 0.24);
+  border: 1px solid var(--color-control-border);
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.04);
   color: #f4f8ff;
@@ -434,7 +434,7 @@
   min-height: 46px;
   margin-bottom: 0.55rem;
   padding: 0.7rem;
-  border: 1px solid rgba(155, 171, 255, 0.24);
+  border: 1px solid var(--color-control-border);
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.04);
   color: #f4f8ff;
@@ -463,8 +463,12 @@
 }
 
 @keyframes client-loading {
-  from { transform: translateX(-20%); }
-  to { transform: translateX(170%); }
+  from {
+    transform: translateX(-20%);
+  }
+  to {
+    transform: translateX(170%);
+  }
 }
 
 .client-hero {
@@ -569,9 +573,15 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
-.project-card.cyan { background: linear-gradient(135deg, rgba(76, 201, 240, 0.08), rgba(9, 14, 26, 0.9)); }
-.project-card.purple { background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(9, 14, 26, 0.9)); }
-.project-card.green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(9, 14, 26, 0.9)); }
+.project-card.cyan {
+  background: linear-gradient(135deg, rgba(76, 201, 240, 0.08), rgba(9, 14, 26, 0.9));
+}
+.project-card.purple {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(9, 14, 26, 0.9));
+}
+.project-card.green {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(9, 14, 26, 0.9));
+}
 
 .project-card-top,
 .project-card-bottom {

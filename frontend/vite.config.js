@@ -1,3 +1,5 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import serviceCatalog from './src/data/serviceCatalog.js';
@@ -18,12 +20,37 @@ export default defineConfig(({ mode }) => {
     routes,
     getPageMetadata: metadata.getPageMetadata,
     serviceCatalog,
-    date: new Date().toISOString().slice(0, 10),
   });
 
   return {
     plugins: [
       react(),
+      {
+        name: 'preload-inter-font',
+        apply: 'build',
+        async writeBundle(outputOptions, bundle) {
+          const outputFiles = Object.values(bundle);
+          const font = outputFiles.find(
+            (output) =>
+              output.type === 'asset' &&
+              output.fileName.startsWith('assets/inter-latin-wght-normal-') &&
+              output.fileName.endsWith('.woff2'),
+          );
+
+          if (!font) {
+            throw new Error('No se encontró el archivo WOFF2 latino de Inter en el build.');
+          }
+
+          const outputDirectory = path.resolve(outputOptions.dir || 'dist');
+          const indexPath = path.join(outputDirectory, 'index.html');
+          const html = await readFile(indexPath, 'utf8');
+          const updatedHtml = html.replace(
+            '</head>',
+            `  <link rel="preload" href="/${font.fileName}" as="font" type="font/woff2" crossorigin="anonymous">\n  </head>`,
+          );
+          await writeFile(indexPath, updatedHtml);
+        },
+      },
       {
         name: 'seo-files-dev-middleware',
         configureServer(server) {
@@ -62,5 +89,8 @@ export default defineConfig(({ mode }) => {
         '/api': process.env.VITE_API_PROXY_TARGET || 'http://localhost:4000',
       },
     },
+    build: {
+      sourcemap: false,
+    },
   };
-})
+});

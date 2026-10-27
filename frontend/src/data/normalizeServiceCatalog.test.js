@@ -3,12 +3,14 @@ import { test } from 'node:test';
 import normalizeServiceCatalog from './normalizeServiceCatalog.js';
 
 test('fills static detail copy when the backend omits service details', () => {
-  const [service] = normalizeServiceCatalog([{
-    slug: 'web',
-    title: 'Servicio web',
-    points: ['Punto del backend'],
-    includes: ['Incluido del backend'],
-  }]);
+  const [service] = normalizeServiceCatalog([
+    {
+      slug: 'web',
+      title: 'Servicio web',
+      points: ['Punto del backend'],
+      includes: ['Incluido del backend'],
+    },
+  ]);
 
   assert.equal(service.title, 'Servicio web');
   assert.deepEqual(service.points, ['Punto del backend']);

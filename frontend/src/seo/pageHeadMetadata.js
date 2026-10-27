@@ -1,11 +1,4 @@
-export function getPageHeadMetadata({
-  page,
-  siteUrl,
-  socialImage,
-  robots,
-  siteName,
-  areaServed,
-}) {
+export function getPageHeadMetadata({ page, siteUrl, socialImage, robots, siteName, areaServed }) {
   const description = page.description;
 
   return {

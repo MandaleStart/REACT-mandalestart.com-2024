@@ -42,10 +42,14 @@ export function normalizeContactConfig(value) {
     return { email: value.email.trim(), phone: null, whatsapp: null };
   }
 
-  if (!value.phone || !phonePattern.test(value.phone.e164)
-    || typeof value.phone.display !== 'string' || !value.phone.display.trim()
-    || value.phone.display.replace(/\D/g, '') !== value.phone.e164.replace(/\D/g, '')
-    || value.whatsapp !== value.phone.e164.slice(1)) {
+  if (
+    !value.phone ||
+    !phonePattern.test(value.phone.e164) ||
+    typeof value.phone.display !== 'string' ||
+    !value.phone.display.trim() ||
+    value.phone.display.replace(/\D/g, '') !== value.phone.e164.replace(/\D/g, '') ||
+    value.whatsapp !== value.phone.e164.slice(1)
+  ) {
     throw new Error('La configuración pública del teléfono no es válida.');
   }
 

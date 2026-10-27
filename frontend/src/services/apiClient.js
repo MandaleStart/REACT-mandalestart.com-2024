@@ -72,7 +72,10 @@ export async function apiRequest(path, options = {}) {
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (timedOut) {
-      throw new ApiError('La solicitud tardó demasiado. Probá de nuevo.', { status: null, cause: error });
+      throw new ApiError('La solicitud tardó demasiado. Probá de nuevo.', {
+        status: null,
+        cause: error,
+      });
     }
     if (externalSignal?.aborted) throw error;
     throw new ApiError('No se pudo conectar con el servidor.', { status: null, cause: error });

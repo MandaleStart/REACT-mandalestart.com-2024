@@ -27,10 +27,7 @@ export default function useAdminData() {
   }, []);
 
   const refreshData = useCallback(async () => {
-    const [clientList, serviceList] = await Promise.all([
-      getAdminClients(),
-      getAdminServices(),
-    ]);
+    const [clientList, serviceList] = await Promise.all([getAdminClients(), getAdminServices()]);
     setClients(clientList);
     setServices(serviceList);
   }, []);
@@ -51,7 +48,8 @@ export default function useAdminData() {
     setError('');
     setSessionExpired(false);
 
-    firebaseUser.getIdTokenResult(true)
+    firebaseUser
+      .getIdTokenResult(true)
       .then(async (tokenResult) => {
         if (!active) return;
         // This claim only controls frontend visibility; every admin endpoint must enforce authorization server-side and verify revocation.
@@ -65,11 +63,18 @@ export default function useAdminData() {
       .catch((requestError) => {
         if (!active) return;
         const sessionError = isSessionError(requestError);
+        if (requestError.status === 403) {
+          setAccess('forbidden');
+          setError('Tu cuenta no tiene permisos para acceder a esta sección.');
+          return;
+        }
         setSessionExpired(sessionError);
-        setError(sessionError
-          ? expiredSessionMessage
-          : requestError.message || 'No se pudo cargar el panel administrativo.');
-        setAccess('error');
+        setError(
+          sessionError
+            ? expiredSessionMessage
+            : requestError.message || 'No se pudo cargar el panel administrativo.',
+        );
+        setAccess(sessionError ? 'signed-out' : 'error');
       });
 
     return () => {
@@ -81,6 +86,7 @@ export default function useAdminData() {
     firebaseUser,
     authReady,
     access,
+    setAccess,
     clients,
     services,
     error,

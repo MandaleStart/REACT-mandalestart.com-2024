@@ -65,25 +65,59 @@ const MailBox = () => {
       <div className="form-row">
         <div className="field-group">
           <label htmlFor="name">Nombre</label>
-          <input type="text" id="name" name="name" autoComplete="name" placeholder="Tu nombre" maxLength={120} aria-describedby="name-help" required />
-          <small id="name-help" className="contact-field-help">Hasta 120 caracteres.</small>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            autoComplete="name"
+            placeholder="Tu nombre"
+            maxLength={120}
+            aria-describedby="name-help"
+            required
+          />
+          <small id="name-help" className="contact-field-help">
+            Hasta 120 caracteres.
+          </small>
         </div>
         <div className="field-group">
           <label htmlFor="email">Email</label>
-          <input type="email" id="email" name="email" autoComplete="email" placeholder="tu@email.com" maxLength={254} aria-describedby="email-help" required />
-          <small id="email-help" className="contact-field-help">Hasta 254 caracteres.</small>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autoComplete="email"
+            placeholder="tu@email.com"
+            maxLength={254}
+            aria-describedby="email-help"
+            required
+          />
+          <small id="email-help" className="contact-field-help">
+            Hasta 254 caracteres.
+          </small>
         </div>
       </div>
 
       <div className="field-group">
         <label htmlFor="service">Servicio</label>
-        <select id="service" name="service" defaultValue="" aria-describedby="service-help" required>
-          <option value="" disabled>Elegí una opción</option>
+        <select
+          id="service"
+          name="service"
+          defaultValue=""
+          aria-describedby="service-help"
+          required
+        >
+          <option value="" disabled>
+            Elegí una opción
+          </option>
           {serviceOptions.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
+            <option key={value} value={value}>
+              {label}
+            </option>
           ))}
         </select>
-        <small id="service-help" className="contact-field-help">Elegí el servicio que mejor describe tu consulta.</small>
+        <small id="service-help" className="contact-field-help">
+          Elegí el servicio que mejor describe tu consulta.
+        </small>
       </div>
 
       <div className="field-group">
@@ -98,8 +132,12 @@ const MailBox = () => {
           onChange={(event) => setMessageLength(event.target.value.length)}
           required
         />
-        <small id="message-help" className="contact-field-help">Hasta 5000 caracteres.</small>
-        <small id="message-count" className="contact-message-count" aria-live="polite">{messageLength}/5000</small>
+        <small id="message-help" className="contact-field-help">
+          Hasta 5000 caracteres.
+        </small>
+        <small id="message-count" className="contact-message-count" aria-live="polite">
+          {messageLength}/5000
+        </small>
       </div>
 
       {feedback && (

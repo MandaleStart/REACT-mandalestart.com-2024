@@ -16,7 +16,9 @@ const Footer = () => {
               <small>Web y soporte técnico</small>
             </span>
           </div>
-          <p>Desarrollo web, hosting y soporte técnico para personas y negocios de {SITE.areaServed}.</p>
+          <p>
+            Desarrollo web, hosting y soporte técnico para personas y negocios de {SITE.areaServed}.
+          </p>
         </div>
 
         <nav className="footer-links" aria-label="Explorar">
@@ -26,7 +28,6 @@ const Footer = () => {
           <Link to="/projects">Proyectos</Link>
           <Link to="/aboutme">Sobre mí</Link>
           <Link to="/contact">Contacto</Link>
-          <Link to="/cv">CV</Link>
           <Link to="/client-area">Área de clientes</Link>
         </nav>
 

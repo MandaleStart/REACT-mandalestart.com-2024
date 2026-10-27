@@ -25,8 +25,9 @@ test('falls back to the established contact options when catalog entries are una
   const options = getContactServiceOptions([]);
 
   assert.equal(options.length, 8);
-  assert.deepEqual(options.map(({ value }) => value), [
-    'web', 'hosting', 'correo', 'seo', 'ddns', 'red', 'impresion', 'otro',
-  ]);
+  assert.deepEqual(
+    options.map(({ value }) => value),
+    ['web', 'hosting', 'correo', 'seo', 'ddns', 'red', 'impresion', 'otro'],
+  );
   assert.equal(options[1].label, 'Hosting y dominios');
 });

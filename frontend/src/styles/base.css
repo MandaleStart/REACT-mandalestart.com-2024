@@ -1,10 +1,10 @@
 .eyebrow {
   display: inline-flex;
-  padding: 0.5rem 0.8rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: 999px;
   background: rgba(93, 232, 255, 0.13);
   border: 1px solid rgba(117, 211, 255, 0.35);
-  color: #8fe0ff;
+  color: var(--color-accent-light);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;

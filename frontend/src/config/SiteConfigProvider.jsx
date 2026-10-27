@@ -35,7 +35,10 @@ export function SiteConfigProvider({ children, initialConfig }) {
       .then((config) => setContact(normalizeContactConfig(config)))
       .catch((error) => {
         if (!controller.signal.aborted) {
-          console.warn('No se pudo actualizar la configuración pública de contacto:', error.message);
+          console.warn(
+            'No se pudo actualizar la configuración pública de contacto:',
+            error.message,
+          );
         }
       });
 

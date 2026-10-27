@@ -27,9 +27,14 @@ export const clientServiceTypes = [
 ];
 
 export const expiredSessionMessage = 'Tu sesión venció, volvé a ingresar.';
+export const forbiddenMessage = 'Tu cuenta no tiene permisos para realizar esta acción.';
 
 export function isSessionError(error) {
-  return error.status === 401 || error.status === 403;
+  return error.status === 401;
+}
+
+export function isAuthorizationError(error) {
+  return error.status === 403;
 }
 
 export function parseDetails(value) {

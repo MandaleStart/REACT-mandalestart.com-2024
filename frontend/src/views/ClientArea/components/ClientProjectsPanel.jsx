@@ -1,19 +1,23 @@
 /* eslint-disable react/prop-types */
 function getProjectStatusLabel(status) {
-  return ({
-    planned: 'Planificado',
-    'in-progress': 'En curso',
-    paused: 'Pausado',
-    completed: 'Completado',
-  })[status] || 'Estado por confirmar';
+  return (
+    {
+      planned: 'Planificado',
+      'in-progress': 'En curso',
+      paused: 'Pausado',
+      completed: 'Completado',
+    }[status] || 'Estado por confirmar'
+  );
 }
 
 function getMilestoneStatusLabel(status) {
-  return ({
-    pending: 'Pendiente',
-    'in-progress': 'En curso',
-    completed: 'Completado',
-  })[status] || 'Pendiente';
+  return (
+    {
+      pending: 'Pendiente',
+      'in-progress': 'En curso',
+      completed: 'Completado',
+    }[status] || 'Pendiente'
+  );
 }
 
 export default function ClientProjectsPanel({ projects = [] }) {
@@ -29,13 +33,19 @@ export default function ClientProjectsPanel({ projects = [] }) {
         <div className="client-project-list">
           {projects.map((project) => {
             const milestones = Array.isArray(project.milestones) ? project.milestones : [];
-            const completed = milestones.filter((milestone) => milestone.status === 'completed').length;
-            const progress = milestones.length ? Math.round((completed / milestones.length) * 100) : 0;
+            const completed = milestones.filter(
+              (milestone) => milestone.status === 'completed',
+            ).length;
+            const progress = milestones.length
+              ? Math.round((completed / milestones.length) * 100)
+              : 0;
             return (
               <article className="client-project-card" key={project.id}>
                 <div className="client-project-header">
                   <div>
-                    <span className={`client-project-status ${project.status}`}>{getProjectStatusLabel(project.status)}</span>
+                    <span className={`client-project-status ${project.status}`}>
+                      {getProjectStatusLabel(project.status)}
+                    </span>
                     <h3>{project.title}</h3>
                   </div>
                   {project.targetDate && <span>Fecha objetivo: {project.targetDate}</span>}
@@ -53,7 +63,9 @@ export default function ClientProjectsPanel({ projects = [] }) {
                     >
                       <span style={{ width: `${progress}%` }} />
                     </div>
-                    <p className="client-project-progress-label">{progress}% de hitos completados</p>
+                    <p className="client-project-progress-label">
+                      {progress}% de hitos completados
+                    </p>
                     <ol className="client-milestone-list">
                       {milestones.map((milestone) => (
                         <li key={milestone.id}>
@@ -61,8 +73,12 @@ export default function ClientProjectsPanel({ projects = [] }) {
                             <strong>{milestone.title}</strong>
                             {milestone.description && <p>{milestone.description}</p>}
                           </div>
-                          <span className={`client-milestone-status ${milestone.status}`}>{getMilestoneStatusLabel(milestone.status)}</span>
-                          {milestone.dueDate && <time dateTime={milestone.dueDate}>{milestone.dueDate}</time>}
+                          <span className={`client-milestone-status ${milestone.status}`}>
+                            {getMilestoneStatusLabel(milestone.status)}
+                          </span>
+                          {milestone.dueDate && (
+                            <time dateTime={milestone.dueDate}>{milestone.dueDate}</time>
+                          )}
                         </li>
                       ))}
                     </ol>
@@ -73,7 +89,9 @@ export default function ClientProjectsPanel({ projects = [] }) {
           })}
         </div>
       ) : (
-        <p className="client-empty-state">Todavía no hay proyectos o entregas publicados en tu cuenta.</p>
+        <p className="client-empty-state">
+          Todavía no hay proyectos o entregas publicados en tu cuenta.
+        </p>
       )}
     </section>
   );

@@ -19,11 +19,16 @@ test('builds shared page metadata for runtime and prerender use', () => {
   assert.equal(pageHead.title, 'Desarrollo web | MandaleStart');
   assert.equal(pageHead.robots, 'noindex, nofollow');
   assert.equal(pageHead.canonicalUrl, 'https://example.test/services/web');
-  assert.deepEqual(pageHead.meta.find(({ key }) => key === 'og:url'), {
-    attribute: 'property',
-    key: 'og:url',
-    content: 'https://example.test/services/web',
-  });
-  assert.equal(pageHead.meta.find(({ key }) => key === 'og:image:alt').content,
-    'MandaleStart: desarrollo web y soporte técnico en Uruguay');
+  assert.deepEqual(
+    pageHead.meta.find(({ key }) => key === 'og:url'),
+    {
+      attribute: 'property',
+      key: 'og:url',
+      content: 'https://example.test/services/web',
+    },
+  );
+  assert.equal(
+    pageHead.meta.find(({ key }) => key === 'og:image:alt').content,
+    'MandaleStart: desarrollo web y soporte técnico en Uruguay',
+  );
 });

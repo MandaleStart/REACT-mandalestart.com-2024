@@ -3,23 +3,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
   padding: 0.9rem 1.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-weight: 700;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .primary-button {
-  background: linear-gradient(135deg, #4cc9f0, #7a5cff 60%, #b990ff);
-  color: #fff;
+  background: var(--color-accent-gradient);
+  color: #000;
   box-shadow: 0 20px 40px rgba(81, 130, 255, 0.35);
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .secondary-button {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #edf5ff;
+  color: var(--color-text-primary);
 }
 
 .primary-button:hover,

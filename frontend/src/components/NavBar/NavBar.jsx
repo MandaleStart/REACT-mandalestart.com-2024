@@ -74,10 +74,7 @@ const Navbar = () => {
     { to: '/services/impresion-3d', label: 'Diseño e impresión 3D' },
   ];
 
-  const moreLinks = [
-    { to: '/client-area', label: 'Área de clientes' },
-    { to: '/cv', label: 'CV' },
-  ];
+  const moreLinks = [{ to: '/client-area', label: 'Área de clientes' }];
 
   const toggleMenu = (menu) => {
     setOpenMenu((currentMenu) => (currentMenu === menu ? '' : menu));
@@ -123,14 +120,18 @@ const Navbar = () => {
               <div
                 className={`nav-dropdown${openMenu === 'services' ? ' is-open' : ''}`}
                 id="services-dropdown"
-                ref={(element) => { dropdownRefs.current.services = element; }}
+                ref={(element) => {
+                  dropdownRefs.current.services = element;
+                }}
               >
                 <button
                   type="button"
                   className="nav-link nav-dropdown-toggle"
                   aria-expanded={openMenu === 'services'}
                   aria-controls="services-menu"
-                  ref={(element) => { triggerRefs.current.services = element; }}
+                  ref={(element) => {
+                    triggerRefs.current.services = element;
+                  }}
                   onClick={() => toggleMenu('services')}
                 >
                   Servicios
@@ -147,14 +148,18 @@ const Navbar = () => {
               <div
                 className={`nav-dropdown${openMenu === 'more' ? ' is-open' : ''}`}
                 id="more-dropdown"
-                ref={(element) => { dropdownRefs.current.more = element; }}
+                ref={(element) => {
+                  dropdownRefs.current.more = element;
+                }}
               >
                 <button
                   type="button"
                   className="nav-link nav-dropdown-toggle"
                   aria-expanded={openMenu === 'more'}
                   aria-controls="more-menu"
-                  ref={(element) => { triggerRefs.current.more = element; }}
+                  ref={(element) => {
+                    triggerRefs.current.more = element;
+                  }}
                   onClick={() => toggleMenu('more')}
                 >
                   Más

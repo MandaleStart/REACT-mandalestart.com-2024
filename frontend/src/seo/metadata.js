@@ -1,6 +1,7 @@
 import { SITE, fallbackContact } from '../config/site.js';
 
-export const DEFAULT_DESCRIPTION = 'Desarrollo web, hosting, dominios, SEO y soporte técnico para personas y negocios de todo Uruguay.';
+export const DEFAULT_DESCRIPTION =
+  'Desarrollo web, hosting, dominios, SEO y soporte técnico para personas y negocios de todo Uruguay.';
 
 export function buildBusinessStructuredData(contact = fallbackContact, siteUrl = SITE.url) {
   const structuredData = {
@@ -27,7 +28,9 @@ export function buildMetadata(env = {}) {
   const siteUrl = (env.VITE_SITE_URL || SITE.url).replace(/\/$/, '');
   const socialImage = `${siteUrl}/img/og-cover.png`;
   const isIndexableSite = env.VITE_INDEXABLE_SITE === 'true';
-  const defaultRobots = isIndexableSite ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
+  const defaultRobots = isIndexableSite
+    ? 'index, follow, max-image-preview:large'
+    : 'noindex, nofollow';
 
   function getRobots(robots = defaultRobots) {
     if (!isIndexableSite && !robots.startsWith('noindex')) return 'noindex, nofollow';
@@ -38,27 +41,32 @@ export function buildMetadata(env = {}) {
   const staticPages = {
     '/': {
       title: `Diseño web y soporte técnico en Uruguay | ${SITE.name}`,
-      description: 'Diseño web, hosting, dominios, SEO, redes e impresión 3D para personas y negocios de todo Uruguay. Consultá por tu proyecto.',
+      description:
+        'Diseño web, hosting, dominios, SEO, redes e impresión 3D para personas y negocios de todo Uruguay. Consultá por tu proyecto.',
       robots: defaultRobots,
     },
     '/aboutme': {
-      title: `Sobre mí | Desarrollo web y soporte técnico en Uruguay | ${SITE.name}`,
-      description: 'Conocé a Nicolás, desarrollador web y técnico independiente. Servicios para personas y negocios de todo Uruguay.',
+      title: `Desarrollo web y soporte técnico | Sobre mí`,
+      description:
+        'Conocé a Nicolás, desarrollador web y técnico independiente. Servicios para personas y negocios de todo Uruguay.',
       robots: defaultRobots,
     },
     '/contact': {
-      title: `Contacto y presupuesto | Servicios en todo Uruguay | ${SITE.name}`,
-      description: 'Contame qué necesitás para tu web, hosting, redes o proyecto 3D. Atención a personas y negocios de todo Uruguay.',
+      title: `Contacto y presupuesto web | ${SITE.name}`,
+      description:
+        'Contame qué necesitás para tu web, hosting, redes o proyecto 3D. Atención a personas y negocios de todo Uruguay.',
       robots: defaultRobots,
     },
     '/projects': {
       title: `Soluciones web y técnicas en Uruguay | ${SITE.name}`,
-      description: 'Ejemplos de soluciones de desarrollo web, acceso remoto, monitoreo e impresión 3D disponibles en todo Uruguay.',
+      description:
+        'Ejemplos de soluciones de desarrollo web, acceso remoto, monitoreo e impresión 3D disponibles en todo Uruguay.',
       robots: defaultRobots,
     },
     '/services': {
-      title: `Servicios web, hosting, SEO e infraestructura en Uruguay | ${SITE.name}`,
-      description: 'Desarrollo web, hosting, dominios, correo, SEO, acceso remoto, monitoreo e impresión 3D en Uruguay.',
+      title: `Servicios web y hosting en Uruguay | ${SITE.name}`,
+      description:
+        'Desarrollo web, hosting, dominios, correo, SEO, acceso remoto, monitoreo e impresión 3D en Uruguay.',
       robots: defaultRobots,
     },
     '/comments': {
@@ -90,7 +98,7 @@ export function buildMetadata(env = {}) {
 
   function getPageMetadata(pathname, serviceCatalog = []) {
     const requestedPath = pathname.replace(/\/+$/, '') || '/';
-    const path = requestedPath === '/files' ? '/aboutme' : requestedPath;
+    const path = requestedPath;
     const fixedPage = staticPages[path];
     if (fixedPage) {
       return { ...fixedPage, robots: getRobots(fixedPage.robots), path };
@@ -100,9 +108,17 @@ export function buildMetadata(env = {}) {
       const slug = path.slice('/services/'.length);
       const service = serviceCatalog.find((item) => item.slug === slug);
       if (service) {
+        const title = `${service.title} en Uruguay | ${SITE.name}`;
+        const description = `${service.description} Atención a personas y negocios de todo Uruguay.`;
         return {
-          title: `${service.title} en Uruguay | ${SITE.name}`,
-          description: `${service.description} Atención a personas y negocios de todo Uruguay.`,
+          title:
+            title.length <= 60
+              ? title
+              : `${service.title.slice(0, 60 - SITE.name.length - 3).trimEnd()} | ${SITE.name}`,
+          description:
+            description.length <= 155
+              ? description
+              : `${service.description.slice(0, 155 - '…'.length).trimEnd()}…`,
           robots: getRobots(defaultRobots),
           path,
         };

@@ -14,7 +14,9 @@ export default function AdminServiceList({ services, selectedSlug, onSelect }) {
             onClick={() => onSelect(service.slug)}
           >
             <strong>{service.title || service.slug}</strong>
-            <span>{service.slug} · {service.status === 'archived' ? 'Archivado' : 'Visible'}</span>
+            <span>
+              {service.slug} · {service.status === 'archived' ? 'Archivado' : 'Visible'}
+            </span>
           </button>
         ))}
       </div>

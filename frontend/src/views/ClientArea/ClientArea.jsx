@@ -59,12 +59,17 @@ const ClientArea = () => {
     const projects = Array.isArray(clientData.projects) ? clientData.projects : [];
     return {
       services: Array.isArray(clientData.services) ? clientData.services.length : 0,
-      expiresSoon: (clientData.services || []).filter((service) => isExpiringWithinDays(service.expiry)).length,
+      expiresSoon: (clientData.services || []).filter((service) =>
+        isExpiringWithinDays(service.expiry),
+      ).length,
       projects: projects.filter((project) => project.status !== 'completed').length,
       pendingMilestones: projects.reduce(
-        (total, project) => total + (project.status === 'completed'
-          ? 0
-          : (project.milestones || []).filter((milestone) => milestone.status !== 'completed').length),
+        (total, project) =>
+          total +
+          (project.status === 'completed'
+            ? 0
+            : (project.milestones || []).filter((milestone) => milestone.status !== 'completed')
+                .length),
         0,
       ),
     };
@@ -87,7 +92,9 @@ const ClientArea = () => {
       if (!credential.user.emailVerified) {
         try {
           await sendEmailVerification(credential.user);
-          setNotice('Te enviamos un enlace para verificar tu correo. Confirmalo antes de volver a ingresar al área de clientes.');
+          setNotice(
+            'Te enviamos un enlace para verificar tu correo. Confirmalo antes de volver a ingresar al área de clientes.',
+          );
         } finally {
           await signOut(auth);
         }
@@ -108,11 +115,16 @@ const ClientArea = () => {
 
     try {
       if (!auth) throw new Error('El registro no está configurado.');
-      if (form.password.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres.');
+      if (form.password.length < 8)
+        throw new Error('La contraseña debe tener al menos 8 caracteres.');
       if (form.password !== form.confirmPassword) throw new Error('Las contraseñas no coinciden.');
 
       setRegistrationPending(true);
-      const credential = await createUserWithEmailAndPassword(auth, form.email.trim(), form.password);
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        form.email.trim(),
+        form.password,
+      );
       try {
         await updateProfile(credential.user, { displayName: form.name.trim() });
         await sendEmailVerification(credential.user);
@@ -121,7 +133,9 @@ const ClientArea = () => {
       }
       setForm((current) => ({ ...current, password: '', confirmPassword: '' }));
       setAuthMode('login');
-      setNotice('Cuenta creada. Te enviamos un enlace para verificar tu correo. Una vez verificado, podrás ingresar; el acceso a los datos se habilita cuando el administrador asocie tu email a una ficha de cliente.');
+      setNotice(
+        'Cuenta creada. Te enviamos un enlace para verificar tu correo. Una vez verificado, podrás ingresar; el acceso a los datos se habilita cuando el administrador asocie tu email a una ficha de cliente.',
+      );
     } catch (registrationError) {
       setError(getFriendlyAuthError(registrationError));
     } finally {
@@ -164,7 +178,9 @@ const ClientArea = () => {
       if (!credential.user.emailVerified) {
         try {
           await sendEmailVerification(credential.user);
-          setNotice('Te enviamos un enlace para verificar tu correo. Confirmalo antes de volver a ingresar al área de clientes.');
+          setNotice(
+            'Te enviamos un enlace para verificar tu correo. Confirmalo antes de volver a ingresar al área de clientes.',
+          );
         } finally {
           await signOut(auth);
         }
@@ -187,7 +203,9 @@ const ClientArea = () => {
     try {
       if (!auth) throw new Error('La recuperación de contraseña no está configurada.');
       await sendPasswordResetEmail(auth, form.email.trim());
-      setNotice('Si existe una cuenta con ese correo, te enviamos las instrucciones para restablecer la contraseña.');
+      setNotice(
+        'Si existe una cuenta con ese correo, te enviamos las instrucciones para restablecer la contraseña.',
+      );
     } catch (resetError) {
       setError(getFriendlyAuthError(resetError));
     } finally {
@@ -238,12 +256,27 @@ const ClientArea = () => {
           <section className="client-state-card" role="status">
             <span className="eyebrow">Área de clientes</span>
             <h1>Estamos preparando tu acceso</h1>
-            <p>Tu correo está verificado, pero todavía no hay una ficha de cliente asociada a esta cuenta. El administrador debe vincular el mismo email que usaste para registrarte.</p>
-            <p className="client-state-note">Si ya sos cliente, contactanos para revisar la asociación de tu cuenta.</p>
+            <p>
+              Tu correo está verificado, pero todavía no hay una ficha de cliente asociada a esta
+              cuenta. El administrador debe vincular el mismo email que usaste para registrarte.
+            </p>
+            <p className="client-state-note">
+              Si ya sos cliente, contactanos para revisar la asociación de tu cuenta.
+            </p>
             <div className="client-state-actions">
-              <a className="primary-button" href={accessEmail}>Solicitar acceso</a>
-              <button type="button" className="secondary-button" onClick={() => setAccountRetry((count) => count + 1)}>Ya tengo acceso: volver a comprobar</button>
-              <button type="button" className="secondary-button" onClick={handleLogout}>Cerrar sesión</button>
+              <a className="primary-button" href={accessEmail}>
+                Solicitar acceso
+              </a>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setAccountRetry((count) => count + 1)}
+              >
+                Ya tengo acceso: volver a comprobar
+              </button>
+              <button type="button" className="secondary-button" onClick={handleLogout}>
+                Cerrar sesión
+              </button>
             </div>
           </section>
         </main>
@@ -257,10 +290,16 @@ const ClientArea = () => {
             <h1>No pudimos cargar tu cuenta</h1>
             <p>{error}</p>
             <div className="client-state-actions">
-              <button type="button" className="secondary-button" onClick={() => setAccountRetry((count) => count + 1)}>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setAccountRetry((count) => count + 1)}
+              >
                 Reintentar
               </button>
-              <button type="button" className="secondary-button" onClick={handleLogout}>Cerrar sesión</button>
+              <button type="button" className="secondary-button" onClick={handleLogout}>
+                Cerrar sesión
+              </button>
               <a className="primary-button" href={accountHelpEmail}>
                 Pedir ayuda
               </a>
@@ -297,13 +336,16 @@ const ClientArea = () => {
           <span className="eyebrow">Área de cliente</span>
           <h1>Hola, {clientData.name || user.name || user.email}</h1>
           <p>
-            Acá podés consultar los servicios asociados a tu cuenta, sus costos y fechas de vencimiento.
+            Acá podés consultar los servicios asociados a tu cuenta, sus costos y fechas de
+            vencimiento.
           </p>
         </div>
 
         <div className="client-actions">
           <span className="client-email">{user.email}</span>
-          <button type="button" className="secondary-button" onClick={handleLogout}>Cerrar sesión</button>
+          <button type="button" className="secondary-button" onClick={handleLogout}>
+            Cerrar sesión
+          </button>
         </div>
       </section>
 
@@ -326,8 +368,16 @@ const ClientArea = () => {
         </div>
       </section>
 
-      {error && <div className="error-box" role="alert">{error}</div>}
-      {notice && <div className="client-success-box" role="status">{notice}</div>}
+      {error && (
+        <div className="error-box" role="alert">
+          {error}
+        </div>
+      )}
+      {notice && (
+        <div className="client-success-box" role="status">
+          {notice}
+        </div>
+      )}
 
       <section className="client-workspace-grid">
         <ClientProjectsPanel projects={clientData.projects} />
@@ -356,9 +406,12 @@ function getFriendlyAuthError(error) {
     'auth/user-not-found': 'No encontramos una cuenta con ese correo.',
     'auth/wrong-password': 'El correo o la contraseña no son correctos.',
     'auth/too-many-requests': 'Hubo demasiados intentos. Esperá un momento y volvé a probar.',
-    'auth/popup-closed-by-user': 'Se cerró la ventana de inicio de sesión antes de completar el acceso.',
-    'auth/network-request-failed': 'No se pudo conectar con el servicio de autenticación. Revisá tu conexión.',
-    'auth/email-already-in-use': 'Ya existe una cuenta con ese email. Iniciá sesión o restablecé la contraseña.',
+    'auth/popup-closed-by-user':
+      'Se cerró la ventana de inicio de sesión antes de completar el acceso.',
+    'auth/network-request-failed':
+      'No se pudo conectar con el servicio de autenticación. Revisá tu conexión.',
+    'auth/email-already-in-use':
+      'Ya existe una cuenta con ese email. Iniciá sesión o restablecé la contraseña.',
     'auth/weak-password': 'La contraseña debe tener al menos 8 caracteres.',
     'auth/invalid-email': 'Ingresá un email válido.',
   };

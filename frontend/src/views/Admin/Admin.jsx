@@ -13,6 +13,8 @@ import {
   emptyClient,
   emptyPublicService,
   expiredSessionMessage,
+  forbiddenMessage,
+  isAuthorizationError,
   isSessionError,
   parseDetails,
   projectToForm,
@@ -32,6 +34,7 @@ const Admin = () => {
     firebaseUser,
     authReady,
     access,
+    setAccess,
     clients,
     services,
     error,
@@ -69,10 +72,13 @@ const Admin = () => {
   const filteredClients = useMemo(() => {
     const query = clientSearch.trim().toLocaleLowerCase();
     if (!query) return clients;
-    return clients.filter((client) => (
-      [client.name, client.email, client.phone]
-        .some((value) => String(value || '').toLocaleLowerCase().includes(query))
-    ));
+    return clients.filter((client) =>
+      [client.name, client.email, client.phone].some((value) =>
+        String(value || '')
+          .toLocaleLowerCase()
+          .includes(query),
+      ),
+    );
   }, [clientSearch, clients]);
 
   useEffect(() => {
@@ -86,10 +92,10 @@ const Admin = () => {
     const client = clients.find((item) => item.id === id);
     const form = client
       ? {
-        ...client,
-        services: client.services.map(serviceToForm),
-        projects: (client.projects || []).map(projectToForm),
-      }
+          ...client,
+          services: client.services.map(serviceToForm),
+          projects: (client.projects || []).map(projectToForm),
+        }
       : emptyClient;
     setClientForm(form);
     setClientBaseline(form);
@@ -114,7 +120,12 @@ const Admin = () => {
     setSelectedServiceSlug(slug);
     const service = services.find((item) => item.slug === slug);
     const form = service
-      ? { ...emptyPublicService, ...service, points: service.points || [], includes: service.includes || [] }
+      ? {
+          ...emptyPublicService,
+          ...service,
+          points: service.points || [],
+          includes: service.includes || [],
+        }
       : emptyPublicService;
     setServiceForm(form);
     setServiceBaseline(form);
@@ -167,8 +178,16 @@ const Admin = () => {
       setNotice('Los datos del cliente se guardaron correctamente.');
     } catch (saveError) {
       const sessionError = isSessionError(saveError);
+      const authorizationError = isAuthorizationError(saveError);
       setSessionExpired(sessionError);
-      setError(sessionError ? expiredSessionMessage : saveError.message || 'No se pudo guardar el cliente.');
+      if (sessionError || authorizationError) setAccess(sessionError ? 'signed-out' : 'forbidden');
+      setError(
+        sessionError
+          ? expiredSessionMessage
+          : authorizationError
+            ? forbiddenMessage
+            : saveError.message || 'No se pudo guardar el cliente.',
+      );
     } finally {
       setBusy(false);
     }
@@ -187,8 +206,16 @@ const Admin = () => {
       setNotice('El cliente se eliminó.');
     } catch (deleteError) {
       const sessionError = isSessionError(deleteError);
+      const authorizationError = isAuthorizationError(deleteError);
       setSessionExpired(sessionError);
-      setError(sessionError ? expiredSessionMessage : deleteError.message || 'No se pudo eliminar el cliente.');
+      if (sessionError || authorizationError) setAccess(sessionError ? 'signed-out' : 'forbidden');
+      setError(
+        sessionError
+          ? expiredSessionMessage
+          : authorizationError
+            ? forbiddenMessage
+            : deleteError.message || 'No se pudo eliminar el cliente.',
+      );
     } finally {
       setBusy(false);
     }
@@ -206,34 +233,36 @@ const Admin = () => {
   const updateClientService = (index, field, value) => {
     setClientForm((current) => ({
       ...current,
-      services: current.services.map((service, serviceIndex) => (
-        serviceIndex === index ? { ...service, [field]: value } : service
-      )),
+      services: current.services.map((service, serviceIndex) =>
+        serviceIndex === index ? { ...service, [field]: value } : service,
+      ),
     }));
   };
 
   const updateClientProject = (index, field, value) => {
     setClientForm((current) => ({
       ...current,
-      projects: current.projects.map((project, projectIndex) => (
-        projectIndex === index ? { ...project, [field]: value } : project
-      )),
+      projects: current.projects.map((project, projectIndex) =>
+        projectIndex === index ? { ...project, [field]: value } : project,
+      ),
     }));
   };
 
   const updateProjectMilestone = (projectIndex, milestoneIndex, field, value) => {
     setClientForm((current) => ({
       ...current,
-      projects: current.projects.map((project, currentProjectIndex) => (
+      projects: current.projects.map((project, currentProjectIndex) =>
         currentProjectIndex === projectIndex
           ? {
-            ...project,
-            milestones: project.milestones.map((milestone, currentMilestoneIndex) => (
-              currentMilestoneIndex === milestoneIndex ? { ...milestone, [field]: value } : milestone
-            )),
-          }
-          : project
-      )),
+              ...project,
+              milestones: project.milestones.map((milestone, currentMilestoneIndex) =>
+                currentMilestoneIndex === milestoneIndex
+                  ? { ...milestone, [field]: value }
+                  : milestone,
+              ),
+            }
+          : project,
+      ),
     }));
   };
 
@@ -246,20 +275,36 @@ const Admin = () => {
     try {
       const saved = await saveAdminService(serviceForm.slug, {
         ...serviceForm,
-        points: serviceForm.pointsText === undefined
-          ? serviceForm.points
-          : serviceForm.pointsText.split('\n').map((line) => line.trim()).filter(Boolean),
-        includes: serviceForm.includesText === undefined
-          ? serviceForm.includes
-          : serviceForm.includesText.split('\n').map((line) => line.trim()).filter(Boolean),
+        points:
+          serviceForm.pointsText === undefined
+            ? serviceForm.points
+            : serviceForm.pointsText
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(Boolean),
+        includes:
+          serviceForm.includesText === undefined
+            ? serviceForm.includes
+            : serviceForm.includesText
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(Boolean),
       });
       await refreshData();
       loadService(saved.slug);
       setNotice('El catálogo público se actualizó correctamente.');
     } catch (saveError) {
       const sessionError = isSessionError(saveError);
+      const authorizationError = isAuthorizationError(saveError);
       setSessionExpired(sessionError);
-      setError(sessionError ? expiredSessionMessage : saveError.message || 'No se pudo guardar el servicio.');
+      if (sessionError || authorizationError) setAccess(sessionError ? 'signed-out' : 'forbidden');
+      setError(
+        sessionError
+          ? expiredSessionMessage
+          : authorizationError
+            ? forbiddenMessage
+            : saveError.message || 'No se pudo guardar el servicio.',
+      );
     } finally {
       setBusy(false);
     }
@@ -278,8 +323,16 @@ const Admin = () => {
       setNotice('El servicio se archivó y dejó de mostrarse en el sitio público.');
     } catch (archiveError) {
       const sessionError = isSessionError(archiveError);
+      const authorizationError = isAuthorizationError(archiveError);
       setSessionExpired(sessionError);
-      setError(sessionError ? expiredSessionMessage : archiveError.message || 'No se pudo archivar el servicio.');
+      if (sessionError || authorizationError) setAccess(sessionError ? 'signed-out' : 'forbidden');
+      setError(
+        sessionError
+          ? expiredSessionMessage
+          : authorizationError
+            ? forbiddenMessage
+            : archiveError.message || 'No se pudo archivar el servicio.',
+      );
     } finally {
       setBusy(false);
     }
@@ -288,7 +341,8 @@ const Admin = () => {
   const handleServiceArchive = () => {
     if (!selectedServiceSlug) return;
     setPendingConfirmation({
-      message: '¿Archivar este servicio? Dejará de aparecer en el sitio público, pero se podrá restaurar.',
+      message:
+        '¿Archivar este servicio? Dejará de aparecer en el sitio público, pero se podrá restaurar.',
       confirmLabel: 'Archivar servicio',
       onConfirm: archiveService,
     });
@@ -301,7 +355,12 @@ const Admin = () => {
   };
 
   const accessState = (
-    <AdminAccessState access={access} authReady={authReady} error={error} sessionExpired={sessionExpired} />
+    <AdminAccessState
+      access={access}
+      authReady={authReady}
+      error={error}
+      sessionExpired={sessionExpired}
+    />
   );
   if (access !== 'allowed') return accessState;
 
@@ -320,14 +379,24 @@ const Admin = () => {
           <h1>Gestioná clientes y servicios</h1>
           <p>Sesión administrativa: {firebaseUser.email}</p>
         </div>
-        <button type="button" className="secondary-button" onClick={() => signOut(auth)}>Cerrar sesión</button>
+        <button type="button" className="secondary-button" onClick={() => signOut(auth)}>
+          Cerrar sesión
+        </button>
       </header>
 
       <nav className="admin-tabs" aria-label="Secciones administrativas">
-        <button type="button" className={section === 'clients' ? 'is-active' : ''} onClick={() => setSection('clients')}>
+        <button
+          type="button"
+          className={section === 'clients' ? 'is-active' : ''}
+          onClick={() => setSection('clients')}
+        >
           Clientes ({clients.length})
         </button>
-        <button type="button" className={section === 'services' ? 'is-active' : ''} onClick={() => setSection('services')}>
+        <button
+          type="button"
+          className={section === 'services' ? 'is-active' : ''}
+          onClick={() => setSection('services')}
+        >
           Catálogo ({visibleServices.length})
         </button>
       </nav>
@@ -335,10 +404,22 @@ const Admin = () => {
       {sessionExpired ? (
         <div className="admin-feedback error admin-session-expired" role="alert">
           <p>{expiredSessionMessage}</p>
-          <Link className="primary-button" to="/client-area">Volver a ingresar</Link>
+          <Link className="primary-button" to="/client-area">
+            Volver a ingresar
+          </Link>
         </div>
-      ) : error && <p className="admin-feedback error" role="alert">{error}</p>}
-      {notice && <p className="admin-feedback success" role="status">{notice}</p>}
+      ) : (
+        error && (
+          <p className="admin-feedback error" role="alert">
+            {error}
+          </p>
+        )
+      )}
+      {notice && (
+        <p className="admin-feedback success" role="status">
+          {notice}
+        </p>
+      )}
 
       {section === 'clients' ? (
         <section className="admin-workspace">

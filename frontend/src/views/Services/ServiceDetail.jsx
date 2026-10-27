@@ -11,7 +11,11 @@ const ServiceDetail = () => {
   const service = serviceCatalog.find((item) => item.slug === slug);
 
   if (!service && loading) {
-    return <main className="service-detail-page" aria-live="polite">Cargando el servicio…</main>;
+    return (
+      <main className="service-detail-page" aria-live="polite">
+        Cargando el servicio…
+      </main>
+    );
   }
   if (!service) return <ErrorPage />;
 
@@ -22,11 +26,23 @@ const ServiceDetail = () => {
 
   return (
     <main className="service-detail-page">
-      <Link to="/services" className="back-link">← Volver a servicios</Link>
+      <nav className="service-breadcrumbs" aria-label="Migas de pan">
+        <ol>
+          <li>
+            <Link to="/">Inicio</Link>
+          </li>
+          <li>
+            <Link to="/services">Servicios</Link>
+          </li>
+          <li aria-current="page">{service.title}</li>
+        </ol>
+      </nav>
 
       <section className={`service-detail-hero ${service.accent}`}>
         <div className="service-detail-header">
-          <span className="service-mini-icon large"><SiteIcon name={service.icon} /></span>
+          <span className="service-mini-icon large">
+            <SiteIcon name={service.icon} />
+          </span>
           <span className="service-chip">{service.category}</span>
         </div>
 
@@ -40,7 +56,11 @@ const ServiceDetail = () => {
           ))}
         </div>
       </section>
-      {catalogError && <p className="services-catalog-notice" role="status">{catalogError} Mostramos la información guardada.</p>}
+      {catalogError && (
+        <p className="services-catalog-notice" role="status">
+          {catalogError} Mostramos la información guardada.
+        </p>
+      )}
 
       <section className="service-detail-grid">
         <div className="service-panel">
@@ -56,8 +76,10 @@ const ServiceDetail = () => {
           <h2>Resultado esperado</h2>
           <p>{service.outcome}</p>
           <div className="service-price-row">
-            <strong>{service.price}</strong>
-            <Link to="/contact" className="primary-button large">Consultar y pedir presupuesto</Link>
+            <strong>{service.priceFrom ? `Desde ${service.priceFrom}` : service.price}</strong>
+            <Link to="/contact" className="primary-button large">
+              Consultar y pedir presupuesto
+            </Link>
           </div>
         </div>
       </section>
@@ -68,9 +90,8 @@ const ServiceDetail = () => {
           <p key={detail}>{detail}</p>
         ))}
         <p>
-          Para pedir una propuesta, contame qué resultado buscás y qué tenés actualmente. Si hay configuraciones o
-          cuentas existentes, podemos revisar qué información hace falta antes de empezar. <strong>El alcance, los
-          tiempos y el presupuesto se confirman con vos antes de realizar el trabajo.</strong>
+          Para pedir una propuesta, contame qué resultado buscás y qué tenés actualmente.{' '}
+          <strong>El alcance, los tiempos y el presupuesto se acuerdan antes de empezar.</strong>
         </p>
       </section>
 
@@ -84,12 +105,16 @@ const ServiceDetail = () => {
           {relatedServices.map(({ slug: relatedSlug, icon, title, description, accent }) => (
             <article key={relatedSlug} className={`service-showcase ${accent}`}>
               <div className="service-showcase-top">
-                <span className="service-mini-icon"><SiteIcon name={icon} /></span>
+                <span className="service-mini-icon">
+                  <SiteIcon name={icon} />
+                </span>
                 <span className="service-chip">Servicio</span>
               </div>
               <h2>{title}</h2>
               <p>{description}</p>
-              <Link to={`/services/${relatedSlug}`} className="service-link">Ver detalle</Link>
+              <Link to={`/services/${relatedSlug}`} className="service-link">
+                Ver detalle
+              </Link>
             </article>
           ))}
         </div>

@@ -12,7 +12,9 @@ export default function AdminClientList({
     <aside className="admin-list-panel">
       <div className="admin-panel-heading">
         <h2>Clientes</h2>
-        <button type="button" onClick={onNew}>Nuevo</button>
+        <button type="button" onClick={onNew}>
+          Nuevo
+        </button>
       </div>
       <label className="admin-client-search">
         Buscar por nombre, email o teléfono
@@ -39,7 +41,9 @@ export default function AdminClientList({
           </button>
         ))}
         {clients.length === 0 && <p>No hay clientes cargados.</p>}
-        {clients.length > 0 && filteredClients.length === 0 && <p>No hay clientes que coincidan con la búsqueda.</p>}
+        {clients.length > 0 && filteredClients.length === 0 && (
+          <p>No hay clientes que coincidan con la búsqueda.</p>
+        )}
       </div>
     </aside>
   );

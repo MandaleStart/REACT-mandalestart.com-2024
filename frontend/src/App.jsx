@@ -1,18 +1,14 @@
 import { lazy, Suspense, useContext, useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import './App.css';
 
 import Home from './views/Home/Home';
-import AboutMe from './views/Aboutme/AboutMe';
 import Contact from './views/Contact/Contact';
 import ErrorPage from './components/Errors/ErrorPage';
-import Projects from './views/Projects/Projects';
 import Services from './views/Services/Services';
 import ServiceDetail from './views/Services/ServiceDetail';
-import Comments from './views/Comments/Comments';
-import CV from './views/cv/cv';
 import Privacy from './views/Privacy/Privacy';
 
 import Navbar from './components/NavBar/NavBar';
@@ -20,9 +16,18 @@ import Footer from './components/Footer/Footer';
 import Seo from './components/Seo/Seo';
 import ClientAreaContext from './components/ClientAreaContext';
 import AdminContext from './components/AdminContext';
+import StaticRouteComponentsContext from './components/StaticRouteComponentsContext';
 import { getPageMetadata } from './seo/metadata';
 import useServiceCatalog from './data/useServiceCatalog';
 
+const loadAboutMe = () => import('./views/Aboutme/AboutMe');
+const AboutMe = lazy(loadAboutMe);
+const loadProjects = () => import('./views/Projects/Projects');
+const Projects = lazy(loadProjects);
+const loadComments = () => import('./views/Comments/Comments');
+const Comments = lazy(loadComments);
+const loadCV = () => import('./views/CV/CV');
+const CV = lazy(loadCV);
 const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);
 const loadAdmin = () => import('./views/Admin/Admin');
@@ -57,50 +62,81 @@ function RouteFocusManager() {
     return () => observer.disconnect();
   }, [pathname, services]);
 
-  return <span className="visually-hidden" aria-live="polite" aria-atomic="true">{routeTitle}</span>;
+  return (
+    <span className="visually-hidden" aria-live="polite" aria-atomic="true">
+      {routeTitle}
+    </span>
+  );
 }
 
 function App() {
   const ClientAreaComponent = useContext(ClientAreaContext) || ClientArea;
   const AdminComponent = useContext(AdminContext) || Admin;
+  const staticRouteComponents = useContext(StaticRouteComponentsContext);
+  const AboutMeComponent = staticRouteComponents.AboutMe || AboutMe;
+  const ProjectsComponent = staticRouteComponents.Projects || Projects;
+  const CommentsComponent = staticRouteComponents.Comments || Comments;
+  const CVComponent = staticRouteComponents.CV || CV;
 
   return (
     <>
       <Seo />
       <div className="app-shell">
-        <a className="skip-link" href="#contenido">Saltar al contenido</a>
+        <a className="skip-link" href="#contenido">
+          Saltar al contenido
+        </a>
         <Navbar />
         <div className="page-shell" id="contenido" tabIndex="-1">
           <RouteFocusManager />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/aboutme" element={<AboutMe />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/services/:slug" element={<ServiceDetail />} />
-            <Route path="/comments" element={<Comments />} />
-            <Route path="/files" element={<AboutMe />} />
-            <Route path="/cv" element={<CV />} />
-            <Route path="/privacidad" element={<Privacy />} />
-            <Route
-              path="/admin"
-              element={(
-                <Suspense fallback={<main className="page-shell" aria-live="polite">Cargando el panel administrativo…</main>}>
-                  <AdminComponent />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/client-area"
-              element={(
-                <Suspense fallback={<main className="page-shell" aria-live="polite">Cargando el área de clientes…</main>}>
-                  <ClientAreaComponent />
-                </Suspense>
-              )}
-            />
-            <Route path="*" element={<ErrorPage />} />
-          </Routes>
+          <Suspense
+            fallback={
+              <div className="page-shell" role="status">
+                Cargando página…
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/aboutme" element={<AboutMeComponent />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/projects" element={<ProjectsComponent />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/services/:slug" element={<ServiceDetail />} />
+              <Route path="/comments" element={<CommentsComponent />} />
+              <Route path="/files" element={<Navigate to="/aboutme" replace />} />
+              <Route path="/cv" element={<CVComponent />} />
+              <Route path="/privacidad" element={<Privacy />} />
+              <Route
+                path="/admin"
+                element={
+                  <Suspense
+                    fallback={
+                      <main className="page-shell" aria-live="polite">
+                        Cargando el panel administrativo…
+                      </main>
+                    }
+                  >
+                    <AdminComponent />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/client-area"
+                element={
+                  <Suspense
+                    fallback={
+                      <main className="page-shell" aria-live="polite">
+                        Cargando el área de clientes…
+                      </main>
+                    }
+                  >
+                    <ClientAreaComponent />
+                  </Suspense>
+                }
+              />
+              <Route path="*" element={<ErrorPage />} />
+            </Routes>
+          </Suspense>
         </div>
         <Footer />
         <SpeedInsights />

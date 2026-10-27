@@ -9,9 +9,10 @@ export default function normalizeServiceCatalog(services) {
     .filter((service) => service && typeof service === 'object' && !Array.isArray(service))
     .map((service) => {
       const fallback = fallbackServicesBySlug.get(service.slug);
-      const details = Array.isArray(service.details) && service.details.length > 0
-        ? service.details
-        : fallback?.details || [];
+      const details =
+        Array.isArray(service.details) && service.details.length > 0
+          ? service.details
+          : fallback?.details || [];
 
       return {
         ...fallback,

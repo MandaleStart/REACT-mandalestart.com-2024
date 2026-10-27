@@ -8,15 +8,21 @@ const Comments = () => {
         <span className="eyebrow">Opiniones</span>
         <h1>Opiniones sobre mi trabajo</h1>
         <p>
-          Voy a publicar aquí opiniones verificadas con autorización de cada cliente. Todavía no tengo reseñas publicadas.
+          Voy a publicar aquí opiniones verificadas con autorización de cada cliente. Todavía no
+          tengo reseñas publicadas.
         </p>
       </section>
 
       <section className="comments-empty-state">
         <article className="testimonial-card">
           <h2>Aún no hay opiniones publicadas</h2>
-          <p>Si ya trabajaste conmigo, podés escribirme para compartir tu experiencia. Solo voy a publicar tu comentario con tu autorización.</p>
-          <Link to="/contact" className="primary-button">Contactarme</Link>
+          <p>
+            Si ya trabajaste conmigo, podés escribirme para compartir tu experiencia. Solo voy a
+            publicar tu comentario con tu autorización.
+          </p>
+          <Link to="/contact" className="primary-button">
+            Contactarme
+          </Link>
         </article>
       </section>
     </main>

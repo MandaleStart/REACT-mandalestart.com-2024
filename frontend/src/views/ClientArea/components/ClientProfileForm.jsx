@@ -1,5 +1,11 @@
 /* eslint-disable react/prop-types */
-export default function ClientProfileForm({ profileForm, setProfileForm, email, onSubmit, submitting }) {
+export default function ClientProfileForm({
+  profileForm,
+  setProfileForm,
+  email,
+  onSubmit,
+  submitting,
+}) {
   return (
     <form className="client-panel client-profile-form" onSubmit={onSubmit}>
       <div className="client-panel-heading">
@@ -12,7 +18,9 @@ export default function ClientProfileForm({ profileForm, setProfileForm, email, 
       <input
         id="profile-name"
         value={profileForm.name}
-        onChange={(event) => setProfileForm((current) => ({ ...current, name: event.target.value }))}
+        onChange={(event) =>
+          setProfileForm((current) => ({ ...current, name: event.target.value }))
+        }
         maxLength="120"
         required
       />
@@ -23,11 +31,15 @@ export default function ClientProfileForm({ profileForm, setProfileForm, email, 
         id="profile-phone"
         type="tel"
         value={profileForm.phone}
-        onChange={(event) => setProfileForm((current) => ({ ...current, phone: event.target.value }))}
+        onChange={(event) =>
+          setProfileForm((current) => ({ ...current, phone: event.target.value }))
+        }
         maxLength="40"
         autoComplete="tel"
       />
-      <button type="submit" className="secondary-button" disabled={submitting}>Guardar contacto</button>
+      <button type="submit" className="secondary-button" disabled={submitting}>
+        Guardar contacto
+      </button>
     </form>
   );
 }

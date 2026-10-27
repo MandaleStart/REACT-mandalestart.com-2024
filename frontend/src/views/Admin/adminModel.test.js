@@ -4,6 +4,7 @@ import {
   emptyClient,
   emptyPublicService,
   formatDetails,
+  isAuthorizationError,
   isSessionError,
   parseDetails,
   projectToForm,
@@ -41,17 +42,22 @@ test('normalizes project milestones and identifies expired admin requests', () =
     milestones: [],
   });
   assert.equal(isSessionError({ status: 401 }), true);
-  assert.equal(isSessionError({ status: 403 }), true);
+  assert.equal(isSessionError({ status: 403 }), false);
   assert.equal(isSessionError({ status: 500 }), false);
+  assert.equal(isAuthorizationError({ status: 403 }), true);
+  assert.equal(isAuthorizationError({ status: 401 }), false);
 });
 
 test('converts a public service into its editable representation', () => {
-  assert.deepEqual(serviceToForm({
-    slug: 'web',
-    details: [{ label: 'Tipo', value: 'Landing' }],
-  }), {
-    slug: 'web',
-    details: [{ label: 'Tipo', value: 'Landing' }],
-    detailsText: 'Tipo: Landing',
-  });
+  assert.deepEqual(
+    serviceToForm({
+      slug: 'web',
+      details: [{ label: 'Tipo', value: 'Landing' }],
+    }),
+    {
+      slug: 'web',
+      details: [{ label: 'Tipo', value: 'Landing' }],
+      detailsText: 'Tipo: Landing',
+    },
+  );
 });

@@ -2,15 +2,31 @@
   --color-background: #050a14;
   --color-text-primary: #edf5ff;
   --color-text-heading: #f5f9ff;
+  --color-text-secondary: #cbd8f6;
+  --color-text-muted: #dce8ff;
+  --color-link: #9fe9ff;
   --color-accent: #4cc9f0;
   --color-accent-light: #8fe0ff;
   --color-accent-purple: #7a5cff;
+  --color-accent-gradient: linear-gradient(135deg, #4cc9f0, #7a5cff 60%, #b990ff);
+  --color-control-border: #63738d;
+  --color-control-surface: #111a2b;
   --surface-dark: rgba(12, 18, 31, 0.88);
   --border-subtle: rgba(150, 170, 255, 0.18);
+  --font-family-sans: 'Inter Variable', 'Segoe UI', sans-serif;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --page-width: 1200px;
+  --page-gutter: 1rem;
   --radius-card: 24px;
   --radius-control: 14px;
+  --radius-pill: 999px;
   --shadow-card: 0 20px 40px rgba(7, 11, 20, 0.28);
-  font-family: Inter, 'Segoe UI', sans-serif;
+  font-family: var(--font-family-sans);
   line-height: 1.5;
   font-weight: 400;
   color: var(--color-text-primary);
@@ -59,8 +75,9 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
   background-size: 28px 28px;
   pointer-events: none;
 }
@@ -74,6 +91,14 @@ img {
   display: block;
   width: 1.25em;
   height: 1.25em;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 button,
@@ -92,7 +117,11 @@ a {
   min-height: 100vh;
 }
 
-h1, h2, h3, h4, p {
+h1,
+h2,
+h3,
+h4,
+p {
   margin-top: 0;
 }
 
