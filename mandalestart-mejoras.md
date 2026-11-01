@@ -14,7 +14,7 @@ Decisiones tomadas: **planes con precios + facturas manuales + cobro online** (s
 | 1 | [X] Tablas nuevas: planes, suscripciones, facturas, pagos, auditoría (sección 2) | `002_billing.sql` aplicada y verificada en PostgreSQL 18.6; suites backend y frontend aprobadas. |
 | 2 | [X] Admin: planes y precios, suscripciones por cliente, facturas manuales | Endpoints y pantallas implementados; 62/62 pruebas backend, lecturas PostgreSQL y 16 pruebas frontend focalizadas pasan. Falta un flujo de escritura autenticado de punta a punta con datos de prueba. |
 | 3 | Cliente: "Mis servicios", "Facturas", "Soporte" | Autoservicio, menos mensajes por WhatsApp. |
-| 4 | Pagos online con webhooks (sección 5) | Se apoya en facturas ya existentes. |
+| 4 | [/] Pagos online con webhooks (sección 5) | Checkout, cola durable, rate limit compartido, worker de Vercel y validaciones implementados; falta configurar credenciales/cron reales y probar un pago completo en Mercado Pago. |
 | 5 | Roles y varios usuarios por cliente, tickets | Crecimiento. |
 
 ---
@@ -200,18 +200,19 @@ POST  /api/webhooks/mercadopago
 
 ## 5. Cobro online: reglas que no se negocian
 
-- [/] Implementé Checkout Pro por factura, validación de firma del webhook, consulta del pago a la API, comparación de monto/moneda/preferencia, idempotencia, auditoría y extensión de renovaciones. El cliente usa saldo calculado en el servidor; faltan credenciales, URL HTTPS pública y prueba completa contra Mercado Pago/PostgreSQL.
-- [/] El webhook tiene un limitador propio por instancia; sigue pendiente compartir el rate limit entre instancias de Vercel.
+**Estado:** reglas de seguridad y flujo asíncrono implementados, con pruebas automatizadas. `003_mercadopago_webhook_queue.sql` ya se aplicó y el almacenamiento compartido fue probado en PostgreSQL local. La validación real de punta a punta y la puesta en producción siguen pendientes: requieren credenciales de Mercado Pago, configurar el cron de Vercel y probar una factura contra PostgreSQL y el proveedor. No marques la etapa global como completa hasta validar ese recorrido.
 
-1. **Nunca marques una factura como pagada por la redirección del navegador** (la URL de "éxito" la puede abrir cualquiera). Solo por webhook verificado o por registro manual del admin.
-2. **Verificá la firma del webhook** con el secreto de la pasarela y, además, **consultá el pago a su API** antes de acreditarlo.
-3. **Idempotencia:** el índice único `payments_provider_unique` evita duplicados cuando la pasarela reintenta.
-4. **Monto y moneda:** comparás lo que pagó contra `total_cents` de la factura en el servidor; el importe nunca viene del frontend.
-5. Credenciales solo en variables de entorno del backend (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`), jamás como `VITE_*`.
-6. `external_reference` = id de la factura, para conciliar.
-7. Al aprobar: transacción única que cree el `payment`, pase la factura a `paid`, extienda `renews_on` de la suscripción y escriba en `audit_log`.
-8. Rate limit del webhook aparte, y que responda `200` rápido.
-9. Facturas "legales" en Uruguay: si necesitás e-Factura DGI, esto **no** la reemplaza. Estas facturas son comprobantes internos hasta que lo integres con un facturador autorizado. Consultalo con tu contador.
+1. [X] **La redirección del navegador no acredita pagos.** La única acreditación online llega por webhook verificado; el registro manual del admin es el otro camino autorizado.
+2. [X] **Firma y consulta al proveedor.** El webhook valida `x-signature`, `x-request-id` y `data.id` con el secreto configurado, y consulta luego el pago a la API de Mercado Pago antes de procesarlo.
+3. [X] **Idempotencia.** El índice único `payments_provider_unique` impide insertar dos veces el mismo pago del proveedor; los reintentos ya registrados se reconocen y responden `200`.
+4. [X] **Monto, moneda y preferencia.** El servidor compara el monto aprobado tanto con el saldo pendiente calculado en la base como con el checkout pendiente, además de verificar moneda, factura y `preference_id`. El monto no se acepta desde el frontend.
+5. [X] **Secretos solo en backend.** `MP_ACCESS_TOKEN` y `MP_WEBHOOK_SECRET` se leen como variables de entorno del backend; no se usan variables `VITE_*`.
+6. [X] **Conciliación.** `external_reference` se establece con el id de la factura y se vuelve a verificar antes de aplicar el pago.
+7. [X] **Acreditación transaccional.** En una transacción se aprueba el pago, se actualiza la factura, se extienden las suscripciones mensuales/anuales vinculadas y se escribe en `audit_log`.
+8. [X] **Limitación y respuesta rápida.** El webhook usa un limitador separado y compartido mediante PostgreSQL; verifica la firma, guarda el evento en una cola durable y responde `200` sin esperar a Mercado Pago. Un cron autenticado procesa la cola, consulta el pago y reintenta fallas transitorias. Para que funcione en el despliegue, aplicá la migración `003` y configurá `CRON_SECRET` en Vercel.
+9. [X] **Alcance legal documentado.** Estas facturas son comprobantes internos; no reemplazan la e-Factura de DGI. Si se necesita facturación electrónica, hay que integrarla con un facturador autorizado y validarla con un contador.
+
+**Pendiente de operación antes de producción:** aplicar `003_mercadopago_webhook_queue.sql` en la base de producción; cargar credenciales como variables protegidas del backend (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_WEBHOOK_URL`, `PUBLIC_APP_URL`, `CRON_SECRET`); confirmar que Vercel habilitó el cron cada minuto; registrar `MP_WEBHOOK_URL` HTTPS en Mercado Pago; realizar un pago de prueba de punta a punta y comprobar factura, pago, auditoría y renovación en PostgreSQL. En el entorno local actual no están configuradas las credenciales ni `PUBLIC_APP_URL`, por lo que no se pudo hacer una transacción real. La configuración real de prueba no debe subirse al repositorio ni colocarse en variables `VITE_*`.
 
 ---
 
@@ -225,193 +226,12 @@ POST  /api/webhooks/mercadopago
 - [/] `.env.example`: se reemplazó el nombre real de la credencial de Firebase por `credentials/service-account.json`. No se verificó si una clave se versionó ni se rotó.
 - [X] Se actualizaron `.gitignore` de backend y frontend para ignorar resultados de pruebas y artefactos de build; `frontend/test-results/.last-run.json` se retiró del índice.
 - [X] `eslint` y `@eslint/js` usan la misma versión mayor; `npm ls eslint @eslint/js --depth=0` finaliza sin dependencias inválidas.
-- [ ] Rate limit compartido (Upstash/Redis) para Vercel; el actual es por instancia.
+- [X] Rate limit compartido con PostgreSQL para la API, el formulario de contacto y el webhook; aplicá la migración `003_mercadopago_webhook_queue.sql` en producción antes de habilitarlos. `/api/health` queda excluido para poder informar si PostgreSQL no está disponible.
 - [/] La proyección omite `internal_notes` y `provider_payload`; las pruebas validan el aislamiento de facturas por cliente y firma/idempotencia del webhook. El esquema ya está validado en PostgreSQL; falta probar el flujo completo con eventos reales de Mercado Pago.
 - [/] `/comments` redirige a proyectos y `/perfil` redirige al acceso; la ruta CV no se modificó.
 
 ---
 
-## 7. Textos propuestos
-
-**Criterios:** una sola voz (primera persona del singular, porque trabajás como persona: "te ayudo", "configuro"), voseo, frases cortas, beneficio antes que jerga, sin promesas que no podés garantizar (consistente con lo que ya hacés en SEO). Reemplazá los `[...]` con datos reales; **no publiques plazos, cifras ni garantías que no puedas cumplir.**
-
-**Estado de integración:** actualicé y probé los textos de los subpasos aplicables. No publiqué precios de respaldo, plazos garantizados, políticas de cancelación ni funciones que el sistema no tiene. Los mensajes de soporte siguen abriendo un email; no se afirma que exista un sistema de tickets.
-
-### 7.1 [X] `SITE.home` (`site.js`)
-
-```js
-brand: { subtitle: 'Webs, hosting y soporte técnico', ctaLabel: 'Pedir presupuesto' },
-
-home: {
-  heroTitle: 'Tu web, tu dominio y tu correo,',
-  heroHighlight: 'funcionando y a cargo de una sola persona.',
-  intro:
-    'Soy Nicolás. Hago sitios web y me encargo de lo que hay detrás: dominio, hosting, correo, SEO y redes. Vos me contás qué necesitás; yo me ocupo de la parte técnica y te explico todo en simple.',
-  proof: ['Webs y tiendas online', 'Dominio, hosting y correo', 'Soporte técnico en Uruguay'],
-  ctaPrimary: 'Pedir presupuesto',
-  ctaSecondary: 'Ver servicios y planes',
-  whatIDo: 'Servicios',
-  servicesHeadline: 'Todo lo que tu negocio necesita para estar en internet.',
-  infrastructure: 'Más allá de la web',
-  infrastructureHeadline: 'También cuido servidores, redes y equipos.',
-  process: 'Cómo trabajo',
-  processHeadline: 'Cuatro pasos, sin sorpresas.',
-  faqLabel: 'Antes de escribirme',
-  faqHeadline: 'Preguntas frecuentes',
-  ctaBandLabel: '¿Hablamos?',
-  ctaBandHeadline: 'Contame qué querés lograr o qué no está funcionando. Te respondo con los próximos pasos.',
-  ctaBandButton: 'Escribime',
-},
-```
-
-### 7.2 [X] Pasos del proceso (`Home.jsx`)
-
-Aplicados los cuatro pasos y los textos de infraestructura. Se conservaron los alcances de la propuesta sin agregar garantías sobre resultados o tiempos.
-
-```js
-const steps = [
-  { number: '01', title: 'Me contás', text: 'Me explicás qué necesitás y qué tenés hoy. No hace falta saber de tecnología.' },
-  { number: '02', title: 'Te hago una propuesta', text: 'Recibís por escrito qué incluye, cuánto cuesta y cuánto demora. Sin letra chica.' },
-  { number: '03', title: 'Lo pongo en marcha', text: 'Desarrollo o configuro lo acordado y te muestro cómo quedó antes de dar el trabajo por terminado.' },
-  { number: '04', title: 'Me quedo a tu lado', text: 'Si después necesitás cambios, mantenimiento o ayuda, me escribís desde tu área de cliente.' },
-];
-
-const infrastructure = [
-  { title: 'Servidores', text: 'Los instalo, los configuro y los mantengo al día.' },
-  { title: 'Routers y redes', text: 'Configuro routers y redes para que tus equipos se conecten de forma segura.' },
-  { title: 'Domótica', text: 'Automatizo luces, equipos y rutinas en tu casa o en tu local.' },
-  { title: 'Monitoreo', text: 'Te aviso cuando un servidor o un servicio deja de responder.' },
-];
-```
-
-### 7.3 [X] Catálogo (`serviceCatalog.js` y `serviceCatalogFallback.js`)
-
-Los campos públicos `description`, `summary`, `outcome`, `includes` y `price` quedaron alineados en ambos catálogos. Eliminé precios estáticos no confirmados y reemplacé las funciones mal ubicadas de monitoreo. La prueba `serviceCatalog.test.js` compara ambas fuentes.
-
-Los `includes` pasan a lenguaje de beneficio; `price` queda como respaldo cuando el servicio no tiene planes.
-
-| slug | `description` | `summary` | `outcome` | `includes` |
-|---|---|---|---|---|
-| `web` | Sitios, landing pages y tiendas online hechos a tu medida y pensados para que te encuentren y te escriban. | Una web clara para mostrar lo que hacés y recibir consultas o ventas. | Recibís un sitio publicado con las secciones y funciones que acordamos. | Diseño que se ve bien en celular · Desarrollo del sitio · Base de SEO técnico · Ajustes posteriores a la entrega |
-| `hosting` | Alojamiento para tu sitio, con copias de seguridad y soporte cuando lo necesites. | Tu sitio en línea y alguien que se ocupa del servidor. | Tu sitio queda alojado con el mantenimiento y las copias de seguridad que definimos. | Alojamiento · Copias de seguridad · Revisión del rendimiento · Soporte técnico |
-| `email` | Correo con tu propio dominio (tu@tuempresa.com.uy), configurado en tu celular y tu computadora. | Mails con tu marca, listos para usar en todos tus dispositivos. | Cuentas de correo funcionando en los dispositivos que indiques. | Cuentas con tu dominio · Migración del correo actual · Filtro de spam · Ayuda con la configuración |
-| `domains` | Registro, renovación y configuración de tu dominio. | Elijo contigo el nombre y me encargo del trámite. | Tu dominio registrado y configurado, sujeto a disponibilidad. | Registro · Renovación · Configuración de DNS · Asesoramiento para elegir el nombre |
-| `seo` | Revisión de tu sitio para que los buscadores lo entiendan mejor. | Un diagnóstico claro con mejoras ordenadas por prioridad. | Recibís un informe con mejoras para aplicar. No se garantizan posiciones: dependen también de los buscadores y de la competencia. | Revisión técnica · Títulos y descripciones · Estructura del contenido · Lista de mejoras priorizada |
-| `ddns` | DNS dinámico y acceso remoto a tus equipos, incluso con IP que cambia. | Entrá a tu equipo desde afuera de forma segura. | Los equipos acordados quedan accesibles de forma remota, con las medidas de seguridad definidas. | Nombre de acceso fijo · Configuración de router y servidor · Acceso remoto seguro · Soporte técnico |
-| `monitoring` | Vigilo tus servidores, routers y servicios y te aviso si algo deja de responder. | Alertas en tu mail o celular cuando algo falla. | Recibís avisos por los equipos y eventos que definimos. | Monitoreo de equipos · Alertas · Primer diagnóstico · Revisión técnica |
-| `impresion-3d` | Diseño e impresión de piezas y prototipos para probar una idea o resolver un problema concreto. | Me contás la idea y las medidas; yo diseño e imprimo la pieza. | Antes de empezar confirmamos alcance, material, plazo y presupuesto. | Revisión de la idea y las medidas · Diseño o ajuste del modelo · Elección de material e impresión |
-
-Notas: en `monitoring.points` cambiá "Domótica y automatización" por "Alertas por mail o mensaje" (domótica no es un servicio del catálogo). Cambiá "Servidor optimizado" por algo que puedas respaldar, como "Servidor administrado".
-
-### 7.4 [X] Servicios (`Services.jsx`)
-
-Actualicé el título, la introducción, los chips, la guía y los botones. Los planes públicos muestran importes reales con moneda y periodicidad; los servicios sin plan muestran "Presupuesto a medida", no un precio heredado.
-
-```
-Título:    Servicios y planes
-Párrafo:   Elegí lo que necesitás. Si tu caso es particular, escribime y te armo una propuesta a medida.
-Chips:     Webs y tiendas · Dominio y hosting · Correo · SEO · Redes y servidores · Impresión 3D
-
-Sección "Cómo elegir":
-  Título:  Empezá por lo que querés lograr.
-  P1:      Si recién arrancás, lo más común es web + dominio + correo. Si ya tenés algo funcionando, puedo revisarlo y decirte qué conviene cambiar y qué no.
-  P2:      ¿Ya tenés un proveedor? No hace falta cambiarlo: lo reviso y trabajo con lo que tengas.
-
-Etiqueta de precio: "Desde {precio} / mes"  ·  "Desde {precio} / año"  ·  "Presupuesto a medida"
-Botón tarjeta: "Ver qué incluye"  ·  Botón plan: "Contratar"
-```
-
-### 7.5 [X] Preguntas frecuentes (`homeFaq.js`)
-
-Integré las nueve preguntas. La respuesta sobre cancelaciones invita a revisar las condiciones caso a caso porque todavía no hay una política confirmada; no publiqué el placeholder del documento.
-
-```js
-[
-  { question: '¿Qué servicios ofrecés?',
-    answer: 'Webs y tiendas online, dominios, hosting, correo con tu dominio, SEO, redes y servidores, acceso remoto y diseño e impresión 3D. Podés contratar uno solo o varios juntos.' },
-  { question: '¿Trabajás con todo Uruguay?',
-    answer: 'Sí. Casi todo el trabajo es a distancia, así que podés estar en cualquier departamento.' },
-  { question: '¿Cómo empiezo?',
-    answer: 'Escribime desde la página de contacto y contame qué necesitás y qué tenés hoy. No hace falta que sepas qué solución técnica elegir; eso lo definimos juntos.' },
-  { question: '¿Puedo seguir con mi dominio y mi proveedor actual?',
-    answer: 'Sí. Primero reviso lo que ya usás y te digo si conviene mantenerlo o cambiarlo. No toco nada sin avisarte y sin tu acuerdo.' },
-  { question: '¿El SEO garantiza que voy a aparecer primero en Google?',
-    answer: 'No, y desconfiá de quien lo prometa. Puedo mejorar los aspectos técnicos y de contenido de tu sitio, pero la posición depende también de la competencia y de los buscadores.' },
-  { question: '¿Cómo se define el precio?',
-    answer: 'Los servicios con plan tienen precio publicado. Para webs y trabajos a medida te envío una propuesta por escrito con alcance, plazo y costo antes de empezar.' },
-  { question: '¿Cómo pago?',
-    answer: 'Podés pagar por transferencia o online desde tu área de cliente. Cada pago queda registrado en tu historial de facturas.' },
-  { question: '¿Qué pasa si quiero cancelar un servicio?',
-    answer: 'Me avisás desde tu área de cliente o por mail. Te explico qué pasa con tus datos y tu dominio antes de dar de baja. [Completar con tu política real de cancelación y reembolsos.]' },
-  { question: '¿Puedo ver el estado de mis servicios?',
-    answer: 'Sí. En tu área de cliente ves tus servicios, sus vencimientos, tus facturas y el avance de tus proyectos.' },
-]
-```
-
-### 7.6 [X] Sobre mí (`AboutMe.jsx`)
-
-Actualicé el H1, la presentación, la tarjeta de trabajo, la forma de trabajar y el CTA, manteniendo el enlace real a Contacto.
-
-```
-H1:  Soy Nicolás. Hago webs y me ocupo de todo lo que las hace funcionar.
-P1:  Trabajo con personas y negocios de todo Uruguay. A veces el proyecto empieza con una web nueva; otras, con algo que dejó de funcionar o que hay que ordenar.
-P2:  Soy desarrollador frontend, formado en Jóvenes a Programar de Ceibal. Además de programar, me encargo de hosting, redes y servidores, así que no tenés que coordinar con tres proveedores distintos.
-
-Tarjeta: "En qué trabajo" → Webs y tiendas online · Hosting y publicación · Redes y servidores
-
-Bloque "Mi forma de trabajar":
-  Título: Soluciones simples, con una base técnica sólida.
-  P1:     Uso HTML, CSS, JavaScript y React, y también Node.js, Express, Firebase y bases de datos. Elijo las herramientas según lo que tu proyecto necesita, no al revés.
-  P2:     Si ya tenés un sitio, un dominio o un proveedor, primero reviso lo que hay y recién después te propongo cambios. Para empezar, escribime desde [contacto].
-
-CTA: ¿Tenés algo en mente? → Contame qué querés lograr o qué no funciona y vemos los próximos pasos.
-```
-
-### 7.7 [X] Contacto (`Contact.jsx`)
-
-Actualicé el H1, la introducción y la barra de confianza. El texto explica los próximos pasos sin inventar un tiempo de respuesta.
-
-```
-H1:  Contame qué necesitás.
-P:   Atiendo a personas y negocios de todo Uruguay. Puede ser una web nueva, un proyecto en marcha o un problema técnico. Escribime unas líneas y te respondo con los próximos pasos.
-
-Barra de confianza:
-  Paso 1 · Me escribís        → Me contás qué necesitás y para cuándo.
-  Paso 2 · Te respondo        → [Completar con tu tiempo real de respuesta, p. ej. "en 1 día hábil"].
-  Paso 3 · Propuesta clara    → Alcance, plazo y costo por escrito, antes de empezar.
-```
-
-### 7.8 [X] Proyectos (`Projects.jsx`)
-
-Actualicé el H1 y el párrafo del proyecto propio; se mantiene la aclaración sobre la autorización de clientes.
-
-```
-H1:  Mi proyecto más reciente: este sitio.
-P:   Todavía no publico trabajos de clientes porque prefiero hacerlo solo con su autorización. Mientras tanto, podés ver cómo está hecho este sitio.
-```
-(Cuando tengas un cliente que lo autorice, agregá un caso con: problema → qué hice → resultado, **sin cifras que no puedas comprobar**.)
-
-### 7.9 [X] Textos del área de cliente (microcopy)
-
-Integré el encabezado, resumen vacío, renovaciones, vencimientos, importes pendientes, mensajes de pago y solicitud de baja/cambio. El backend calcula un estado de pago acotado (`pending`, `approved`, `rejected`) desde sus registros y solo expone ese estado derivado; no expone `provider_payload`. El pago pendiente informa que depende de la confirmación de Mercado Pago, sin prometer minutos. Soporte sigue siendo por email, no un ticket, como corresponde a la funcionalidad disponible.
-
-```
-Título:                 Tu cuenta
-Sin ficha asociada:     No encontramos una ficha de cliente vinculada a este correo. Si ya sos cliente, escribime para que pueda asociarla.
-Resumen vacío:          Todavía no tenés servicios contratados.
-Servicio activo:        Activo · Se renueva el {fecha}
-Servicio por vencer:    Vence en {n} días. Escribime si querés renovarlo.
-Servicio vencido:       Venció el {fecha}. Escribime para reactivarlo.
-Factura pendiente:      Tenés {n} factura(s) pendiente(s), con el total agrupado por moneda.
-Botón de pago:          Pagar ahora
-Pago en revisión:       Estamos confirmando tu pago. El estado se actualizará cuando Mercado Pago lo confirme.
-Pago acreditado:        ¡Listo! Recibimos tu pago. Gracias.
-Pago rechazado:         No pudimos procesar el pago. Probá con otro medio o escribime para coordinar una transferencia.
-Pedir baja:             Pedir baja o cambio
-Soporte (nuevo ticket): Contame qué pasó. Cuantos más detalles, más rápido lo resuelvo.
-```
-
-### 7.10 [X] Textos del panel admin (microcopy)
 
 Actualicé confirmaciones de pago y archivado, conflictos `If-Match`, validación de precio y mensaje de filtros vacíos. La confirmación de archivado explica que la ficha sale del listado y conserva el historial, y no promete restauración: no existe una acción de restaurar y el backend no permite archivar clientes con facturas.
 

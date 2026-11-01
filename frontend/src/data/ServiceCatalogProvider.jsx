@@ -46,6 +46,7 @@ export function ServiceCatalogProvider({ children, initialServices }) {
       .catch((requestError) => {
         if (active) {
           setError(requestError.message || 'No se pudo actualizar el catálogo de servicios.');
+          console.warn('No se pudo actualizar el catálogo de servicios:', requestError);
         }
       })
       .finally(() => {

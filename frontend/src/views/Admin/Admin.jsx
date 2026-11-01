@@ -117,6 +117,14 @@ const Admin = () => {
     loadClient(id);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (logoutError) {
+      setError(logoutError?.message || 'No se pudo cerrar la sesión.');
+    }
+  };
+
   const handleClientSubmit = async (event) => {
     event.preventDefault();
     setBusy(true);
@@ -361,11 +369,6 @@ const Admin = () => {
           <h1>Gestioná clientes y servicios</h1>
           <p>Sesión administrativa: {firebaseUser.email}</p>
         </div>
-        <div className="admin-header-actions">
-          <button type="button" className="secondary-button" onClick={() => signOut(auth)}>
-            Cerrar sesión
-          </button>
-        </div>
       </header>
 
       {section === 'dashboard' ? (
@@ -397,6 +400,7 @@ const Admin = () => {
           clientCount={clients.length}
           legacyServiceCount={contractedServices.length}
           userCount={users.length}
+          onLogout={handleLogout}
         />
         <AdminSectionContent
           section={section}

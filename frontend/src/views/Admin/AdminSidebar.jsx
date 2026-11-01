@@ -1,10 +1,11 @@
 import PortalSidebar from '../../components/PortalSidebar';
 
 /* eslint-disable react/prop-types */
-export default function AdminSidebar({ clientCount, legacyServiceCount, userCount }) {
+export default function AdminSidebar({ clientCount, legacyServiceCount, userCount, onLogout }) {
   return (
     <PortalSidebar
       label="Secciones administrativas"
+      onLogout={onLogout}
       items={[
         { to: '/administracion/dashboard', label: 'Panel' },
         { to: '/administracion/clients', label: 'Clientes', badge: clientCount },

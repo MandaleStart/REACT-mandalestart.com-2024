@@ -71,13 +71,10 @@ const MailBox = () => {
             name="name"
             autoComplete="name"
             placeholder="Tu nombre"
-            maxLength={120}
-            aria-describedby="name-help"
+            maxLength={80}
+            pattern="[\p{L}\p{M} .’'-]+"
             required
           />
-          <small id="name-help" className="contact-field-help">
-            Hasta 120 caracteres.
-          </small>
         </div>
         <div className="field-group">
           <label htmlFor="email">Email</label>
@@ -87,13 +84,10 @@ const MailBox = () => {
             name="email"
             autoComplete="email"
             placeholder="tu@email.com"
-            maxLength={254}
-            aria-describedby="email-help"
+            maxLength={160}
+            pattern="[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+"
             required
           />
-          <small id="email-help" className="contact-field-help">
-            Hasta 254 caracteres.
-          </small>
         </div>
       </div>
 

@@ -22,7 +22,7 @@ export const SITE = {
     heroTitle: 'Tu web, tu dominio y tu correo,',
     heroHighlight: 'funcionando y a cargo de una sola persona.',
     intro:
-      'Soy Nicolás. Hago sitios web y me encargo de lo que hay detrás: dominio, hosting, correo, SEO y redes. Vos me contás qué necesitás; yo me ocupo de la parte técnica y te explico todo en simple.',
+      'Soy Nicolás. Hago sitios web y me encargo de lo que hay detrás: dominio, hosting, correo, SEO y redes. Vos me contás qué necesitás; yo me ocupo de la parte técnica y te lo explico sin vueltas.',
     proof: ['Webs y tiendas online', 'Dominio, hosting y correo', 'Soporte técnico en Uruguay'],
     ctaPrimary: 'Pedir presupuesto',
     ctaSecondary: 'Ver servicios y planes',

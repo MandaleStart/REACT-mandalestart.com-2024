@@ -46,7 +46,7 @@ const steps = [
 ];
 
 const Home = () => {
-  const { services, error: catalogError } = useServiceCatalog();
+  const { services } = useServiceCatalog();
 
   return (
     <main className="home-page">
@@ -128,11 +128,6 @@ const Home = () => {
             </article>
           ))}
         </div>
-        {catalogError && (
-          <p className="catalog-notice" role="status">
-            {catalogError} Mostramos el catálogo guardado.
-          </p>
-        )}
       </section>
 
       <section className="infrastructure-section">

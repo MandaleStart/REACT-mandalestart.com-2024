@@ -9,6 +9,7 @@ import {
 import {
   createClientBillingControllers,
   createMercadoPagoWebhookController,
+  createMercadoPagoWebhookProcessor,
 } from '../src/controllers/clientBillingController.js';
 
 function signatureFor(dataId, requestId, timestamp, secret) {
@@ -173,6 +174,7 @@ test('client checkout resolves ownership from the verified token and never accep
     () => ({
       accessToken: 'access-token',
       webhookSecret: 'webhook-secret',
+      webhookProcessorSecret: 'cron-secret',
       webhookUrl: 'https://api.mandalestart.com/api/webhooks/mercadopago',
       publicAppUrl: 'https://mandalestart.com',
     }),
@@ -196,16 +198,19 @@ test('client checkout resolves ownership from the verified token and never accep
   });
 });
 
-test('webhook rejects invalid signatures before querying Mercado Pago', async () => {
-  let providerCalls = 0;
+test('webhook rejects invalid signatures before queuing payment events', async () => {
+  let queueCalls = 0;
   const controller = createMercadoPagoWebhookController(
-    {},
     {
-      async getPayment() {
-        providerCalls += 1;
+      async enqueueMercadoPagoWebhook() {
+        queueCalls += 1;
       },
     },
-    () => ({ accessToken: 'access-token', webhookSecret: 'webhook-secret' }),
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'webhook-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
   );
   const req = webhookRequest({ signature: 'ts=1,v1=bad' });
   const res = response();
@@ -215,17 +220,69 @@ test('webhook rejects invalid signatures before querying Mercado Pago', async ()
   });
 
   assert.equal(res.statusCode, 401);
-  assert.equal(providerCalls, 0);
+  assert.equal(queueCalls, 0);
 });
 
-test('approved webhook payments are queried and handed to the idempotent repository', async () => {
-  let recordedPayment;
-  let queriedId;
+test('webhook does not acknowledge events without a configured processor', async () => {
+  let queueCalls = 0;
   const controller = createMercadoPagoWebhookController(
     {
+      async enqueueMercadoPagoWebhook() {
+        queueCalls += 1;
+      },
+    },
+    () => ({ accessToken: 'access-token', webhookSecret: 'webhook-secret' }),
+  );
+  const res = response();
+
+  await controller(webhookRequest(), res, (error) => {
+    throw error;
+  });
+
+  assert.equal(res.statusCode, 503);
+  assert.equal(queueCalls, 0);
+});
+
+test('verified payment webhook events are durably queued and acknowledged', async () => {
+  let queuedEvent;
+  const controller = createMercadoPagoWebhookController(
+    {
+      async enqueueMercadoPagoWebhook(paymentId, requestId) {
+        queuedEvent = { paymentId, requestId };
+      },
+    },
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
+  );
+  const req = webhookRequest();
+  const res = response();
+
+  await controller(req, res, (error) => {
+    throw error;
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(queuedEvent, { paymentId: '12345', requestId: 'mp-request-1' });
+});
+
+test('processor queries Mercado Pago and applies only verified payment data', async () => {
+  let recordedPayment;
+  let completedEvent;
+  let queriedId;
+  const processor = createMercadoPagoWebhookProcessor(
+    {
+      async claimMercadoPagoWebhookEvents() {
+        return [{ id: 8, provider_payment_id: '12345' }];
+      },
       async approveMercadoPagoPayment(payment) {
         recordedPayment = payment;
         return { status: 'approved' };
+      },
+      async completeMercadoPagoWebhookEvent(id) {
+        completedEvent = id;
       },
     },
     {
@@ -244,12 +301,18 @@ test('approved webhook payments are queried and handed to the idempotent reposit
         };
       },
     },
-    () => ({ accessToken: 'access-token', webhookSecret: 'test-secret' }),
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
   );
-  const req = webhookRequest();
   const res = response();
 
-  await controller(req, res, (error) => {
+  await processor({
+    id: 'api-request-1',
+    get: (name) => name === 'authorization' ? 'Bearer cron-secret' : undefined,
+  }, res, (error) => {
     throw error;
   });
 
@@ -258,71 +321,82 @@ test('approved webhook payments are queried and handed to the idempotent reposit
   assert.equal(recordedPayment.external_reference, 'invoice-1');
   assert.equal(recordedPayment.amount_cents, 10000);
   assert.equal(recordedPayment.provider_payload.card, undefined);
+  assert.equal(completedEvent, 8);
 });
 
-test('webhook reports idempotent duplicates and logs inconsistent verified payments', async () => {
-  const warnings = [];
-  const controller = createMercadoPagoWebhookController(
+test('processor retries provider failures and rejects requests without its secret', async () => {
+  let retryEvent;
+  const processor = createMercadoPagoWebhookProcessor(
     {
+      async claimMercadoPagoWebhookEvents() {
+        return [{ id: 9, provider_payment_id: '12345' }];
+      },
+      async retryMercadoPagoWebhookEvent(...args) {
+        retryEvent = args;
+      },
+    },
+    {
+      async getPayment() {
+        throw Object.assign(new Error('Unavailable'), { code: 'MERCADOPAGO_REQUEST_FAILED' });
+      },
+    },
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
+    { error() {} },
+  );
+  const unauthorized = response();
+  await processor({ get: () => 'Bearer wrong' }, unauthorized, (error) => {
+    throw error;
+  });
+  assert.equal(unauthorized.statusCode, 401);
+
+  const res = response();
+  await processor({ id: 'request-2', get: () => 'Bearer cron-secret' }, res, (error) => {
+    throw error;
+  });
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(retryEvent, [9, 'MERCADOPAGO_REQUEST_FAILED']);
+});
+
+test('processor completes non-approved payments without applying them', async () => {
+  const warnings = [];
+  let approved = false;
+  let completed;
+  const processor = createMercadoPagoWebhookProcessor(
+    {
+      async claimMercadoPagoWebhookEvents() {
+        return [{ id: 10, provider_payment_id: '12345' }];
+      },
       async approveMercadoPagoPayment() {
-        return { status: 'amount-mismatch' };
+        approved = true;
+      },
+      async completeMercadoPagoWebhookEvent(id) {
+        completed = id;
       },
     },
     {
       async getPayment(id) {
-        return {
-          id,
-          status: 'approved',
-          external_reference: 'invoice-1',
-          preference_id: 'preference-1',
-          currency_id: 'UYU',
-          transaction_amount: 100,
-        };
+        return { id, status: 'pending' };
       },
     },
-    () => ({ accessToken: 'access-token', webhookSecret: 'test-secret' }),
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
     { warn: (...args) => warnings.push(args) },
   );
   const res = response();
 
-  await controller(webhookRequest(), res, (error) => {
+  await processor({ get: () => 'Bearer cron-secret' }, res, (error) => {
     throw error;
   });
 
   assert.equal(res.statusCode, 200);
-  assert.equal(warnings[0][0], 'mercadopago_payment_not_applied');
-  assert.equal(warnings[0][1].reason, 'amount-mismatch');
-});
-
-test('duplicate approved webhook deliveries are acknowledged without a warning', async () => {
-  const warnings = [];
-  const controller = createMercadoPagoWebhookController(
-    {
-      async approveMercadoPagoPayment() {
-        return { status: 'duplicate' };
-      },
-    },
-    {
-      async getPayment(id) {
-        return {
-          id,
-          status: 'approved',
-          external_reference: 'invoice-1',
-          preference_id: 'preference-1',
-          currency_id: 'UYU',
-          transaction_amount: 100,
-        };
-      },
-    },
-    () => ({ accessToken: 'access-token', webhookSecret: 'test-secret' }),
-    { warn: (...args) => warnings.push(args) },
-  );
-  const res = response();
-
-  await controller(webhookRequest(), res, (error) => {
-    throw error;
-  });
-
-  assert.equal(res.statusCode, 200);
+  assert.equal(approved, false);
+  assert.equal(completed, 10);
   assert.deepEqual(warnings, []);
 });

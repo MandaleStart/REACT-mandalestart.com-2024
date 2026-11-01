@@ -19,7 +19,11 @@ import { listAdminUsers, updateAdminUserStatus } from '../controllers/adminUsers
 import { adminBillingControllers } from '../controllers/adminBillingController.js';
 import { clientBillingControllers } from '../controllers/clientBillingController.js';
 import { publicBillingControllers } from '../controllers/publicBillingController.js';
-import { mercadopagoWebhookController } from '../controllers/clientBillingController.js';
+import {
+    mercadopagoWebhookController,
+    mercadopagoWebhookProcessor,
+} from '../controllers/clientBillingController.js';
+import { PostgresRateLimitStore } from '../middleware/postgresRateLimitStore.js';
 import {
     deleteAdminService,
     listAdminServices,
@@ -38,6 +42,8 @@ const contactLimiter = rateLimit({
     message: {
         message: 'Se alcanzó el límite de consultas. Intentá nuevamente más tarde.',
     },
+    skip: () => process.env.NODE_ENV === 'test',
+    store: new PostgresRateLimitStore({ keyPrefix: 'contact' }),
 });
 const mercadopagoWebhookLimiter = rateLimit({
     windowMs: 60 * 1000,
@@ -47,6 +53,8 @@ const mercadopagoWebhookLimiter = rateLimit({
     message: {
         message: 'Demasiadas notificaciones. Intentá nuevamente más tarde.',
     },
+    skip: () => process.env.NODE_ENV === 'test',
+    store: new PostgresRateLimitStore({ keyPrefix: 'mercadopago-webhook' }),
 });
 
 router.get('/health', getHealth);
@@ -55,6 +63,7 @@ router.get('/services', listServices);
 router.get('/services/:slug', getServiceBySlug);
 router.get('/plans/public', publicBillingControllers.listPlans);
 router.post('/webhooks/mercadopago', mercadopagoWebhookLimiter, mercadopagoWebhookController);
+router.get('/jobs/mercadopago-webhooks', mercadopagoWebhookProcessor);
 router.get('/clients/me', requireVerifiedFirebaseUser, getCurrentClient);
 router.get('/clients/me/dashboard', requireVerifiedFirebaseUser, getClientDashboard);
 router.put('/clients/me/profile', requireVerifiedFirebaseUser, updateCurrentClientProfile);

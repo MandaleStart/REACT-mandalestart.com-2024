@@ -639,6 +639,58 @@ export async function approveMercadoPagoPayment(payment) {
   });
 }
 
+export async function enqueueMercadoPagoWebhook(providerPaymentId, requestId) {
+  const result = await query(
+    `INSERT INTO mercadopago_webhook_events (provider_payment_id, request_id)
+     VALUES ($1, $2)
+     ON CONFLICT (provider_payment_id, request_id) DO NOTHING
+     RETURNING id`,
+    [providerPaymentId, requestId],
+  );
+  return result.rowCount > 0;
+}
+
+export async function claimMercadoPagoWebhookEvents(limit = 5) {
+  const result = await query(
+    `WITH candidates AS (
+       SELECT id FROM mercadopago_webhook_events
+       WHERE processed_at IS NULL
+         AND available_at <= now()
+         AND (locked_until IS NULL OR locked_until < now())
+       ORDER BY received_at, id
+       FOR UPDATE SKIP LOCKED
+       LIMIT $1
+     )
+     UPDATE mercadopago_webhook_events AS events
+     SET locked_until = now() + interval '2 minutes',
+         attempts = events.attempts + 1
+     FROM candidates
+     WHERE events.id = candidates.id
+     RETURNING events.id, events.provider_payment_id, events.request_id, events.attempts`,
+    [limit],
+  );
+  return result.rows;
+}
+
+export async function completeMercadoPagoWebhookEvent(id) {
+  await query(
+    `UPDATE mercadopago_webhook_events
+     SET processed_at = now(), locked_until = NULL, last_error = NULL
+     WHERE id = $1 AND processed_at IS NULL`,
+    [id],
+  );
+}
+
+export async function retryMercadoPagoWebhookEvent(id, errorCode) {
+  await query(
+    `UPDATE mercadopago_webhook_events
+     SET available_at = now() + make_interval(secs => LEAST(300, 2 ^ LEAST(attempts, 8))),
+         locked_until = NULL, last_error = $2
+     WHERE id = $1 AND processed_at IS NULL`,
+    [id, typeof errorCode === 'string' ? errorCode.slice(0, 100) : 'UNKNOWN_ERROR'],
+  );
+}
+
 export async function updateInvoice(id, changes, updatedAt, actor) {
   return transaction(async (connection) => {
     const currentResult = await connection.query(

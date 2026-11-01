@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import * as billingRepository from '../billingRepository.js';
 import { getClientByEmail } from '../portalRepository.js';
 import {
@@ -92,7 +93,13 @@ export function createClientBillingControllers(
         const config = getConfig();
         const webhookUrl = parseHttpsUrl(config.webhookUrl);
         const publicAppUrl = parsePublicAppUrl(config.publicAppUrl);
-        if (!config.accessToken || !config.webhookSecret || !webhookUrl || !publicAppUrl) {
+        if (
+          !config.accessToken ||
+          !config.webhookSecret ||
+          !config.webhookProcessorSecret ||
+          !webhookUrl ||
+          !publicAppUrl
+        ) {
           return res.status(503).json({ message: 'El pago online no está configurado todavía.' });
         }
 
@@ -157,13 +164,11 @@ export const clientBillingControllers = createClientBillingControllers();
 
 export function createMercadoPagoWebhookController(
   repository = billingRepository,
-  mercadoPago = createMercadoPagoClient(),
   getConfig = getMercadoPagoWebhookConfig,
-  log = logger,
 ) {
   return async function mercadopagoWebhook(req, res, next) {
     const config = getConfig();
-    if (!config.accessToken || !config.webhookSecret) {
+    if (!config.accessToken || !config.webhookSecret || !config.webhookProcessorSecret) {
       return res.status(503).json({ message: 'El webhook de pagos no está configurado.' });
     }
 
@@ -182,55 +187,17 @@ export function createMercadoPagoWebhookController(
 
     const topic = req.query.type || req.body?.type;
     if (topic !== 'payment') return res.status(200).json({ received: true });
-    if (typeof dataId !== 'string' || !/^\d{1,40}$/.test(dataId)) {
+    if (
+      typeof dataId !== 'string' ||
+      !/^\d{1,40}$/.test(dataId) ||
+      typeof requestId !== 'string' ||
+      !requestId
+    ) {
       return res.status(400).json({ message: 'El identificador del pago no es válido.' });
     }
 
     try {
-      const payment = await mercadoPago.getPayment(dataId);
-      if (String(payment.id) !== dataId || payment.status !== 'approved') {
-        return res.status(200).json({ received: true });
-      }
-      const amountCents = centsFromProviderAmount(payment.transaction_amount);
-      if (
-        amountCents === null ||
-        typeof payment.external_reference !== 'string' ||
-        !validId(payment.external_reference) ||
-        typeof payment.preference_id !== 'string' ||
-        !payment.preference_id ||
-        !['UYU', 'USD'].includes(payment.currency_id)
-      ) {
-        log.warn('mercadopago_payment_rejected', {
-          requestId: req.id,
-          reason: 'invalid_provider_payment_fields',
-          providerPaymentId: dataId,
-        });
-        return res.status(200).json({ received: true });
-      }
-
-      const outcome = await repository.approveMercadoPagoPayment({
-        provider_payment_id: dataId,
-        external_reference: payment.external_reference,
-        preference_id: payment.preference_id,
-        currency: payment.currency_id,
-        amount_cents: amountCents,
-        provider_payload: {
-          status: payment.status,
-          transaction_amount: payment.transaction_amount,
-          currency_id: payment.currency_id,
-          external_reference: payment.external_reference,
-          preference_id: payment.preference_id,
-          date_approved: payment.date_approved || null,
-          payment_method_id: payment.payment_method_id || null,
-        },
-      });
-      if (outcome.status !== 'approved' && outcome.status !== 'duplicate') {
-        log.warn('mercadopago_payment_not_applied', {
-          requestId: req.id,
-          reason: outcome.status,
-          providerPaymentId: dataId,
-        });
-      }
+      await repository.enqueueMercadoPagoWebhook(dataId, requestId);
       return res.status(200).json({ received: true });
     } catch (error) {
       return next(error);
@@ -238,4 +205,110 @@ export function createMercadoPagoWebhookController(
   };
 }
 
+function matchesSecret(received, expected) {
+  if (typeof received !== 'string' || typeof expected !== 'string' || !expected) return false;
+  const receivedBytes = Buffer.from(received);
+  const expectedBytes = Buffer.from(`Bearer ${expected}`);
+  return receivedBytes.length === expectedBytes.length &&
+    timingSafeEqual(receivedBytes, expectedBytes);
+}
+
+export function createMercadoPagoWebhookProcessor(
+  repository = billingRepository,
+  mercadoPago = createMercadoPagoClient(),
+  getConfig = getMercadoPagoWebhookConfig,
+  log = logger,
+) {
+  return async function processMercadoPagoWebhooks(req, res, next) {
+    const config = getConfig();
+    if (!config.accessToken || !config.webhookSecret || !config.webhookProcessorSecret) {
+      return res.status(503).json({ message: 'El procesador de pagos no está configurado.' });
+    }
+    if (!matchesSecret(req.get('authorization'), config.webhookProcessorSecret)) {
+      return res.status(401).json({ message: 'No autorizado.' });
+    }
+
+    try {
+      const events = await repository.claimMercadoPagoWebhookEvents(5);
+      let completed = 0;
+      for (const event of events) {
+        try {
+          const payment = await mercadoPago.getPayment(event.provider_payment_id);
+          if (String(payment.id) !== event.provider_payment_id) {
+            log.warn('mercadopago_payment_rejected', {
+              requestId: req.id,
+              reason: 'provider_payment_id_mismatch',
+              providerPaymentId: event.provider_payment_id,
+            });
+            await repository.completeMercadoPagoWebhookEvent(event.id);
+            completed += 1;
+            continue;
+          }
+          if (payment.status !== 'approved') {
+            await repository.completeMercadoPagoWebhookEvent(event.id);
+            completed += 1;
+            continue;
+          }
+
+          const amountCents = centsFromProviderAmount(payment.transaction_amount);
+          if (
+            amountCents === null ||
+            typeof payment.external_reference !== 'string' ||
+            !validId(payment.external_reference) ||
+            typeof payment.preference_id !== 'string' ||
+            !payment.preference_id ||
+            !['UYU', 'USD'].includes(payment.currency_id)
+          ) {
+            log.warn('mercadopago_payment_rejected', {
+              requestId: req.id,
+              reason: 'invalid_provider_payment_fields',
+              providerPaymentId: event.provider_payment_id,
+            });
+            await repository.completeMercadoPagoWebhookEvent(event.id);
+            completed += 1;
+            continue;
+          }
+
+          const outcome = await repository.approveMercadoPagoPayment({
+            provider_payment_id: event.provider_payment_id,
+            external_reference: payment.external_reference,
+            preference_id: payment.preference_id,
+            currency: payment.currency_id,
+            amount_cents: amountCents,
+            provider_payload: {
+              status: payment.status,
+              transaction_amount: payment.transaction_amount,
+              currency_id: payment.currency_id,
+              external_reference: payment.external_reference,
+              preference_id: payment.preference_id,
+              date_approved: payment.date_approved || null,
+              payment_method_id: payment.payment_method_id || null,
+            },
+          });
+          if (outcome.status !== 'approved' && outcome.status !== 'duplicate') {
+            log.warn('mercadopago_payment_not_applied', {
+              requestId: req.id,
+              reason: outcome.status,
+              providerPaymentId: event.provider_payment_id,
+            });
+          }
+          await repository.completeMercadoPagoWebhookEvent(event.id);
+          completed += 1;
+        } catch (error) {
+          await repository.retryMercadoPagoWebhookEvent(event.id, error.code || error.name);
+          log.error('mercadopago_webhook_processing_failed', {
+            requestId: req.id,
+            providerPaymentId: event.provider_payment_id,
+            code: error.code || error.name,
+          });
+        }
+      }
+      return res.status(200).json({ processed: completed });
+    } catch (error) {
+      return next(error);
+    }
+  };
+}
+
 export const mercadopagoWebhookController = createMercadoPagoWebhookController();
+export const mercadopagoWebhookProcessor = createMercadoPagoWebhookProcessor();

@@ -603,6 +603,199 @@
   color: #ffe7a1;
 }
 
+.billing-admin-section {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 22px;
+  background: rgba(10, 15, 27, 0.88);
+}
+
+.billing-admin-section > .admin-panel-heading {
+  margin: 0;
+}
+
+.billing-admin-section > .admin-feedback {
+  margin: 0;
+}
+
+.billing-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: rgba(228, 236, 255, 0.84);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.billing-filter select,
+.billing-form input,
+.billing-form select,
+.billing-form textarea,
+.billing-inline-payment input,
+.billing-inline-payment select {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-control-border, rgba(153, 170, 255, 0.24));
+  border-radius: 10px;
+  background: var(--color-control-surface, rgba(255, 255, 255, 0.05));
+  color: var(--color-text-heading, #f4f8ff);
+  font: inherit;
+}
+
+.billing-filter select option,
+.billing-form select option,
+.billing-inline-payment select option {
+  background: #101827;
+  color: #f4f8ff;
+}
+
+.billing-filter select:focus-visible,
+.billing-form input:focus-visible,
+.billing-form select:focus-visible,
+.billing-form textarea:focus-visible,
+.billing-inline-payment input:focus-visible,
+.billing-inline-payment select:focus-visible {
+  outline: 2px solid rgba(117, 211, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.billing-form {
+  display: grid;
+  gap: 1.15rem;
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgba(153, 170, 255, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.billing-form > h3 {
+  margin: 0;
+  color: #f4f8ff;
+  font-size: 1.05rem;
+}
+
+.billing-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+
+.billing-form-grid > label {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  min-width: 0;
+  color: rgba(228, 236, 255, 0.88);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.billing-form .billing-form-wide {
+  grid-column: 1 / -1;
+}
+
+.billing-form textarea {
+  width: 100%;
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.billing-form input[type='number'],
+.billing-inline-payment input[type='number'] {
+  font-variant-numeric: tabular-nums;
+}
+
+.billing-form .billing-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(153, 170, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+}
+
+.billing-form .billing-checkbox input {
+  width: 1.1rem;
+  min-width: 1.1rem;
+  min-height: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: #69d7f5;
+}
+
+.billing-form .admin-form-actions {
+  flex-wrap: wrap;
+}
+
+.billing-admin-section > .admin-table-wrap {
+  min-width: 0;
+  border: 1px solid rgba(153, 170, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.015);
+  scrollbar-color: rgba(117, 211, 255, 0.45) rgba(255, 255, 255, 0.04);
+}
+
+.billing-admin-section .admin-data-table {
+  min-width: 780px;
+}
+
+.billing-admin-section .admin-data-table th {
+  background: rgba(15, 23, 42, 0.94);
+  white-space: nowrap;
+}
+
+.billing-admin-section .admin-data-table tbody tr:hover {
+  background: rgba(117, 211, 255, 0.045);
+}
+
+.billing-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 150px;
+}
+
+.billing-row-actions .admin-table-action {
+  white-space: nowrap;
+}
+
+.billing-inline-payment {
+  display: grid;
+  grid-template-columns: minmax(135px, 1fr) minmax(115px, 0.8fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 390px;
+}
+
+.billing-inline-payment .admin-table-action {
+  white-space: nowrap;
+}
+
+.billing-audit-changes {
+  max-width: 28rem;
+  max-height: 12rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid rgba(153, 170, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(224, 233, 255, 0.82);
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 850px) {
   .admin-portal-layout {
     grid-template-columns: 1fr;
@@ -623,12 +816,41 @@
   .admin-user-workspace {
     grid-template-columns: 1fr;
   }
+
+  .billing-admin-section .admin-data-table {
+    min-width: 760px;
+  }
 }
 
 @media (max-width: 560px) {
   .admin-user-details,
-  .admin-contracts-toolbar {
+  .admin-contracts-toolbar,
+  .billing-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .billing-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .billing-filter select {
+    flex: 1;
+    max-width: 15rem;
+  }
+
+  .billing-form .billing-form-wide {
+    grid-column: auto;
+  }
+
+  .billing-admin-section {
+    gap: 1rem;
+    padding: 0.9rem;
+    border-radius: 16px;
+  }
+
+  .billing-form {
+    padding: 0.9rem;
   }
 }
 

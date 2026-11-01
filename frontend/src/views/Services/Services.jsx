@@ -10,10 +10,9 @@ import { formatBillingPeriod, formatMoneyCents } from '../../services/billingFor
 import './services.css';
 
 const Services = () => {
-  const { services: serviceCatalog, error: catalogError } = useServiceCatalog();
+  const { services: serviceCatalog } = useServiceCatalog();
   const contact = useContact();
   const [plans, setPlans] = useState([]);
-  const [plansError, setPlansError] = useState('');
   const planSlugs = new Set(plans.map((plan) => plan.service_slug));
 
   useEffect(() => {
@@ -21,7 +20,7 @@ const Services = () => {
     getPublicBillingPlans()
       .then((result) => { if (active) setPlans(result); })
       .catch((error) => {
-        if (active) setPlansError(error.message || 'No pude cargar los planes.');
+        console.warn('No se pudieron cargar los planes públicos:', error);
       });
     return () => { active = false; };
   }, []);
@@ -75,8 +74,6 @@ const Services = () => {
           </div>
         </section>
       )}
-      {plansError && <p className="services-catalog-notice" role="status">{plansError}</p>}
-
       <section className="services-list">
         {serviceCatalog.map(
           ({ slug, icon, title, category, description, accent }) => (
@@ -103,11 +100,6 @@ const Services = () => {
           ),
         )}
       </section>
-      {catalogError && (
-        <p className="services-catalog-notice" role="status">
-          {catalogError} Mostramos el catálogo guardado.
-        </p>
-      )}
       <section className="services-guide">
         <div className="section-heading left-align">
           <span className="eyebrow small">Cómo elegir</span>

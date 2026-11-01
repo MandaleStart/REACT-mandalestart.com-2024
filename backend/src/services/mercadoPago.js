@@ -154,5 +154,6 @@ export function getMercadoPagoWebhookConfig(env = process.env) {
     webhookSecret: env.MP_WEBHOOK_SECRET || '',
     webhookUrl: env.MP_WEBHOOK_URL || '',
     publicAppUrl: env.PUBLIC_APP_URL || '',
+    webhookProcessorSecret: env.CRON_SECRET || '',
   };
 }

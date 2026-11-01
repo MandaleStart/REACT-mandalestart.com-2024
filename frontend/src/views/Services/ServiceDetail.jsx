@@ -7,7 +7,7 @@ import './services.css';
 
 const ServiceDetail = () => {
   const { slug } = useParams();
-  const { services: serviceCatalog, loading, error: catalogError } = useServiceCatalog();
+  const { services: serviceCatalog, loading } = useServiceCatalog();
   const service = serviceCatalog.find((item) => item.slug === slug);
 
   if (!service && loading) {
@@ -56,12 +56,6 @@ const ServiceDetail = () => {
           ))}
         </div>
       </section>
-      {catalogError && (
-        <p className="services-catalog-notice" role="status">
-          {catalogError} Mostramos la información guardada.
-        </p>
-      )}
-
       <section className="service-detail-grid">
         <div className="service-panel">
           <h2>Qué incluye</h2>

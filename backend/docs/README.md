@@ -31,7 +31,7 @@ Crear un proyecto Vercel con `backend/` como Root Directory y asignarle `https:/
 
 Ejecutar `npm run db:migrate` desde el directorio del backend con la misma `DATABASE_URL` antes de desplegar. Las migraciones son seguras para volver a ejecutar. Los secretos se configuran en Vercel, nunca en el repositorio ni en variables `VITE_*`. En local, `.env.example` muestra la ruta de la credencial existente; mantené el archivo dentro de `backend/credentials/`, que está excluida de Git. La lista de orígenes CORS contiene los dominios conocidos; añadir cualquier dominio nuevo explícitamente.
 
-Vercel puede crear varias instancias serverless, por lo que el limitador en memoria es una defensa básica por instancia, no un contador global. Para límites consistentes a escala, usar un store compartido compatible con `express-rate-limit`.
+Los límites generales de la API, el formulario de contacto y el webhook usan ventanas compartidas en PostgreSQL, por lo que se mantienen entre instancias de Vercel. Aplicá la migración `003_mercadopago_webhook_queue.sql` antes de habilitar estos endpoints. `/api/health` queda fuera del limitador general para que siga informando si la base de datos no está disponible.
 
 ## Rutas
 

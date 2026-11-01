@@ -11,23 +11,30 @@ const serviceLabels = new Set([
   'otro',
 ]);
 
-function boundedString(value, maxLength) {
-  return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+function normalizedString(value) {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 export function validateContactMessage(body) {
-  const honeypotFilled = Boolean(boundedString(body.website, 200));
-  const name = boundedString(body.name, 120);
-  const email = boundedString(body.email, 254);
-  const service = boundedString(body.service, 40);
-  const message = boundedString(body.message, 5000);
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const honeypotFilled = Boolean(normalizedString(body.website));
+  const name = normalizedString(body.name);
+  const email = normalizedString(body.email);
+  const service = normalizedString(body.service);
+  const message = normalizedString(body.message);
+  const namePattern = /^[\p{L}\p{M} .’'-]+$/u;
+  const emailPattern = /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/;
 
   if (!name || !email || !service || !message) {
     return { ok: false, message: 'Completá nombre, email, servicio y mensaje.' };
   }
-  if (!emailPattern.test(email)) {
-    return { ok: false, message: 'Ingresá una dirección de email válida.' };
+  if (name.length > 80 || !namePattern.test(name)) {
+    return { ok: false, message: 'Ingresá un nombre válido de hasta 80 caracteres.' };
+  }
+  if (email.length > 160 || /[\u0000-\u001f\u007f]/u.test(email) || !emailPattern.test(email)) {
+    return { ok: false, message: 'Ingresá un email válido de hasta 160 caracteres.' };
+  }
+  if (service.length > 40 || message.length > 5000) {
+    return { ok: false, message: 'La consulta supera el límite permitido.' };
   }
   if (!serviceLabels.has(service)) {
     return { ok: false, message: 'Elegí una opción válida para el servicio.' };

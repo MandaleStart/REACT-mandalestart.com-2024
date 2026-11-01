@@ -4,6 +4,8 @@ import { test } from 'node:test';
 
 const migrationUrl = new URL('../migrations/002_billing.sql', import.meta.url);
 const migration = (await readFile(migrationUrl, 'utf8')).toLowerCase();
+const webhookQueueMigrationUrl = new URL('../migrations/003_mercadopago_webhook_queue.sql', import.meta.url);
+const webhookQueueMigration = (await readFile(webhookQueueMigrationUrl, 'utf8')).toLowerCase();
 
 test('billing migration defines integer money, currency checks and required billing tables', () => {
   for (const table of [
@@ -34,4 +36,13 @@ test('legacy import is non-billable until reviewed and safe to retry', () => {
   assert.match(migration, /revisar importe, moneda y periodicidad antes de facturar/);
   assert.match(migration, /on conflict \(id\) do nothing/);
   assert.doesNotMatch(migration, /drop column.*services/);
+});
+
+test('webhook queue and shared rate-limit migration persist events and counters', () => {
+  assert.match(webhookQueueMigration, /create table if not exists mercadopago_webhook_events/);
+  assert.match(webhookQueueMigration, /unique \(provider_payment_id, request_id\)/);
+  assert.match(webhookQueueMigration, /locked_until timestamptz/);
+  assert.match(webhookQueueMigration, /available_at timestamptz/);
+  assert.match(webhookQueueMigration, /create table if not exists api_rate_limit_windows/);
+  assert.match(webhookQueueMigration, /create index if not exists api_rate_limit_windows_reset_idx/);
 });

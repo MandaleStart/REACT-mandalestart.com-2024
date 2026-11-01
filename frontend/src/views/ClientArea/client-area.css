@@ -66,7 +66,48 @@
 }
 
 .google-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #dadce0;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #3c4043;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.google-button:hover:not(:disabled) {
+  background: #f8faff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.google-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.google-button:focus-visible {
+  outline: 3px solid #8ab4f8;
+  outline-offset: 3px;
+}
+
+.google-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.google-button-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
 }
 
 .login-card button,

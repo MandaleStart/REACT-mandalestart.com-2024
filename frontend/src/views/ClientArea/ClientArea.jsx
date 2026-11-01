@@ -379,9 +379,6 @@ const ClientArea = () => {
 
         <div className="client-actions">
           <span className="client-email">{user.email}</span>
-          <button type="button" className="secondary-button" onClick={handleLogout}>
-            Cerrar sesión
-          </button>
         </div>
       </section>
 
@@ -399,6 +396,7 @@ const ClientArea = () => {
       <div className="client-area-layout">
         <PortalSidebar
           label="Secciones del área de cliente"
+          onLogout={handleLogout}
           items={[
             { to: '/area-cliente', label: 'Resumen', end: true },
             { to: '/area-cliente/services', label: 'Servicios' },

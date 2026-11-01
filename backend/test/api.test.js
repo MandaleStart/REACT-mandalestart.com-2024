@@ -7,6 +7,7 @@ process.env.GOOGLE_APPLICATION_CREDENTIALS = '';
 process.env.FIREBASE_PROJECT_ID = '';
 process.env.FIREBASE_DATABASE_URL = '';
 process.env.DATABASE_URL = '';
+process.env.NODE_ENV = 'test';
 
 const [{ default: app, projectClientRecord }, { hasAdminClaim }] = await Promise.all([
   import('../src/app.js'),
@@ -123,6 +124,21 @@ test('contact payload validation rejects invalid input and recognizes honeypot s
   };
   assert.equal(validateContactMessage(valid).ok, true);
   assert.equal(validateContactMessage({ ...valid, website: 'spam' }).honeypotFilled, true);
+});
+
+test('contact validation enforces short name/email limits and rejects header or markup injection', () => {
+  const valid = {
+    name: 'Ana María O’Connor',
+    email: 'ana@example.com',
+    service: 'web',
+    message: 'Necesito una web.',
+  };
+
+  assert.equal(validateContactMessage({ ...valid, name: 'A'.repeat(81) }).ok, false);
+  assert.equal(validateContactMessage({ ...valid, email: `${'a'.repeat(150)}@example.com` }).ok, false);
+  assert.equal(validateContactMessage({ ...valid, name: '<script>alert(1)</script>' }).ok, false);
+  assert.equal(validateContactMessage({ ...valid, email: 'ana@example.com\r\nBcc:spam@example.com' }).ok, false);
+  assert.equal(validateContactMessage(valid).ok, true);
 });
 
 test('logger emits structured entries with timestamp, level and message', () => {
