@@ -14,5 +14,9 @@ credentials/*.json
 *.log
 npm-debug.log*
 
+# Build and test output
+dist/
+test-results/
+
 # Archivos temporales
 .DS_Store

@@ -39,7 +39,11 @@ export async function updateAdminService(req, res, next) {
     if (!result.ok) return res.status(400).json({ message: result.message });
 
     try {
-        const service = await saveCatalogService(result.value.slug, result.value);
+        const service = await saveCatalogService(
+            result.value.slug,
+            result.value,
+            { uid: req.auth.uid, email: req.auth.email },
+        );
         return res.json(projectPublicService(service.slug, service.data));
     } catch (error) {
         return next(error);
@@ -60,7 +64,12 @@ export async function deleteAdminService(req, res, next) {
         const current = service
             ? projectPublicService(service.slug, service.data)
             : projectPublicService(req.params.slug, getCatalogServiceBySlug(req.params.slug));
-        await saveCatalogService(req.params.slug, { ...current, status: 'archived' });
+        await saveCatalogService(
+            req.params.slug,
+            { ...current, status: 'archived' },
+            { uid: req.auth.uid, email: req.auth.email },
+            'catalog_service.archive',
+        );
         return res.status(204).end();
     } catch (error) {
         return next(error);

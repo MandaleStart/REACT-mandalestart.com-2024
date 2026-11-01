@@ -34,12 +34,13 @@ export const createAdminClient = (client) =>
     method: 'POST',
     body: JSON.stringify(client),
   });
-export const updateAdminClient = (id, client) =>
+export const updateAdminClient = (id, client, updatedAt) =>
   adminRequest(`/api/admin/clients/${encodeURIComponent(id)}`, {
     method: 'PUT',
+    headers: { 'If-Match': `"${updatedAt}"` },
     body: JSON.stringify(client),
   });
-export const deleteAdminClient = (id) =>
+export const archiveAdminClient = (id) =>
   adminRequest(`/api/admin/clients/${encodeURIComponent(id)}`, { method: 'DELETE' });
 
 export const getAdminServices = () => adminRequest('/api/admin/services');

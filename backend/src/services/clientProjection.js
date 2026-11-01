@@ -3,7 +3,7 @@ function pickString(value) {
 }
 
 export function projectClientRecord(client, email) {
-    const clientData = typeof client.data === 'function' ? client.data() : client;
+    const clientData = client;
     const services = Array.isArray(clientData.services) ? clientData.services : [];
     const clientEmail = email || pickString(clientData.email);
 

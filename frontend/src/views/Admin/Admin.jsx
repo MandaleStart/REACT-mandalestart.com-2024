@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import {
   createAdminClient,
-  deleteAdminClient,
+  archiveAdminClient,
   updateAdminUserStatus,
   updateAdminClient,
 } from '../../services/adminApi';
@@ -25,10 +25,20 @@ import AdminClientEditor from './components/AdminClientEditor';
 import AdminConfirmationDialog from './components/AdminConfirmationDialog';
 import AdminContractedServices from './components/AdminContractedServices';
 import AdminUserDirectory from './components/AdminUserDirectory';
+import PortalSidebar from '../../components/PortalSidebar';
+import BillingPlans from './BillingPlans';
+import BillingInvoices from './BillingInvoices';
+import BillingSubscriptions from './BillingSubscriptions';
+import BillingAudit from './BillingAudit';
 import useAdminData from './hooks/useAdminData';
 import './admin.css';
 
+const Configurations = lazy(() => import('../Configurations/Configurations'));
+
 const Admin = () => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const section = pathname.replace(/^\/administracion\/?/, '').split('/')[0];
   const {
     firebaseUser,
     authReady,
@@ -44,7 +54,6 @@ const Admin = () => {
     refreshData,
     dashboard,
   } = useAdminData();
-  const [section, setSection] = useState('users');
   const [selectedClientId, setSelectedClientId] = useState('');
   const [clientForm, setClientForm] = useState(emptyClient);
   const [clientBaseline, setClientBaseline] = useState(emptyClient);
@@ -61,6 +70,7 @@ const Admin = () => {
     activeServices: 0,
     projects: 0,
     priorityItems: 0,
+    overdueItems: 0,
   };
   const contractedServices = useMemo(() => getContractedServices(clients), [clients]);
 
@@ -133,7 +143,7 @@ const Admin = () => {
         projects: clientForm.projects,
       };
       const saved = selectedClientId
-        ? await updateAdminClient(selectedClientId, client)
+        ? await updateAdminClient(selectedClientId, client, clientBaseline.updated_at)
         : await createAdminClient(client);
       await refreshData();
       setSelectedClientId(saved.id);
@@ -167,12 +177,12 @@ const Admin = () => {
     setError('');
     setNotice('');
     try {
-      await deleteAdminClient(selectedClientId);
+      await archiveAdminClient(selectedClientId);
       await refreshData();
       setSelectedClientId('');
       setClientForm(emptyClient);
       setClientBaseline(emptyClient);
-      setNotice('El cliente se eliminó.');
+      setNotice('El cliente se archivó.');
     } catch (deleteError) {
       const sessionError = isSessionError(deleteError);
       const authorizationError = isAuthorizationError(deleteError);
@@ -183,7 +193,7 @@ const Admin = () => {
           ? expiredSessionMessage
           : authorizationError
             ? forbiddenMessage
-            : deleteError.message || 'No se pudo eliminar el cliente.',
+            : deleteError.message || 'No se pudo archivar el cliente.',
       );
     } finally {
       setBusy(false);
@@ -193,8 +203,8 @@ const Admin = () => {
   const handleClientDelete = () => {
     if (!selectedClientId) return;
     setPendingConfirmation({
-      message: `¿Eliminar la ficha de ${clientForm.name || 'este cliente'} y sus servicios asociados? La cuenta de acceso no se elimina.`,
-      confirmLabel: 'Eliminar cliente',
+      message: `¿Archivar la ficha de ${clientForm.name || 'este cliente'}? Dejará de aparecer en el listado, pero se conservará su historial. No se puede archivar un cliente con facturas.`,
+      confirmLabel: 'Archivar cliente',
       onConfirm: deleteClient,
     });
   };
@@ -274,7 +284,7 @@ const Admin = () => {
 
   const manageClient = (clientId) => {
     const openClient = () => {
-      setSection('clients');
+      navigate('/administracion/clients');
       loadClient(clientId);
     };
     if (clientIsDirty) {
@@ -295,7 +305,7 @@ const Admin = () => {
         name: user.displayName || user.email.split('@')[0],
         email: user.email,
       };
-      setSection('clients');
+      navigate('/administracion/clients');
       setSelectedClientId('');
       setClientForm(newClient);
       setClientBaseline(newClient);
@@ -328,6 +338,21 @@ const Admin = () => {
     />
   );
   if (access !== 'allowed') return accessState;
+  const sections = [
+    'dashboard',
+    'clients',
+    'contracts',
+    'subscriptions',
+    'invoices',
+    'plans',
+    'configuraciones',
+    'users',
+    'audit',
+  ];
+  if (!section) return <Navigate to="/administracion/dashboard" replace />;
+  if (!sections.includes(section)) {
+    return <Navigate to="/administracion/dashboard" replace />;
+  }
 
   return (
     <main className="admin-page">
@@ -345,16 +370,13 @@ const Admin = () => {
           <p>Sesión administrativa: {firebaseUser.email}</p>
         </div>
         <div className="admin-header-actions">
-          <Link className="secondary-button" to="/configuraciones">
-            Configuraciones
-          </Link>
           <button type="button" className="secondary-button" onClick={() => signOut(auth)}>
             Cerrar sesión
           </button>
         </div>
       </header>
 
-      <section className="admin-summary-grid">
+      {section === 'dashboard' ? <section className="admin-summary-grid">
         <div className="admin-summary-card">
           <span>Clientes</span>
           <strong>{dashboardStats.clients}</strong>
@@ -371,9 +393,13 @@ const Admin = () => {
           <span>Prioridades</span>
           <strong>{dashboardStats.priorityItems}</strong>
         </div>
-      </section>
+        <div className="admin-summary-card">
+          <span>Vencidos</span>
+          <strong>{dashboardStats.overdueItems}</strong>
+        </div>
+      </section> : null}
 
-      {dashboard?.priorityItems?.length ? (
+      {section === 'dashboard' && dashboard?.priorityItems?.length ? (
         <section className="admin-priority-panel">
           <div className="admin-panel-heading">
             <h2>Prioridades del negocio</h2>
@@ -392,33 +418,25 @@ const Admin = () => {
           </ul>
         </section>
       ) : null}
-
-      <nav className="admin-tabs" aria-label="Secciones administrativas">
-        <button
-          type="button"
-          className={section === 'users' ? 'is-active' : ''}
-          aria-pressed={section === 'users'}
-          onClick={() => setSection('users')}
-        >
-          Usuarios ({users.length})
-        </button>
-        <button
-          type="button"
-          className={section === 'clients' ? 'is-active' : ''}
-          aria-pressed={section === 'clients'}
-          onClick={() => setSection('clients')}
-        >
-          Fichas ({clients.length})
-        </button>
-        <button
-          type="button"
-          className={section === 'contracts' ? 'is-active' : ''}
-          aria-pressed={section === 'contracts'}
-          onClick={() => setSection('contracts')}
-        >
-          Servicios contratados ({contractedServices.length})
-        </button>
-      </nav>
+      {section === 'dashboard' && dashboard?.overdueItems?.length ? (
+        <section className="admin-priority-panel" role="alert">
+          <div className="admin-panel-heading">
+            <h2>Vencimientos atrasados</h2>
+          </div>
+          <ul className="admin-priority-list">
+            {dashboard.overdueItems.map((item, index) => (
+              <li key={`${item.client}-${item.title}-${index}`}>
+                <span className="admin-priority-badge">Vencido</span>
+                <div>
+                  <strong>{item.client}</strong>
+                  <small>{item.title}</small>
+                </div>
+                <em>Hace {item.daysOverdue} días</em>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {sessionExpired ? (
         <div className="admin-feedback error admin-session-expired" role="alert">
@@ -440,7 +458,42 @@ const Admin = () => {
         </p>
       )}
 
-      {section === 'users' ? (
+      <div className="admin-portal-layout">
+        <PortalSidebar
+          label="Secciones administrativas"
+          items={[
+            { to: '/administracion/dashboard', label: 'Panel' },
+            { to: '/administracion/clients', label: 'Clientes', badge: clients.length },
+            { to: '/administracion/subscriptions', label: 'Suscripciones' },
+            { to: '/administracion/invoices', label: 'Facturas' },
+            { to: '/administracion/plans', label: 'Planes y precios' },
+            { to: '/administracion/configuraciones/catalogo', label: 'Catálogo público' },
+            { to: '/administracion/contracts', label: 'Servicios heredados', badge: contractedServices.length },
+            { to: '/administracion/users', label: 'Usuarios', badge: users.length },
+            { to: '/administracion/audit', label: 'Auditoría' },
+          ]}
+        />
+        <section className="admin-section-content">
+      {section === 'plans' ? (
+        <BillingPlans />
+      ) : section === 'subscriptions' ? (
+        <BillingSubscriptions clients={clients} />
+      ) : section === 'invoices' ? (
+        <BillingInvoices clients={clients} />
+      ) : section === 'audit' ? (
+        <BillingAudit />
+      ) : section === 'configuraciones' ? (
+        <Suspense fallback={<p role="status">Cargando catálogo…</p>}>
+          <Configurations />
+        </Suspense>
+      ) : section === 'dashboard' ? (
+        <section className="billing-admin-section">
+          <div className="admin-panel-heading">
+            <div><span className="eyebrow">Resumen</span><h2>Panel de administración</h2></div>
+          </div>
+          <p>Revisá clientes, servicios y vencimientos desde las secciones del menú.</p>
+        </section>
+      ) : section === 'users' ? (
         <AdminUserDirectory
           users={users}
           selectedUid={selectedUserUid}
@@ -457,7 +510,7 @@ const Admin = () => {
         />
       ) : section === 'contracts' ? (
         <AdminContractedServices clients={clients} onManageClient={manageClient} />
-      ) : (
+      ) : section === 'clients' ? (
         <section className="admin-workspace">
           <AdminClientList
             clients={clients}
@@ -483,7 +536,9 @@ const Admin = () => {
             onUpdateMilestone={updateProjectMilestone}
           />
         </section>
-      )}
+      ) : null}
+        </section>
+      </div>
     </main>
   );
 };

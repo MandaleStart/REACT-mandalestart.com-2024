@@ -860,12 +860,68 @@
   font-size: 0.8rem;
 }
 
+.client-area-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.24fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.client-section-nav {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(10, 15, 27, 0.88);
+}
+
+.client-section-nav a {
+  padding: 0.75rem 0.9rem;
+  border-radius: 11px;
+  color: rgba(224, 233, 255, 0.78);
+  text-decoration: none;
+}
+
+.client-section-nav a.active,
+.client-section-nav a:hover {
+  background: rgba(76, 201, 240, 0.12);
+  color: #a7eaff;
+}
+
+.client-section-content {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+}
+
+.client-dashboard-overdue {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 120, 120, 0.24);
+}
+
+.client-dashboard-overdue h3 {
+  margin: 0 0 0.75rem;
+  color: #ffd6d6;
+}
+
+.client-area-layout .stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-bottom: 0;
+}
+
 @media (max-width: 900px) {
 
   .client-hero,
-  .client-grid {
+  .client-grid,
+  .client-area-layout {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .client-section-nav {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
 
   .client-hero {

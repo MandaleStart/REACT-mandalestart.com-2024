@@ -250,6 +250,10 @@
   background: rgba(10, 15, 27, 0.88);
 }
 
+.admin-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
 .admin-contracts-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(180px, 0.35fr);

@@ -9,15 +9,17 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { auth, googleProvider, firebaseReady } from '../../firebase';
+import { NavLink, Navigate, useLocation } from 'react-router-dom';
 import { useContact } from '../../config/useContact';
 import { mailtoUrl, whatsappUrl } from '../../config/site';
 import { updateClientProfile } from '../../services/authApi';
-import { isExpiringWithinDays } from './dateUtils';
+import { getDaysFromToday, isExpiringWithinDays } from './dateUtils';
 import ClientAuthCard from './components/ClientAuthCard';
 import ClientProfileForm from './components/ClientProfileForm';
 import BackendStatusCard from './components/BackendStatusCard';
 import ClientProjectsPanel from './components/ClientProjectsPanel';
 import ClientServicesList from './components/ClientServicesList';
+import ClientOverview from './ClientOverview';
 import { getClientAreaGuidance } from './clientAreaHelpers';
 import useClientAccount from './hooks/useClientAccount';
 import './client-area.css';
@@ -26,6 +28,8 @@ const emptyForm = { name: '', email: '', password: '', confirmPassword: '' };
 const isDevelopment = import.meta.env.DEV;
 
 const ClientArea = () => {
+  const { pathname } = useLocation();
+  const section = pathname.replace(/^\/area-cliente\/?/, '').split('/')[0] || 'overview';
   const contact = useContact();
   const supportEmail = mailtoUrl(contact, 'Consulta sobre el área de clientes');
   const accessEmail = mailtoUrl(contact, 'Solicitud de acceso al portal');
@@ -60,19 +64,23 @@ const ClientArea = () => {
       return {
         services: dashboardData.overview.totalServices || 0,
         expiresSoon: dashboardData.alerts?.length || 0,
+        overdue: dashboardData.overview.overdueServices || dashboardData.overdue?.length || 0,
         projects: dashboardData.overview.totalProjects || 0,
         pendingMilestones: dashboardData.overview.upcomingMilestones || 0,
       };
     }
 
-    if (!clientData) return { services: 0, expiresSoon: 0, projects: 0, pendingMilestones: 0 };
+    if (!clientData) return { services: 0, expiresSoon: 0, overdue: 0, projects: 0, pendingMilestones: 0 };
 
     const projects = Array.isArray(clientData.projects) ? clientData.projects : [];
+    const services = Array.isArray(clientData.services) ? clientData.services : [];
     return {
-      services: Array.isArray(clientData.services) ? clientData.services.length : 0,
-      expiresSoon: (clientData.services || []).filter((service) =>
-        isExpiringWithinDays(service.expiry),
-      ).length,
+      services: services.length,
+      expiresSoon: services.filter((service) => isExpiringWithinDays(service.expiry)).length,
+      overdue: services.filter((service) => {
+        const diffDays = getDaysFromToday(service.expiry);
+        return diffDays !== null && diffDays < 0;
+      }).length,
       projects: projects.filter((project) => project.status !== 'completed').length,
       pendingMilestones: projects.reduce(
         (total, project) =>
@@ -367,25 +375,6 @@ const ClientArea = () => {
         </div>
       </section>
 
-      <section className="stats-grid">
-        <div className="stat-card">
-          <strong>{totals.services}</strong>
-          <span>Servicios asociados</span>
-        </div>
-        <div className="stat-card">
-          <strong>{totals.expiresSoon}</strong>
-          <span>Vencen en los próximos 30 días</span>
-        </div>
-        <div className="stat-card">
-          <strong>{totals.projects}</strong>
-          <span>Proyectos en curso</span>
-        </div>
-        <div className="stat-card">
-          <strong>{totals.pendingMilestones}</strong>
-          <span>Hitos pendientes</span>
-        </div>
-      </section>
-
       {error && (
         <div className="error-box" role="alert">
           {error}
@@ -397,78 +386,44 @@ const ClientArea = () => {
         </div>
       )}
 
-      <section className={`client-guidance-panel ${guidance.priority}`}>
-        <div>
-          <span className="eyebrow">Qué sigue</span>
-          <h2>{guidance.title}</h2>
-          <p>{guidance.description}</p>
-        </div>
-        <div className="client-guidance-actions">
-          <a className="primary-button" href={supportEmail}>
-            Pedir ayuda
-          </a>
-          <a
-            className="secondary-button"
-            href={supportWhatsApp}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Contactar por WhatsApp
-          </a>
-        </div>
-      </section>
+      <div className="client-area-layout">
+        <nav className="client-section-nav" aria-label="Secciones del área de cliente">
+          <NavLink to="/area-cliente" end>Resumen</NavLink>
+          <NavLink to="/area-cliente/services">Servicios</NavLink>
+          <NavLink to="/area-cliente/projects">Proyectos</NavLink>
+          <NavLink to="/area-cliente/profile">Perfil</NavLink>
+        </nav>
 
-      {dashboardData?.nextMilestone || dashboardData?.alerts?.length ? (
-        <section className="client-dashboard-panel">
-          <div className="client-dashboard-summary">
-            <div>
-              <span className="eyebrow">Resumen operativo</span>
-              <h2>Próximo hito</h2>
-            </div>
-            {dashboardData.nextMilestone ? (
-              <div className="client-dashboard-highlight">
-                <strong>{dashboardData.nextMilestone.title}</strong>
-                <span>{dashboardData.nextMilestone.projectTitle}</span>
-                <small>{dashboardData.nextMilestone.dueDate}</small>
-              </div>
-            ) : (
-              <p className="client-dashboard-empty">No tenés hitos pendientes próximos.</p>
-            )}
-          </div>
-
-          {dashboardData.alerts?.length ? (
-            <ul className="client-dashboard-alerts">
-              {dashboardData.alerts.slice(0, 4).map((alert, index) => (
-                <li key={`${alert.serviceTitle}-${index}`}>
-                  <span className="alert-tag">{alert.diffDays} días</span>
-                  <div>
-                    <strong>{alert.serviceTitle}</strong>
-                    <small>vence el {alert.dueDate}</small>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+        <section className="client-section-content">
+          {section === 'overview' ? (
+            <ClientOverview
+              dashboardData={dashboardData}
+              totals={totals}
+              guidance={guidance}
+              supportEmail={supportEmail}
+              supportWhatsApp={supportWhatsApp}
+            />
+          ) : section === 'services' ? (
+            <ClientServicesList
+              services={clientData.services}
+              clientId={clientData.id}
+              userId={user.uid}
+            />
+          ) : section === 'projects' ? (
+            <ClientProjectsPanel projects={clientData.projects} />
+          ) : section === 'profile' ? (
+            <ClientProfileForm
+              profileForm={profileForm}
+              setProfileForm={setProfileForm}
+              email={user.email}
+              onSubmit={handleProfileSubmit}
+              submitting={submitting}
+            />
+          ) : (
+            <Navigate to="/area-cliente" replace />
+          )}
         </section>
-      ) : null}
-
-      <section className="client-workspace-grid">
-        <ClientProjectsPanel projects={clientData.projects} />
-
-        <ClientProfileForm
-          profileForm={profileForm}
-          setProfileForm={setProfileForm}
-          email={user.email}
-          onSubmit={handleProfileSubmit}
-          submitting={submitting}
-        />
-      </section>
-
-      <ClientServicesList
-        services={clientData.services}
-        clientId={clientData.id}
-        userId={user.uid}
-      />
+      </div>
     </main>
   );
 };

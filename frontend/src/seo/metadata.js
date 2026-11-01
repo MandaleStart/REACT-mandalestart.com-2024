@@ -71,19 +71,9 @@ export function buildMetadata(env = {}) {
         'Desarrollo web, hosting, dominios, correo, SEO, acceso remoto, monitoreo e impresión 3D en Uruguay.',
       robots: defaultRobots,
     },
-    '/comments': {
-      title: `Opiniones de clientes | ${SITE.name}`,
-      description: `Opiniones verificadas de clientes de ${SITE.name}.`,
-      robots: 'noindex, follow',
-    },
     '/login': {
       title: `Acceso privado | ${SITE.name}`,
       description: `Ingresá para acceder al área de clientes o al panel administrativo de ${SITE.name}.`,
-      robots: 'noindex, nofollow',
-    },
-    '/perfil': {
-      title: `Mi perfil | ${SITE.name}`,
-      description: `Perfil de usuario de ${SITE.name}.`,
       robots: 'noindex, nofollow',
     },
     '/client-area': {
@@ -101,12 +91,12 @@ export function buildMetadata(env = {}) {
       description: `Panel privado de administración de clientes y servicios de ${SITE.name}.`,
       robots: 'noindex, nofollow',
     },
-    '/configuraciones': {
+    '/administracion/configuraciones': {
       title: `Configuraciones | ${SITE.name}`,
       description: `Configuración privada del sitio de ${SITE.name}.`,
       robots: 'noindex, nofollow',
     },
-    '/configuraciones/catalogo': {
+    '/administracion/configuraciones/catalogo': {
       title: `Catálogo público | ${SITE.name}`,
       description: `Administración del catálogo público de servicios de ${SITE.name}.`,
       robots: 'noindex, nofollow',

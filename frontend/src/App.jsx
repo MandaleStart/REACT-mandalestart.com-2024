@@ -27,17 +27,10 @@ const loadAboutMe = () => import('./views/Aboutme/AboutMe');
 const AboutMe = lazy(loadAboutMe);
 const loadProjects = () => import('./views/Projects/Projects');
 const Projects = lazy(loadProjects);
-const loadComments = () => import('./views/Comments/Comments');
-const Comments = lazy(loadComments);
 const loadClientArea = () => import('./views/ClientArea/ClientArea');
 const ClientArea = lazy(loadClientArea);
 const loadAdmin = () => import('./views/Admin/Admin');
 const Admin = lazy(loadAdmin);
-const loadConfigurations = () => import('./views/Configurations/Configurations');
-const Configurations = lazy(loadConfigurations);
-const loadProfile = () => import('./views/Profile/Profile');
-const Profile = lazy(loadProfile);
-
 function RouteFocusManager() {
   const { pathname } = useLocation();
   const { services } = useServiceCatalog();
@@ -78,16 +71,12 @@ function LoginRouter() {
   const ClientAreaComponent = useContext(ClientAreaContext) || ClientArea;
   const AdminComponent = useContext(AdminContext) || Admin;
   const { pathname } = useLocation();
-  const isConfigurationRoute = pathname.startsWith('/configuraciones');
-  const requiredRole =
-    pathname === '/administracion' || isConfigurationRoute
-      ? 'admin'
-      : pathname === '/area-cliente'
-        ? 'client'
-        : null;
+  const isAdminRoute = pathname.startsWith('/administracion');
+  const isConfigurationRoute = pathname.startsWith('/administracion/configuraciones');
+  const isClientRoute = pathname.startsWith('/area-cliente');
+  const requiredRole = isAdminRoute ? 'admin' : isClientRoute ? 'client' : null;
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
@@ -95,7 +84,6 @@ function LoginRouter() {
       setAuthReady(true);
       setIsAdmin(false);
       setIsAuthenticated(false);
-      setAuthUser(null);
       return undefined;
     }
 
@@ -103,14 +91,12 @@ function LoginRouter() {
       if (!user) {
         setIsAdmin(false);
         setIsAuthenticated(false);
-        setAuthUser(null);
         setAuthReady(true);
         return;
       }
 
       setAuthReady(false);
       setIsAuthenticated(true);
-      setAuthUser(user);
       try {
         const tokenResult = await user.getIdTokenResult(true);
         setIsAdmin(tokenResult.claims.admin === true);
@@ -133,10 +119,6 @@ function LoginRouter() {
   }
 
   if (!requiredRole) {
-    if (pathname === '/perfil') {
-      return isAuthenticated ? <Profile user={authUser} isAdmin={isAdmin} /> : <Navigate to="/login" replace />;
-    }
-
     return isAuthenticated ? (
       <Navigate to={isAdmin ? '/administracion' : '/area-cliente'} replace />
     ) : (
@@ -151,14 +133,24 @@ function LoginRouter() {
   }
 
   if (!isAdmin) return <ClientAreaComponent />;
-  return isConfigurationRoute ? <Configurations /> : <AdminComponent />;
+  return <AdminComponent />;
+}
+
+function LegacyConfigurationsRedirect() {
+  const { pathname, search, hash } = useLocation();
+  const suffix = pathname.slice('/configuraciones'.length);
+  return (
+    <Navigate
+      to={`/administracion/configuraciones${suffix}${search}${hash}`}
+      replace
+    />
+  );
 }
 
 function App() {
   const staticRouteComponents = useContext(StaticRouteComponentsContext);
   const AboutMeComponent = staticRouteComponents.AboutMe || AboutMe;
   const ProjectsComponent = staticRouteComponents.Projects || Projects;
-  const CommentsComponent = staticRouteComponents.Comments || Comments;
 
   return (
     <>
@@ -184,7 +176,7 @@ function App() {
               <Route path="/projects" element={<ProjectsComponent />} />
               <Route path="/services" element={<Services />} />
               <Route path="/services/:slug" element={<ServiceDetail />} />
-              <Route path="/comments" element={<CommentsComponent />} />
+              <Route path="/comments" element={<Navigate to="/projects" replace />} />
               <Route path="/files" element={<Navigate to="/aboutme" replace />} />
               <Route path="/privacidad" element={<Privacy />} />
               <Route
@@ -201,16 +193,9 @@ function App() {
                   </Suspense>
                 }
               />
+              <Route path="/perfil" element={<Navigate to="/login" replace />} />
               <Route
-                path="/perfil"
-                element={
-                  <Suspense fallback={<main className="page-shell">Cargando perfil…</main>}>
-                    <LoginRouter />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/area-cliente"
+                path="/area-cliente/*"
                 element={
                   <Suspense fallback={<main className="page-shell">Cargando área de clientes…</main>}>
                     <LoginRouter />
@@ -218,7 +203,7 @@ function App() {
                 }
               />
               <Route
-                path="/administracion"
+                path="/administracion/*"
                 element={
                   <Suspense fallback={<main className="page-shell">Cargando administración…</main>}>
                     <LoginRouter />
@@ -228,9 +213,7 @@ function App() {
               <Route
                 path="/configuraciones/*"
                 element={
-                  <Suspense fallback={<main className="page-shell">Cargando configuraciones…</main>}>
-                    <LoginRouter />
-                  </Suspense>
+                  <LegacyConfigurationsRedirect />
                 }
               />
               <Route path="/admin" element={<Navigate to="/administracion" replace />} />

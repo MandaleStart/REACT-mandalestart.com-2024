@@ -283,8 +283,27 @@ test('removed mock authentication endpoints are not available', async () => {
 });
 
 test('admin routes do not expose records without Firebase authentication', async () => {
-  for (const path of ['/api/admin/clients', '/api/admin/users']) {
-    const response = await fetch(`${baseUrl}${path}`);
+  for (const [method, path] of [
+    ['GET', '/api/admin/clients'],
+    ['GET', '/api/admin/users'],
+    ['GET', '/api/admin/plans'],
+    ['POST', '/api/admin/plans'],
+    ['PUT', '/api/admin/plans/plan-1'],
+    ['DELETE', '/api/admin/plans/plan-1'],
+    ['GET', '/api/admin/clients/client-1/subscriptions'],
+    ['POST', '/api/admin/clients/client-1/subscriptions'],
+    ['PUT', '/api/admin/subscriptions/subscription-1'],
+    ['DELETE', '/api/admin/subscriptions/subscription-1'],
+    ['GET', '/api/admin/invoices'],
+    ['POST', '/api/admin/invoices'],
+    ['GET', '/api/admin/invoices/invoice-1'],
+    ['PUT', '/api/admin/invoices/invoice-1'],
+    ['POST', '/api/admin/invoices/invoice-1/payments'],
+    ['POST', '/api/admin/invoices/invoice-1/void'],
+    ['GET', '/api/admin/reports/revenue?from=2026-01-01&to=2026-12-31'],
+    ['GET', '/api/admin/audit'],
+  ]) {
+    const response = await fetch(`${baseUrl}${path}`, { method });
     assert.equal(response.status, 503);
     const body = await response.json();
     assert.equal('error' in body, false);
@@ -308,6 +327,18 @@ test('client endpoint never serves records without Firebase authentication', asy
   const body = await response.json();
   assert.equal(typeof body.message, 'string');
   assert.equal('error' in body, false);
+});
+
+test('client billing routes require Firebase verification', async () => {
+  for (const path of [
+    '/api/clients/me/subscriptions',
+    '/api/clients/me/invoices',
+    '/api/clients/me/invoices/invoice-1',
+  ]) {
+    const response = await fetch(`${baseUrl}${path}`);
+    assert.equal(response.status, 503, path);
+    assert.match(response.headers.get('cache-control') || '', /no-store/i);
+  }
 });
 
 test('client profile writes remain protected by Firebase authentication', async () => {
@@ -448,7 +479,8 @@ test('client and admin dashboard summaries surface key operational signals', () 
     }],
   };
 
-  const clientDashboard = buildClientDashboard(client);
+  const dashboardNow = new Date('2026-10-01T12:00:00.000Z');
+  const clientDashboard = buildClientDashboard(client, { now: dashboardNow });
   assert.equal(clientDashboard.overview.totalServices, 3);
   assert.equal(clientDashboard.overview.activeServices, 2);
   assert.equal(clientDashboard.nextMilestone.title, 'Entrega');
@@ -469,7 +501,7 @@ test('client and admin dashboard summaries surface key operational signals', () 
         milestones: [{ id: 'm-3', title: 'Planificación', status: 'pending', dueDate: '2026-10-28' }],
       }],
     },
-  ]);
+  ], { now: dashboardNow });
 
   assert.equal(adminDashboard.overview.clients, 2);
   assert.equal(adminDashboard.overview.activeServices, 3);

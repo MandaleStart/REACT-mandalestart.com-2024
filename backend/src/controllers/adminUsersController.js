@@ -2,6 +2,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { firebaseState, isFirebaseReady } from '../firebase.js';
 import { isPostgresConfigured } from '../postgres.js';
 import { listClients } from '../portalRepository.js';
+import { recordAdminAudit } from '../billingRepository.js';
 import { projectAdminUserRecord } from '../services/adminUserProjection.js';
 import { setPrivateNoStore } from './responseCache.js';
 
@@ -39,6 +40,9 @@ export async function updateAdminUserStatus(req, res, next) {
     if (!isFirebaseReady() || !firebaseState.app) {
         return res.status(503).json({ message: 'Firebase Authentication no está disponible.' });
     }
+    if (!isPostgresConfigured()) {
+        return res.status(503).json({ message: 'PostgreSQL es necesario para registrar los cambios administrativos en la bitácora.' });
+    }
     const { uid } = req.params;
     if (!/^[^/]{1,128}$/.test(uid) || uid === '.' || uid === '..') {
         return res.status(400).json({ message: 'El identificador del usuario no es válido.' });
@@ -54,6 +58,13 @@ export async function updateAdminUserStatus(req, res, next) {
         const auth = getAuth(firebaseState.app);
         const user = await auth.updateUser(uid, { disabled: req.body.disabled });
         if (req.body.disabled) await auth.revokeRefreshTokens(uid);
+        await recordAdminAudit(
+            { uid: req.auth.uid, email: req.auth.email },
+            req.body.disabled ? 'user.disable' : 'user.enable',
+            'user',
+            uid,
+            { disabled: req.body.disabled },
+        );
         return res.json(projectAdminUserRecord(user));
     } catch (error) {
         if (error.code === 'auth/user-not-found') {

@@ -104,14 +104,14 @@ test('always keeps private and non-public pages out of search indexes', () => {
     assert.equal(metadata.getPageMetadata('/perfil').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/admin').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/administracion').robots, 'noindex, nofollow');
-    assert.equal(metadata.getPageMetadata('/configuraciones').robots, 'noindex, nofollow');
+    assert.equal(metadata.getPageMetadata('/administracion/configuraciones').robots, 'noindex, nofollow');
     assert.equal(
-      metadata.getPageMetadata('/configuraciones/catalogo').robots,
+      metadata.getPageMetadata('/administracion/configuraciones/catalogo').robots,
       'noindex, nofollow',
     );
     assert.equal(metadata.getPageMetadata('/client-area').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/area-cliente').robots, 'noindex, nofollow');
-    assert.equal(metadata.getPageMetadata('/comments').robots, 'noindex, follow');
+    assert.equal(metadata.getPageMetadata('/comments').robots, 'noindex, nofollow');
     assert.equal(metadata.getPageMetadata('/cv').title, 'Página no encontrada | MandaleStart');
     assert.equal(metadata.getPageMetadata('/cv').robots, 'noindex, nofollow');
   }

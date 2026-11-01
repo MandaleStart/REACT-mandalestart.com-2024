@@ -25,8 +25,14 @@ export function getValidatedEnv(env = process.env) {
         throw new Error('TRUST_PROXY_HOPS debe ser un entero mayor o igual a cero.');
     }
 
+    const httpMode = normalizedEnv.HTTP_MODE || 'true';
+    if (!['true', 'false'].includes(httpMode)) {
+        throw new Error('HTTP_MODE debe ser true o false.');
+    }
+
     normalizedEnv.FRONTEND_ORIGINS = frontendOrigins.join(',');
     normalizedEnv.TRUST_PROXY_HOPS = String(proxyHops);
+    normalizedEnv.HTTP_MODE = httpMode;
 
     return normalizedEnv;
 }

@@ -1,15 +1,38 @@
+const DAY_MS = 86400000;
+const MONTEVIDEO_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Montevideo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+});
+
 function parseDate(value) {
-    if (typeof value !== 'string' || !value) return null;
-    const date = new Date(`${value}T00:00:00.000Z`);
-    if (Number.isNaN(date.getTime())) return null;
-    return date;
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    const [year, month, day] = value.split('-').map(Number);
+    const timestamp = Date.UTC(year, month - 1, day);
+    const date = new Date(timestamp);
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+    ) return null;
+    return timestamp;
 }
 
-export function buildClientDashboard(clientRecord) {
-    const client = clientRecord && typeof clientRecord === 'object' && typeof clientRecord.data === 'function'
-        ? clientRecord.data()
-        : clientRecord || {};
+function getMontevideoToday(now) {
+    const parts = MONTEVIDEO_DATE_FORMATTER.formatToParts(now);
+    const date = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+    return Date.UTC(Number(date.year), Number(date.month) - 1, Number(date.day));
+}
 
+function getDaysFromToday(value, today) {
+    const dueDate = parseDate(value);
+    return dueDate === null ? null : Math.round((dueDate - today) / DAY_MS);
+}
+
+export function buildClientDashboard(clientRecord, { now = new Date() } = {}) {
+    const client = clientRecord && typeof clientRecord === 'object' ? clientRecord : {};
+    const today = getMontevideoToday(now);
     const services = Array.isArray(client.services) ? client.services : [];
     const projects = Array.isArray(client.projects) ? client.projects : [];
     const activeServices = services.filter((service) => service && service.status === 'active');
@@ -17,21 +40,43 @@ export function buildClientDashboard(clientRecord) {
         projectTitle: project.title || 'Proyecto',
         ...milestone,
     }))).filter((milestone) => milestone && milestone.dueDate && milestone.status !== 'completed');
-    milestones.sort((a, b) => {
-        const left = parseDate(a.dueDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
-        const right = parseDate(b.dueDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
-        return left - right;
-    });
+    const upcomingMilestones = milestones
+        .filter((milestone) => {
+            const diffDays = getDaysFromToday(milestone.dueDate, today);
+            return diffDays !== null && diffDays >= 0;
+        })
+        .sort((a, b) => parseDate(a.dueDate) - parseDate(b.dueDate));
+    const overdueMilestones = milestones
+        .filter((milestone) => {
+            const diffDays = getDaysFromToday(milestone.dueDate, today);
+            return diffDays !== null && diffDays < 0;
+        })
+        .map((milestone) => ({
+            kind: 'milestone',
+            title: milestone.title || 'Hito',
+            projectTitle: milestone.projectTitle,
+            dueDate: milestone.dueDate,
+            daysOverdue: Math.abs(getDaysFromToday(milestone.dueDate, today)),
+        }));
 
     const alerts = [];
+    const overdue = [];
     for (const service of services) {
-        const dueDate = parseDate(service.expiry);
-        if (!service || !dueDate) continue;
-        const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / 86400000);
-        if (diffDays <= 30) {
+        if (!service) continue;
+        const diffDays = getDaysFromToday(service.expiry, today);
+        if (diffDays === null) continue;
+        const serviceTitle = service.title || service.name || 'Servicio';
+        if (diffDays < 0) {
+            overdue.push({
+                type: 'service-expiry',
+                serviceTitle,
+                dueDate: service.expiry,
+                daysOverdue: Math.abs(diffDays),
+            });
+        } else if (diffDays <= 30) {
             alerts.push({
                 type: 'service-expiry',
-                serviceTitle: service.title || service.name || 'Servicio',
+                serviceTitle,
                 dueDate: service.expiry,
                 diffDays,
             });
@@ -43,40 +88,51 @@ export function buildClientDashboard(clientRecord) {
             totalServices: services.length,
             activeServices: activeServices.length,
             totalProjects: projects.length,
-            upcomingMilestones: milestones.length,
+            upcomingMilestones: upcomingMilestones.length,
+            overdueServices: overdue.length,
+            overdueMilestones: overdueMilestones.length,
         },
-        nextMilestone: milestones[0] ? {
-            title: milestones[0].title,
-            projectTitle: milestones[0].projectTitle,
-            dueDate: milestones[0].dueDate,
-            status: milestones[0].status,
+        nextMilestone: upcomingMilestones[0] ? {
+            title: upcomingMilestones[0].title,
+            projectTitle: upcomingMilestones[0].projectTitle,
+            dueDate: upcomingMilestones[0].dueDate,
+            status: upcomingMilestones[0].status,
         } : null,
         alerts: alerts.slice(0, 5),
+        overdue: overdue.slice(0, 5),
+        overdueMilestones: overdueMilestones.slice(0, 5),
         activeServices: activeServices.slice(0, 5),
     };
 }
 
-export function buildAdminDashboard(clientRecords) {
-    const clients = Array.isArray(clientRecords) ? clientRecords : [];
+export function buildAdminDashboard(clientRecords, { now = new Date() } = {}) {
+    const clients = Array.isArray(clientRecords)
+        ? clientRecords.filter((record) => record && typeof record === 'object')
+        : [];
+    const today = getMontevideoToday(now);
     const priorities = [];
+    const overdueItems = [];
 
-    for (const client of clients) {
-        const record = client && typeof client === 'object' && typeof client.data === 'function' ? client.data() : client || {};
+    for (const record of clients) {
+        if (!record || typeof record !== 'object') continue;
         const services = Array.isArray(record.services) ? record.services : [];
         const projects = Array.isArray(record.projects) ? record.projects : [];
+        const clientName = record.name || record.email || 'Cliente';
 
         for (const service of services) {
-            const dueDate = parseDate(service.expiry);
-            if (!service || !dueDate) continue;
-            const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / 86400000);
-            if (service.status === 'active' && diffDays <= 30) {
-                priorities.push({
-                    kind: 'service-expiry',
-                    client: record.name || record.email || 'Cliente',
-                    title: service.title || service.name || 'Servicio',
-                    dueDate: service.expiry,
-                    diffDays,
-                });
+            if (!service || service.status !== 'active') continue;
+            const diffDays = getDaysFromToday(service.expiry, today);
+            if (diffDays === null) continue;
+            const item = {
+                kind: 'service-expiry',
+                client: clientName,
+                title: service.title || service.name || 'Servicio',
+                dueDate: service.expiry,
+            };
+            if (diffDays < 0) {
+                overdueItems.push({ ...item, daysOverdue: Math.abs(diffDays) });
+            } else if (diffDays <= 30) {
+                priorities.push({ ...item, diffDays });
             }
         }
 
@@ -84,33 +140,28 @@ export function buildAdminDashboard(clientRecords) {
             if (!project || !Array.isArray(project.milestones)) continue;
             for (const milestone of project.milestones) {
                 if (!milestone || !milestone.dueDate || milestone.status === 'completed') continue;
-                const dueDate = parseDate(milestone.dueDate);
-                if (!dueDate) continue;
-                const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / 86400000);
-                if (diffDays <= 30) {
-                    priorities.push({
-                        kind: 'milestone',
-                        client: record.name || record.email || 'Cliente',
-                        project: project.title || 'Proyecto',
-                        title: milestone.title || 'Hito',
-                        dueDate: milestone.dueDate,
-                        diffDays,
-                    });
+                const diffDays = getDaysFromToday(milestone.dueDate, today);
+                if (diffDays === null) continue;
+                const item = {
+                    kind: 'milestone',
+                    client: clientName,
+                    project: project.title || 'Proyecto',
+                    title: milestone.title || 'Hito',
+                    dueDate: milestone.dueDate,
+                };
+                if (diffDays < 0) {
+                    overdueItems.push({ ...item, daysOverdue: Math.abs(diffDays) });
+                } else if (diffDays <= 30) {
+                    priorities.push({ ...item, diffDays });
                 }
             }
         }
     }
 
     priorities.sort((a, b) => a.diffDays - b.diffDays);
-
-    const allServices = clients.flatMap((client) => {
-        const record = client && typeof client === 'object' && typeof client.data === 'function' ? client.data() : client || {};
-        return Array.isArray(record.services) ? record.services : [];
-    });
-    const allProjects = clients.flatMap((client) => {
-        const record = client && typeof client === 'object' && typeof client.data === 'function' ? client.data() : client || {};
-        return Array.isArray(record.projects) ? record.projects : [];
-    });
+    overdueItems.sort((a, b) => b.daysOverdue - a.daysOverdue);
+    const allServices = clients.flatMap((client) => Array.isArray(client?.services) ? client.services : []);
+    const allProjects = clients.flatMap((client) => Array.isArray(client?.projects) ? client.projects : []);
 
     return {
         overview: {
@@ -118,16 +169,15 @@ export function buildAdminDashboard(clientRecords) {
             activeServices: allServices.filter((service) => service && service.status === 'active').length,
             projects: allProjects.length,
             priorityItems: priorities.length,
+            overdueItems: overdueItems.length,
         },
         priorityItems: priorities.slice(0, 8),
-        recentClients: clients.slice(0, 5).map((client) => {
-            const record = client && typeof client === 'object' && typeof client.data === 'function' ? client.data() : client || {};
-            return {
-                id: record.id || client?.id,
-                name: record.name || 'Cliente',
-                email: record.email || '',
-                activeServices: (Array.isArray(record.services) ? record.services : []).filter((service) => service && service.status === 'active').length,
-            };
-        }),
+        overdueItems: overdueItems.slice(0, 8),
+        recentClients: clients.slice(0, 5).map((record) => ({
+            id: record.id,
+            name: record.name || 'Cliente',
+            email: record.email || '',
+            activeServices: (Array.isArray(record.services) ? record.services : []).filter((service) => service && service.status === 'active').length,
+        })),
     };
 }

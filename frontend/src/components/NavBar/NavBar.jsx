@@ -149,9 +149,9 @@ const Navbar = () => {
                 {navUser ? (
                   <NavLink
                     className="nav-link nav-account-link"
-                    to="/perfil"
+                    to="/login"
                     onClick={closeMenus}
-                    aria-label={`Perfil de ${navUser.displayName || navUser.email}`}
+                    aria-label={`Mi cuenta: ${navUser.displayName || navUser.email}`}
                     title={navUser.displayName || navUser.email}
                   >
                     {navUser.displayName || navUser.email || 'Mi perfil'}
