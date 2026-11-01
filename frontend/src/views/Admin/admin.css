@@ -2,6 +2,63 @@
   padding: 2rem 0 4rem;
 }
 
+.admin-portal-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.24fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.admin-section-content {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+}
+
+.admin-client-history-list {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.admin-client-history-list > li {
+  padding: 0.9rem;
+  border: 1px solid rgba(153, 170, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-client-history-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.admin-client-history-heading strong {
+  color: #f4f8ff;
+}
+
+.admin-client-history-heading time,
+.admin-client-history-list p {
+  color: rgba(220, 232, 255, 0.68);
+  font-size: 0.88rem;
+}
+
+.admin-client-history-list pre {
+  max-width: 100%;
+  overflow: auto;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(224, 233, 255, 0.82);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .admin-header,
 .admin-panel-heading,
 .admin-form-actions {
@@ -72,7 +129,7 @@
   margin-top: 1.25rem;
 }
 
-.admin-confirmation-actions>button {
+.admin-confirmation-actions > button {
   min-height: 44px;
 }
 
@@ -176,7 +233,7 @@
 }
 
 .admin-tabs button,
-.admin-panel-heading>button:not(.admin-danger-button) {
+.admin-panel-heading > button:not(.admin-danger-button) {
   padding: 0.75rem 1rem;
   border: 1px solid rgba(153, 170, 255, 0.22);
   border-radius: 12px;
@@ -409,7 +466,7 @@
   font-size: 0.9rem;
 }
 
-.admin-record-list>button {
+.admin-record-list > button {
   display: grid;
   gap: 0.2rem;
   width: 100%;
@@ -424,16 +481,16 @@
   cursor: pointer;
 }
 
-.admin-record-list>button strong {
+.admin-record-list > button strong {
   color: #f4f8ff;
 }
 
-.admin-record-list>button.is-selected {
+.admin-record-list > button.is-selected {
   border-color: rgba(117, 211, 255, 0.42);
   background: rgba(93, 232, 255, 0.09);
 }
 
-.admin-record-list>p {
+.admin-record-list > p {
   color: rgba(224, 233, 255, 0.7);
 }
 
@@ -447,8 +504,8 @@
   gap: 1rem;
 }
 
-.admin-form-panel>label,
-.admin-form-grid>label {
+.admin-form-panel > label,
+.admin-form-grid > label {
   display: grid;
   gap: 0.45rem;
   color: rgba(228, 236, 255, 0.9);
@@ -547,6 +604,14 @@
 }
 
 @media (max-width: 850px) {
+  .admin-portal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-portal-layout .portal-sidebar {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
   .admin-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -561,7 +626,6 @@
 }
 
 @media (max-width: 560px) {
-
   .admin-user-details,
   .admin-contracts-toolbar {
     grid-template-columns: 1fr;

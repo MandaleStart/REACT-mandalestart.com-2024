@@ -18,6 +18,8 @@ import {
 import { listAdminUsers, updateAdminUserStatus } from '../controllers/adminUsersController.js';
 import { adminBillingControllers } from '../controllers/adminBillingController.js';
 import { clientBillingControllers } from '../controllers/clientBillingController.js';
+import { publicBillingControllers } from '../controllers/publicBillingController.js';
+import { mercadopagoWebhookController } from '../controllers/clientBillingController.js';
 import {
     deleteAdminService,
     listAdminServices,
@@ -33,19 +35,49 @@ const contactLimiter = rateLimit({
     limit: 5,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    message: { message: 'Se alcanzó el límite de consultas. Intentá nuevamente más tarde.' },
+    message: {
+        message: 'Se alcanzó el límite de consultas. Intentá nuevamente más tarde.',
+    },
+});
+const mercadopagoWebhookLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 60,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: {
+        message: 'Demasiadas notificaciones. Intentá nuevamente más tarde.',
+    },
 });
 
 router.get('/health', getHealth);
 router.get('/site-config', getSiteConfig);
 router.get('/services', listServices);
 router.get('/services/:slug', getServiceBySlug);
+router.get('/plans/public', publicBillingControllers.listPlans);
+router.post('/webhooks/mercadopago', mercadopagoWebhookLimiter, mercadopagoWebhookController);
 router.get('/clients/me', requireVerifiedFirebaseUser, getCurrentClient);
 router.get('/clients/me/dashboard', requireVerifiedFirebaseUser, getClientDashboard);
 router.put('/clients/me/profile', requireVerifiedFirebaseUser, updateCurrentClientProfile);
-router.get('/clients/me/subscriptions', requireVerifiedFirebaseUser, clientBillingControllers.listSubscriptions);
-router.get('/clients/me/invoices', requireVerifiedFirebaseUser, clientBillingControllers.listInvoices);
-router.get('/clients/me/invoices/:id', requireVerifiedFirebaseUser, clientBillingControllers.getInvoice);
+router.get(
+    '/clients/me/subscriptions',
+    requireVerifiedFirebaseUser,
+    clientBillingControllers.listSubscriptions,
+);
+router.get(
+    '/clients/me/invoices',
+    requireVerifiedFirebaseUser,
+    clientBillingControllers.listInvoices,
+);
+router.get(
+    '/clients/me/invoices/:id',
+    requireVerifiedFirebaseUser,
+    clientBillingControllers.getInvoice,
+);
+router.post(
+    '/clients/me/invoices/:id/checkout',
+    requireVerifiedFirebaseUser,
+    clientBillingControllers.createCheckout,
+);
 router.get('/admin/dashboard', requireFirebaseAdmin, getAdminDashboard);
 router.get('/admin/clients', requireFirebaseAdmin, listAdminClients);
 router.get('/admin/users', requireFirebaseAdmin, listAdminUsers);
@@ -60,15 +92,35 @@ router.get('/admin/plans', requireFirebaseAdmin, adminBillingControllers.listPla
 router.post('/admin/plans', requireFirebaseAdmin, adminBillingControllers.createPlan);
 router.put('/admin/plans/:id', requireFirebaseAdmin, adminBillingControllers.updatePlan);
 router.delete('/admin/plans/:id', requireFirebaseAdmin, adminBillingControllers.deactivatePlan);
-router.get('/admin/clients/:id/subscriptions', requireFirebaseAdmin, adminBillingControllers.listSubscriptions);
-router.post('/admin/clients/:id/subscriptions', requireFirebaseAdmin, adminBillingControllers.createSubscription);
-router.put('/admin/subscriptions/:id', requireFirebaseAdmin, adminBillingControllers.updateSubscription);
-router.delete('/admin/subscriptions/:id', requireFirebaseAdmin, adminBillingControllers.cancelSubscription);
+router.get(
+    '/admin/clients/:id/subscriptions',
+    requireFirebaseAdmin,
+    adminBillingControllers.listSubscriptions,
+);
+router.post(
+    '/admin/clients/:id/subscriptions',
+    requireFirebaseAdmin,
+    adminBillingControllers.createSubscription,
+);
+router.put(
+    '/admin/subscriptions/:id',
+    requireFirebaseAdmin,
+    adminBillingControllers.updateSubscription,
+);
+router.delete(
+    '/admin/subscriptions/:id',
+    requireFirebaseAdmin,
+    adminBillingControllers.cancelSubscription,
+);
 router.get('/admin/invoices', requireFirebaseAdmin, adminBillingControllers.listInvoices);
 router.post('/admin/invoices', requireFirebaseAdmin, adminBillingControllers.createInvoice);
 router.get('/admin/invoices/:id', requireFirebaseAdmin, adminBillingControllers.getInvoice);
 router.put('/admin/invoices/:id', requireFirebaseAdmin, adminBillingControllers.updateInvoice);
-router.post('/admin/invoices/:id/payments', requireFirebaseAdmin, adminBillingControllers.recordManualPayment);
+router.post(
+    '/admin/invoices/:id/payments',
+    requireFirebaseAdmin,
+    adminBillingControllers.recordManualPayment,
+);
 router.post('/admin/invoices/:id/void', requireFirebaseAdmin, adminBillingControllers.voidInvoice);
 router.get('/admin/reports/revenue', requireFirebaseAdmin, adminBillingControllers.revenueReport);
 router.get('/admin/audit', requireFirebaseAdmin, adminBillingControllers.listAudit);

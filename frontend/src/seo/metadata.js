@@ -113,12 +113,87 @@ export function buildMetadata(env = {}) {
     },
   };
 
+  const privateSectionPages = {
+    '/administracion/dashboard': {
+      title: `Panel administrativo | ${SITE.name}`,
+      description: `Indicadores del panel administrativo de ${SITE.name}.`,
+    },
+    '/administracion/clients': {
+      title: `Clientes | Administración | ${SITE.name}`,
+      description: `Gestión de clientes en el panel de ${SITE.name}.`,
+    },
+    '/administracion/contracts': {
+      title: `Servicios heredados | Administración | ${SITE.name}`,
+      description: `Revisión de servicios heredados en el panel de ${SITE.name}.`,
+    },
+    '/administracion/subscriptions': {
+      title: `Suscripciones | Administración | ${SITE.name}`,
+      description: `Gestión de suscripciones en el panel de ${SITE.name}.`,
+    },
+    '/administracion/invoices': {
+      title: `Facturas | Administración | ${SITE.name}`,
+      description: `Gestión de facturas en el panel de ${SITE.name}.`,
+    },
+    '/administracion/plans': {
+      title: `Planes y precios | Administración | ${SITE.name}`,
+      description: `Gestión de planes y precios en el panel de ${SITE.name}.`,
+    },
+    '/administracion/users': {
+      title: `Usuarios | Administración | ${SITE.name}`,
+      description: `Gestión de usuarios en el panel de ${SITE.name}.`,
+    },
+    '/administracion/audit': {
+      title: `Auditoría | Administración | ${SITE.name}`,
+      description: `Registro de auditoría del panel de ${SITE.name}.`,
+    },
+    '/area-cliente/services': {
+      title: `Mis servicios | Área de clientes | ${SITE.name}`,
+      description: `Servicios asociados a tu cuenta en ${SITE.name}.`,
+    },
+    '/area-cliente/legacy-services': {
+      title: `Servicios anteriores | Área de clientes | ${SITE.name}`,
+      description: `Servicios anteriores asociados a tu cuenta en ${SITE.name}.`,
+    },
+    '/area-cliente/invoices': {
+      title: `Mis facturas | Área de clientes | ${SITE.name}`,
+      description: `Facturas asociadas a tu cuenta en ${SITE.name}.`,
+    },
+    '/area-cliente/projects': {
+      title: `Mis proyectos | Área de clientes | ${SITE.name}`,
+      description: `Proyectos asociados a tu cuenta en ${SITE.name}.`,
+    },
+    '/area-cliente/support': {
+      title: `Soporte | Área de clientes | ${SITE.name}`,
+      description: `Opciones de soporte del área de clientes de ${SITE.name}.`,
+    },
+    '/area-cliente/profile': {
+      title: `Mi perfil | Área de clientes | ${SITE.name}`,
+      description: `Perfil de tu cuenta en ${SITE.name}.`,
+    },
+  };
+
   function getPageMetadata(pathname, serviceCatalog = []) {
     const requestedPath = pathname.replace(/\/+$/, '') || '/';
     const path = requestedPath;
     const fixedPage = staticPages[path];
     if (fixedPage) {
       return { ...fixedPage, robots: getRobots(fixedPage.robots), path };
+    }
+
+    const privateSectionPage =
+      privateSectionPages[path] ||
+      (/^\/area-cliente\/invoices\/[^/]+$/.test(path)
+        ? {
+            title: `Detalle de factura | Área de clientes | ${SITE.name}`,
+            description: `Detalle privado de una factura de ${SITE.name}.`,
+          }
+        : null);
+    if (privateSectionPage) {
+      return {
+        ...privateSectionPage,
+        robots: 'noindex, nofollow',
+        path,
+      };
     }
 
     if (path.startsWith('/services/')) {

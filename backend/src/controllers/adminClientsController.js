@@ -16,6 +16,7 @@ export async function listAdminClients(req, res, next) {
     try {
         const clients = (await listClients()).map((client) => ({
             ...projectClientRecord(client),
+            created_at: client.created_at,
             updated_at: client.updated_at,
         }));
         return res.json(clients);

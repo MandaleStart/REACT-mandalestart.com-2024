@@ -1,11 +1,36 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { getClientInvoices } from '../../services/billingApi.js';
+import { formatMoneyCents } from '../../services/billingFormat.js';
+
 /* eslint-disable react/prop-types */
 const ClientOverview = ({
+  firebaseUser,
   dashboardData,
   totals,
   guidance,
   supportEmail,
   supportWhatsApp,
-}) => (
+}) => {
+  const [pendingInvoices, setPendingInvoices] = useState([]);
+  const [invoiceError, setInvoiceError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    firebaseUser.getIdToken()
+      .then(getClientInvoices)
+      .then((invoices) => {
+        if (active) {
+          setPendingInvoices(invoices.filter((invoice) => ['open', 'overdue'].includes(invoice.status)));
+        }
+      })
+      .catch((error) => {
+        if (active) setInvoiceError(error.message || 'No pude cargar tus facturas pendientes.');
+      });
+    return () => { active = false; };
+  }, [firebaseUser]);
+
+  return (
   <>
     <section className="stats-grid">
       <div className="stat-card">
@@ -49,6 +74,27 @@ const ClientOverview = ({
           Contactar por WhatsApp
         </a>
       </div>
+    </section>
+
+    <section className="client-panel client-pending-invoices">
+      <div className="client-panel-heading">
+        <div><span className="panel-tag">Facturación</span><h2>Facturas pendientes</h2></div>
+        <Link to="/area-cliente/invoices">Ver todas</Link>
+      </div>
+      {invoiceError && <p className="error-box" role="alert">{invoiceError}</p>}
+      {!invoiceError && pendingInvoices.length === 0 ? (
+        <p>No tenés facturas pendientes.</p>
+      ) : (
+        <ul>
+          {pendingInvoices.map((invoice) => (
+            <li key={invoice.id}>
+              <span><strong>{invoice.number}</strong> · {invoice.status === 'overdue' ? 'Vencida' : 'Pendiente'}</span>
+              <strong>{formatMoneyCents(invoice.total_cents, invoice.currency)}</strong>
+              <Link to={`/area-cliente/invoices/${encodeURIComponent(invoice.id)}`}>Ver factura</Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
 
     {dashboardData?.nextMilestone ||
@@ -113,6 +159,7 @@ const ClientOverview = ({
       </section>
     ) : null}
   </>
-);
+  );
+};
 
 export default ClientOverview;

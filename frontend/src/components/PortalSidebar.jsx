@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import './PortalSidebar.css';
 
 /* eslint-disable react/prop-types */
 export default function PortalSidebar({ label, items }) {

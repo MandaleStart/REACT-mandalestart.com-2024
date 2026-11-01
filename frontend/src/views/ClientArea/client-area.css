@@ -867,28 +867,6 @@
   align-items: start;
 }
 
-.client-section-nav {
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.7rem;
-  border: 1px solid rgba(153, 170, 255, 0.18);
-  border-radius: 18px;
-  background: rgba(10, 15, 27, 0.88);
-}
-
-.client-section-nav a {
-  padding: 0.75rem 0.9rem;
-  border-radius: 11px;
-  color: rgba(224, 233, 255, 0.78);
-  text-decoration: none;
-}
-
-.client-section-nav a.active,
-.client-section-nav a:hover {
-  background: rgba(76, 201, 240, 0.12);
-  color: #a7eaff;
-}
-
 .client-section-content {
   display: grid;
   min-width: 0;
@@ -920,12 +898,97 @@
     display: grid;
   }
 
-  .client-section-nav {
+  .client-area-layout .portal-sidebar {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
 
   .client-hero {
     align-items: start;
+  }
+
+  .client-invoice-detail dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.8rem;
+    margin: 1.25rem 0;
+  }
+
+  .client-invoice-detail dl div {
+    padding: 0.8rem;
+    border: 1px solid rgba(153, 170, 255, 0.14);
+    border-radius: 12px;
+  }
+
+  .client-invoice-detail dt {
+    color: rgba(220, 232, 255, 0.65);
+    font-size: 0.85rem;
+  }
+
+  .client-invoice-detail dd {
+    margin: 0.35rem 0 0;
+    color: #f4f8ff;
+  }
+
+  .client-invoice-items {
+    display: grid;
+    gap: 0.6rem;
+    padding-left: 1.2rem;
+    color: rgba(224, 233, 255, 0.82);
+  }
+
+  .client-invoice-detail h2,
+  .client-support-panel h2 {
+    color: #f4f8ff;
+  }
+
+  .client-pending-invoices ul {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .client-pending-invoices li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(153, 170, 255, 0.14);
+    border-radius: 12px;
+  }
+
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+
+    .client-invoice-detail,
+    .client-invoice-detail * {
+      visibility: visible;
+    }
+
+    .client-invoice-detail {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      color: #111;
+      background: #fff;
+    }
+
+    .client-invoice-detail h2,
+    .client-invoice-detail h3,
+    .client-invoice-detail dd,
+    .client-invoice-detail p,
+    .client-invoice-detail a,
+    .client-invoice-detail li {
+      color: #111;
+    }
+
+    .client-invoice-detail button {
+      display: none;
+    }
   }
 
   .stats-grid {

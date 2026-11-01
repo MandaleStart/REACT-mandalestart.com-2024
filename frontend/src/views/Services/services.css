@@ -325,3 +325,50 @@
     align-items: flex-start;
   }
 }
+.public-plans-section {
+  margin: 3rem 0;
+}
+
+.public-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.public-plan-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 1.4rem;
+  border: 1px solid rgba(153, 170, 255, 0.18);
+  border-radius: 22px;
+  background: rgba(10, 15, 27, 0.88);
+}
+
+.public-plan-card h3,
+.public-plan-card strong {
+  color: #f4f8ff;
+}
+
+.public-plan-card p,
+.public-plan-card > span:not(.service-chip) {
+  color: rgba(224, 233, 255, 0.76);
+}
+
+.public-plan-card strong {
+  font-size: 1.55rem;
+}
+
+.public-plan-card ul {
+  display: grid;
+  gap: 0.4rem;
+  padding-left: 1.2rem;
+  color: rgba(224, 233, 255, 0.82);
+}
+
+.public-plan-card .primary-button {
+  margin-top: auto;
+  text-decoration: none;
+}

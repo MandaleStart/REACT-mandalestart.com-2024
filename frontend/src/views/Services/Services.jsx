@@ -1,11 +1,29 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ShareLinks from '../../components/ShareLinks/ShareLinks';
 import SiteIcon from '../../components/SiteIcon/SiteIcon';
 import useServiceCatalog from '../../data/useServiceCatalog';
+import { useContact } from '../../config/useContact';
+import { mailtoUrl } from '../../config/site';
+import { getPublicBillingPlans } from '../../services/billingApi.js';
+import { formatBillingPeriod, formatMoneyCents } from '../../services/billingFormat.js';
 import './services.css';
 
 const Services = () => {
   const { services: serviceCatalog, error: catalogError } = useServiceCatalog();
+  const contact = useContact();
+  const [plans, setPlans] = useState([]);
+  const [plansError, setPlansError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    getPublicBillingPlans()
+      .then((result) => { if (active) setPlans(result); })
+      .catch((error) => {
+        if (active) setPlansError(error.message || 'No pude cargar los planes.');
+      });
+    return () => { active = false; };
+  }, []);
 
   return (
     <main className="services-page">
@@ -25,6 +43,34 @@ const Services = () => {
           <span>Diseño e impresión 3D</span>
         </div>
       </section>
+
+      {plans.length > 0 && (
+        <section className="public-plans-section">
+          <div className="section-heading left-align">
+            <span className="eyebrow small">Precios transparentes</span>
+            <h2>Planes con precio definido</h2>
+            <p>Elegí una opción y escribime para confirmar disponibilidad y próximos pasos.</p>
+          </div>
+          <div className="public-plans-grid">
+            {plans.map((plan) => (
+              <article className="public-plan-card" key={plan.id}>
+                <span className="service-chip">{plan.service_slug}</span>
+                <h3>{plan.name}</h3>
+                <p>{plan.description}</p>
+                <strong>{formatMoneyCents(plan.amount_cents, plan.currency)}</strong>
+                <span>{formatBillingPeriod(plan.billing_period)}</span>
+                {plan.features.length > 0 && (
+                  <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
+                )}
+                <a className="primary-button" href={mailtoUrl(contact, `Quiero contratar el plan ${plan.name}`)}>
+                  Contratar
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+      {plansError && <p className="services-catalog-notice" role="status">{plansError}</p>}
 
       <section className="services-list">
         {serviceCatalog.map(

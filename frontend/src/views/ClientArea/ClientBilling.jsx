@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getClientInvoice, getClientInvoices } from '../../services/billingApi.js';
+import {
+  createClientInvoiceCheckout,
+  getClientInvoice,
+  getClientInvoices,
+} from '../../services/billingApi.js';
 import { formatMoneyCents } from '../../services/billingFormat.js';
 
 /* eslint-disable react/prop-types */
@@ -8,6 +12,7 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
   const [invoices, setInvoices] = useState([]);
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -32,37 +37,93 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
       }
     }
     load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [firebaseUser, invoiceId]);
 
   if (loading) return <p role="status">Cargando facturas…</p>;
-  if (error) return <p className="error-box" role="alert">{error}</p>;
+  if (error)
+    return (
+      <p className="error-box" role="alert">
+        {error}
+      </p>
+    );
 
   if (invoiceId) {
     if (!invoice) return <p role="status">No encontramos esa factura.</p>;
+    const startCheckout = async () => {
+      setCheckoutBusy(true);
+      setError('');
+      try {
+        const token = await firebaseUser.getIdToken();
+        const checkout = await createClientInvoiceCheckout(token, invoice.id);
+        const checkoutUrl = new URL(checkout.checkout_url);
+        if (checkoutUrl.protocol !== 'https:') {
+          throw new Error('El enlace de pago recibido no es seguro.');
+        }
+        window.location.assign(checkoutUrl.href);
+      } catch (checkoutError) {
+        setError(checkoutError.message || 'No pude iniciar el pago.');
+        setCheckoutBusy(false);
+      }
+    };
     return (
       <section className="client-panel client-invoice-detail">
         <Link to="/area-cliente/invoices">Volver a mis facturas</Link>
         <span className="panel-tag">Factura {invoice.number}</span>
         <h2>{formatMoneyCents(invoice.total_cents, invoice.currency)}</h2>
+        {error && (
+          <p className="error-box" role="alert">
+            {error}
+          </p>
+        )}
+        <button type="button" className="secondary-button" onClick={() => window.print()}>
+          Imprimir o guardar como PDF
+        </button>
         <dl>
-          <div><dt>Estado</dt><dd>{invoice.status}</dd></div>
-          <div><dt>Emitida</dt><dd>{invoice.issued_on || '—'}</dd></div>
-          <div><dt>Vence</dt><dd>{invoice.due_on || '—'}</dd></div>
-          <div><dt>Subtotal</dt><dd>{formatMoneyCents(invoice.subtotal_cents, invoice.currency)}</dd></div>
-          <div><dt>IVA</dt><dd>{formatMoneyCents(invoice.tax_cents, invoice.currency)}</dd></div>
+          <div>
+            <dt>Estado</dt>
+            <dd>{invoice.status}</dd>
+          </div>
+          <div>
+            <dt>Emitida</dt>
+            <dd>{invoice.issued_on || '—'}</dd>
+          </div>
+          <div>
+            <dt>Vence</dt>
+            <dd>{invoice.due_on || '—'}</dd>
+          </div>
+          <div>
+            <dt>Subtotal</dt>
+            <dd>{formatMoneyCents(invoice.subtotal_cents, invoice.currency)}</dd>
+          </div>
+          <div>
+            <dt>IVA</dt>
+            <dd>{formatMoneyCents(invoice.tax_cents, invoice.currency)}</dd>
+          </div>
         </dl>
         {invoice.notes && <p>{invoice.notes}</p>}
         <h3>Conceptos</h3>
         <ul className="client-invoice-items">
           {(invoice.items || []).map((item, index) => (
             <li key={`${item.description}-${index}`}>
-              <span>{item.description} · {item.quantity} × {formatMoneyCents(item.unit_amount_cents, invoice.currency)}</span>
+              <span>
+                {item.description} · {item.quantity} ×{' '}
+                {formatMoneyCents(item.unit_amount_cents, invoice.currency)}
+              </span>
             </li>
           ))}
         </ul>
         {['open', 'overdue'].includes(invoice.status) && (
-          <p>El pago online estará disponible cuando termine la configuración de cobros.</p>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={startCheckout}
+            disabled={checkoutBusy}
+          >
+            {checkoutBusy ? 'Conectando con Mercado Pago…' : 'Pagar ahora'}
+          </button>
         )}
       </section>
     );
@@ -73,18 +134,36 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
       <h2>Mis facturas</h2>
       <div className="admin-table-wrap">
         <table className="admin-data-table">
-          <thead><tr><th>Número</th><th>Fecha</th><th>Vencimiento</th><th>Total</th><th>Estado</th><th>Detalle</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Fecha</th>
+              <th>Vencimiento</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
           <tbody>
             {invoices.map((item) => (
               <tr key={item.id}>
-                <td>{item.number}</td><td>{item.issued_on || '—'}</td>
+                <td>{item.number}</td>
+                <td>{item.issued_on || '—'}</td>
                 <td>{item.due_on || '—'}</td>
                 <td>{formatMoneyCents(item.total_cents, item.currency)}</td>
                 <td>{item.status}</td>
-                <td><Link to={`/area-cliente/invoices/${encodeURIComponent(item.id)}`}>Ver detalle</Link></td>
+                <td>
+                  <Link to={`/area-cliente/invoices/${encodeURIComponent(item.id)}`}>
+                    Ver detalle
+                  </Link>
+                </td>
               </tr>
             ))}
-            {invoices.length === 0 && <tr><td colSpan="6">Todavía no tenés facturas.</td></tr>}
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan="6">Todavía no tenés facturas.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

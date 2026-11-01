@@ -92,6 +92,33 @@ test('keeps public page titles and descriptions within search snippet lengths', 
   );
 });
 
+test('gives each portal section a distinct title while keeping it private', () => {
+  const metadata = buildMetadata({ VITE_INDEXABLE_SITE: 'true' });
+  const paths = [
+    '/administracion/dashboard',
+    '/administracion/clients',
+    '/administracion/contracts',
+    '/administracion/subscriptions',
+    '/administracion/invoices',
+    '/administracion/plans',
+    '/administracion/configuraciones/catalogo',
+    '/administracion/users',
+    '/administracion/audit',
+    '/area-cliente',
+    '/area-cliente/services',
+    '/area-cliente/invoices',
+    '/area-cliente/invoices/invoice-123',
+    '/area-cliente/projects',
+    '/area-cliente/support',
+    '/area-cliente/profile',
+  ];
+  const pages = paths.map((path) => metadata.getPageMetadata(path));
+
+  assert.equal(new Set(pages.map((page) => page.title)).size, paths.length);
+  assert.ok(pages.every((page) => page.robots === 'noindex, nofollow'));
+  assert.ok(pages.every((page) => !page.title.startsWith('Página no encontrada')));
+});
+
 test('always keeps private and non-public pages out of search indexes', () => {
   for (const env of [
     {},

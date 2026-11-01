@@ -20,7 +20,8 @@ async function adminRequest(path, { method = 'GET', body, headers = {} } = {}) {
 }
 
 function versionHeader(updatedAt) {
-  if (!updatedAt) throw new Error('El registro no tiene una versión actualizada para proteger el cambio.');
+  if (!updatedAt)
+    throw new Error('El registro no tiene una versión actualizada para proteger el cambio.');
   return { 'If-Match': `"${updatedAt}"` };
 }
 
@@ -65,7 +66,13 @@ export const getBillingRevenue = (from, to) => {
   const query = new URLSearchParams({ from, to });
   return adminRequest(`/api/admin/reports/revenue?${query}`);
 };
-export const listBillingAudit = () => adminRequest('/api/admin/audit');
+export const listBillingAudit = (filters = {}) => {
+  const query = new URLSearchParams(
+    Object.entries(filters).filter(([, value]) => value !== undefined && value !== ''),
+  );
+  return adminRequest(`/api/admin/audit${query.size ? `?${query}` : ''}`);
+};
+export const getPublicBillingPlans = () => apiRequest('/api/plans/public');
 
 async function clientRequest(idToken, path) {
   return apiRequest(path, {
@@ -75,7 +82,8 @@ async function clientRequest(idToken, path) {
 
 export const getClientSubscriptions = (idToken) =>
   clientRequest(idToken, '/api/clients/me/subscriptions');
-export const getClientInvoices = (idToken) =>
-  clientRequest(idToken, '/api/clients/me/invoices');
+export const getClientInvoices = (idToken) => clientRequest(idToken, '/api/clients/me/invoices');
 export const getClientInvoice = (idToken, id) =>
   clientRequest(idToken, `/api/clients/me/invoices/${encodeURIComponent(id)}`);
+export const createClientInvoiceCheckout = (idToken, id) =>
+  clientRequest(idToken, `/api/clients/me/invoices/${encodeURIComponent(id)}/checkout`);

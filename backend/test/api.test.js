@@ -447,11 +447,11 @@ test('API error logs include the request id for faster incident tracing', () => 
     apiErrorHandler(new Error('database failure'), req, res, () => { });
 
     assert.equal(entries.length, 1);
-    const logged = JSON.parse(entries[0]);
-    assert.equal(logged.message, 'Error de API');
-    assert.equal(logged.meta.requestId, 'req-trace-123');
-    assert.equal(logged.meta.method, 'POST');
-    assert.equal(logged.meta.url, '/api/admin/clients');
+    assert.match(entries[0], /^\[[^\]]+\]\[error\] Error de API: /);
+    const loggedMeta = JSON.parse(entries[0].slice(entries[0].indexOf(': {') + 2));
+    assert.equal(loggedMeta.requestId, 'req-trace-123');
+    assert.equal(loggedMeta.method, 'POST');
+    assert.equal(loggedMeta.url, '/api/admin/clients');
   } finally {
     console.error = originalConsoleError;
   }

@@ -31,10 +31,19 @@ async function transaction(callback) {
 }
 
 function actorFields(actor) {
-  if (!actor || typeof actor.uid !== 'string' || !actor.uid || typeof actor.email !== 'string' || !actor.email) {
-    throw Object.assign(new Error('No se pudo identificar al administrador para auditar el cambio.'), {
-      code: 'INVALID_AUDIT_ACTOR',
-    });
+  if (
+    !actor ||
+    typeof actor.uid !== 'string' ||
+    !actor.uid ||
+    typeof actor.email !== 'string' ||
+    !actor.email
+  ) {
+    throw Object.assign(
+      new Error('No se pudo identificar al administrador para auditar el cambio.'),
+      {
+        code: 'INVALID_AUDIT_ACTOR',
+      },
+    );
   }
   return [actor.uid, actor.email];
 }
@@ -49,15 +58,45 @@ async function writeAudit(connection, actor, action, entityType, entityId, chang
   );
 }
 
+async function hasActiveMercadoPagoCheckout(connection, invoiceId) {
+  const pending = await connection.query(
+    `SELECT 1 FROM payments
+     WHERE invoice_id = $1 AND method = 'mercadopago'
+       AND status = 'pending' AND provider_payment_id IS NULL
+       AND (provider_payload->>'expires_at')::timestamptz > now()
+     LIMIT 1`,
+    [invoiceId],
+  );
+  return pending.rowCount > 0;
+}
+
+async function extendPaidInvoiceSubscriptions(connection, invoiceId) {
+  await connection.query(
+    `UPDATE subscriptions AS subscription
+     SET renews_on = (
+       GREATEST(
+         COALESCE(subscription.renews_on, (now() AT TIME ZONE 'America/Montevideo')::date),
+         (now() AT TIME ZONE 'America/Montevideo')::date
+       ) + CASE subscription.billing_period
+         WHEN 'monthly' THEN INTERVAL '1 month'
+         WHEN 'yearly' THEN INTERVAL '1 year'
+       END
+     )::date,
+       updated_at = now()
+     WHERE subscription.status = 'active'
+       AND subscription.billing_period IN ('monthly', 'yearly')
+       AND subscription.id IN (
+         SELECT subscription_id FROM invoice_items
+         WHERE invoice_id = $1 AND subscription_id IS NOT NULL
+       )`,
+    [invoiceId],
+  );
+}
+
 export async function recordAdminAudit(actor, action, entityType, entityId, changes) {
-  return transaction((connection) => writeAudit(
-    connection,
-    actor,
-    action,
-    entityType,
-    entityId,
-    changes,
-  ));
+  return transaction((connection) =>
+    writeAudit(connection, actor, action, entityType, entityId, changes),
+  );
 }
 
 async function insertInvoiceItems(connection, invoiceId, clientId, items) {
@@ -68,9 +107,12 @@ async function insertInvoiceItems(connection, invoiceId, clientId, items) {
         [item.subscription_id, clientId],
       );
       if (!subscription.rowCount) {
-        throw Object.assign(new Error('La suscripción del concepto no pertenece al cliente de la factura.'), {
-          code: 'INVALID_INVOICE_SUBSCRIPTION',
-        });
+        throw Object.assign(
+          new Error('La suscripción del concepto no pertenece al cliente de la factura.'),
+          {
+            code: 'INVALID_INVOICE_SUBSCRIPTION',
+          },
+        );
       }
     }
     await connection.query(
@@ -118,7 +160,9 @@ export async function createPlan(plan, actor) {
       ],
     );
     const created = result.rows[0];
-    await writeAudit(connection, actor, 'plan.create', 'plan', created.id, { after: created });
+    await writeAudit(connection, actor, 'plan.create', 'plan', created.id, {
+      after: created,
+    });
     return created;
   });
 }
@@ -153,7 +197,9 @@ export async function updatePlan(id, plan, updatedAt, actor) {
     );
     const updated = result.rows[0];
     if (!updated) return { status: 'conflict' };
-    await writeAudit(connection, actor, 'plan.update', 'plan', id, { after: updated });
+    await writeAudit(connection, actor, 'plan.update', 'plan', id, {
+      after: updated,
+    });
     return { status: 'updated', record: updated };
   });
 }
@@ -168,7 +214,9 @@ export async function deactivatePlan(id, actor) {
     );
     const plan = result.rows[0];
     if (!plan) return { status: 'not-found' };
-    await writeAudit(connection, actor, 'plan.deactivate', 'plan', id, { after: plan });
+    await writeAudit(connection, actor, 'plan.deactivate', 'plan', id, {
+      after: plan,
+    });
     return { status: 'deactivated', record: plan };
   });
 }
@@ -223,16 +271,17 @@ export async function createSubscription(subscription, actor) {
       ],
     );
     const created = result.rows[0];
-    await writeAudit(connection, actor, 'subscription.create', 'subscription', created.id, { after: created });
+    await writeAudit(connection, actor, 'subscription.create', 'subscription', created.id, {
+      after: created,
+    });
     return created;
   });
 }
 
 export async function getSubscription(id) {
-  const result = await query(
-    `SELECT ${subscriptionColumns} FROM subscriptions WHERE id = $1`,
-    [id],
-  );
+  const result = await query(`SELECT ${subscriptionColumns} FROM subscriptions WHERE id = $1`, [
+    id,
+  ]);
   return result.rows[0] || null;
 }
 
@@ -271,7 +320,9 @@ export async function updateSubscription(id, subscription, updatedAt, actor) {
     );
     const updated = result.rows[0];
     if (!updated) return { status: 'conflict' };
-    await writeAudit(connection, actor, 'subscription.update', 'subscription', id, { after: updated });
+    await writeAudit(connection, actor, 'subscription.update', 'subscription', id, {
+      after: updated,
+    });
     return { status: 'updated', record: updated };
   });
 }
@@ -287,7 +338,9 @@ export async function cancelSubscription(id, actor) {
     );
     const subscription = result.rows[0];
     if (!subscription) return { status: 'not-found' };
-    await writeAudit(connection, actor, 'subscription.cancel', 'subscription', id, { after: subscription });
+    await writeAudit(connection, actor, 'subscription.cancel', 'subscription', id, {
+      after: subscription,
+    });
     return { status: 'cancelled', record: subscription };
   });
 }
@@ -364,7 +417,9 @@ export async function createInvoice(invoice, actor) {
     );
     const created = result.rows[0];
     await insertInvoiceItems(connection, created.id, created.client_id, invoice.items);
-    await writeAudit(connection, actor, 'invoice.create', 'invoice', created.id, { after: created });
+    await writeAudit(connection, actor, 'invoice.create', 'invoice', created.id, {
+      after: created,
+    });
     return created;
   });
 }
@@ -418,6 +473,153 @@ export async function getClientInvoice(clientId, invoiceId) {
   return { ...invoice, items: items.rows };
 }
 
+export async function createMercadoPagoCheckout(clientId, invoiceId, createPreference) {
+  return transaction(async (connection) => {
+    const invoiceResult = await connection.query(
+      `SELECT i.id, i.number, i.status, i.currency, i.total_cents, c.email
+       FROM invoices i
+       JOIN client_accounts c ON c.id = i.client_id
+       WHERE i.id = $1 AND i.client_id = $2 AND i.status NOT IN ('draft', 'void')
+       FOR UPDATE OF i`,
+      [invoiceId, clientId],
+    );
+    const invoice = invoiceResult.rows[0];
+    if (!invoice) return { status: 'not-found' };
+    if (!['open', 'overdue'].includes(invoice.status)) return { status: 'not-payable' };
+
+    const paidResult = await connection.query(
+      `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
+       FROM payments WHERE invoice_id = $1 AND status = 'approved'`,
+      [invoiceId],
+    );
+    const balanceCents = BigInt(invoice.total_cents) - BigInt(paidResult.rows[0].paid_cents);
+    if (balanceCents <= 0n) return { status: 'not-payable' };
+
+    const pendingResult = await connection.query(
+      `SELECT id, amount_cents, provider_payload
+       FROM payments
+       WHERE invoice_id = $1 AND method = 'mercadopago'
+         AND status = 'pending' AND provider_payment_id IS NULL
+       ORDER BY created_at DESC FOR UPDATE`,
+      [invoiceId],
+    );
+    const pendingCheckout = pendingResult.rows.find(
+      (checkout) =>
+        BigInt(checkout.amount_cents) === balanceCents &&
+        typeof checkout.provider_payload?.init_point === 'string' &&
+        Date.parse(checkout.provider_payload?.expires_at) > Date.now(),
+    );
+    if (pendingCheckout) {
+      return {
+        status: 'ready',
+        checkout_url: pendingCheckout.provider_payload.init_point,
+        expires_at: pendingCheckout.provider_payload.expires_at,
+      };
+    }
+
+    const preference = await createPreference({
+      invoice: { ...invoice, id: invoice.id, email: invoice.email },
+      amountCents: Number(balanceCents),
+    });
+    const payload = JSON.stringify({
+      preference_id: preference.preference_id,
+      init_point: preference.init_point,
+      expires_at: preference.expires_at,
+    });
+    await connection.query(
+      `INSERT INTO payments
+        (invoice_id, method, status, currency, amount_cents, provider_payload)
+       VALUES ($1, 'mercadopago', 'pending', $2, $3, $4::jsonb)`,
+      [invoiceId, invoice.currency, Number(balanceCents), payload],
+    );
+    return {
+      status: 'ready',
+      checkout_url: preference.init_point,
+      expires_at: preference.expires_at,
+    };
+  });
+}
+
+export async function approveMercadoPagoPayment(payment) {
+  return transaction(async (connection) => {
+    const existingPayment = await connection.query(
+      `SELECT id FROM payments
+       WHERE method = 'mercadopago' AND provider_payment_id = $1`,
+      [payment.provider_payment_id],
+    );
+    if (existingPayment.rowCount) return { status: 'duplicate' };
+
+    const invoiceResult = await connection.query(
+      `SELECT ${invoiceColumns} FROM invoices WHERE id = $1 FOR UPDATE`,
+      [payment.external_reference],
+    );
+    const invoice = invoiceResult.rows[0];
+    if (!invoice) return { status: 'invoice-not-found' };
+    const confirmedDuplicate = await connection.query(
+      `SELECT id FROM payments
+       WHERE method = 'mercadopago' AND provider_payment_id = $1`,
+      [payment.provider_payment_id],
+    );
+    if (confirmedDuplicate.rowCount) return { status: 'duplicate' };
+    if (!['open', 'overdue'].includes(invoice.status)) return { status: 'not-payable' };
+
+    const pendingResult = await connection.query(
+      `SELECT id, amount_cents, currency, provider_payload
+       FROM payments
+       WHERE invoice_id = $1 AND method = 'mercadopago'
+         AND status = 'pending' AND provider_payment_id IS NULL
+         AND provider_payload->>'preference_id' = $2
+       FOR UPDATE`,
+      [invoice.id, payment.preference_id],
+    );
+    const pendingCheckout = pendingResult.rows[0];
+    if (!pendingCheckout) return { status: 'checkout-not-found' };
+    if (invoice.currency !== payment.currency || pendingCheckout.currency !== payment.currency) {
+      return { status: 'currency-mismatch' };
+    }
+
+    const paidResult = await connection.query(
+      `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
+       FROM payments WHERE invoice_id = $1 AND status = 'approved'`,
+      [invoice.id],
+    );
+    const remaining = BigInt(invoice.total_cents) - BigInt(paidResult.rows[0].paid_cents);
+    if (
+      remaining <= 0n ||
+      BigInt(payment.amount_cents) !== remaining ||
+      BigInt(pendingCheckout.amount_cents) !== remaining
+    )
+      return { status: 'amount-mismatch' };
+
+    const recorded = await connection.query(
+      `UPDATE payments
+       SET status = 'approved', provider_payment_id = $2, provider_payload = $3::jsonb
+       WHERE id = $1
+       RETURNING id, invoice_id, method, status, currency, amount_cents,
+         provider_payment_id, created_at`,
+      [pendingCheckout.id, payment.provider_payment_id, JSON.stringify(payment.provider_payload)],
+    );
+    const updatedInvoice = await connection.query(
+      `UPDATE invoices SET status = 'paid', paid_at = now(), updated_at = now()
+       WHERE id = $1 RETURNING ${invoiceColumns}`,
+      [invoice.id],
+    );
+    await extendPaidInvoiceSubscriptions(connection, invoice.id);
+    await writeAudit(
+      connection,
+      { uid: 'mercadopago-webhook', email: 'mercadopago@system.invalid' },
+      'invoice.payment_mercadopago',
+      'invoice',
+      invoice.id,
+      {
+        payment: recorded.rows[0],
+        invoice_status: updatedInvoice.rows[0].status,
+      },
+    );
+    return { status: 'approved' };
+  });
+}
+
 export async function updateInvoice(id, changes, updatedAt, actor) {
   return transaction(async (connection) => {
     const currentResult = await connection.query(
@@ -428,6 +630,9 @@ export async function updateInvoice(id, changes, updatedAt, actor) {
     if (!current) return { status: 'not-found' };
     if (current.updated_at !== updatedAt) {
       return { status: 'conflict' };
+    }
+    if (await hasActiveMercadoPagoCheckout(connection, id)) {
+      return { status: 'not-editable' };
     }
     if (!['draft', 'open', 'overdue'].includes(current.status)) {
       return { status: 'not-editable' };
@@ -457,7 +662,10 @@ export async function updateInvoice(id, changes, updatedAt, actor) {
       await connection.query('DELETE FROM invoice_items WHERE invoice_id = $1', [id]);
       await insertInvoiceItems(connection, id, invoice.client_id, changes.items);
     }
-    await writeAudit(connection, actor, 'invoice.update', 'invoice', id, { before: current, after: invoice });
+    await writeAudit(connection, actor, 'invoice.update', 'invoice', id, {
+      before: current,
+      after: invoice,
+    });
     return { status: 'updated', record: invoice };
   });
 }
@@ -470,6 +678,9 @@ export async function voidInvoice(id, actor) {
     );
     const current = currentResult.rows[0];
     if (!current) return { status: 'not-found' };
+    if (await hasActiveMercadoPagoCheckout(connection, id)) {
+      return { status: 'not-voidable' };
+    }
     if (!['draft', 'open', 'overdue'].includes(current.status)) return { status: 'not-voidable' };
     const result = await connection.query(
       `UPDATE invoices SET status = 'void', updated_at = now()
@@ -477,7 +688,10 @@ export async function voidInvoice(id, actor) {
       [id],
     );
     const invoice = result.rows[0];
-    await writeAudit(connection, actor, 'invoice.void', 'invoice', id, { before: current, after: invoice });
+    await writeAudit(connection, actor, 'invoice.void', 'invoice', id, {
+      before: current,
+      after: invoice,
+    });
     return { status: 'voided', record: invoice };
   });
 }
@@ -491,6 +705,9 @@ export async function recordManualPayment(invoiceId, payment, actor) {
     const invoice = invoiceResult.rows[0];
     if (!invoice) return { status: 'not-found' };
     if (!['open', 'overdue'].includes(invoice.status)) return { status: 'not-payable' };
+    if (await hasActiveMercadoPagoCheckout(connection, invoiceId)) {
+      return { status: 'checkout-pending' };
+    }
     if (invoice.currency !== payment.currency) return { status: 'currency-mismatch' };
     const paidResult = await connection.query(
       `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
@@ -515,6 +732,7 @@ export async function recordManualPayment(invoiceId, payment, actor) {
          WHERE id = $1`,
         [invoiceId],
       );
+      await extendPaidInvoiceSubscriptions(connection, invoiceId);
     }
     await writeAudit(connection, actor, 'invoice.payment_manual', 'invoice', invoiceId, {
       payment: recorded,
@@ -527,10 +745,13 @@ export async function recordManualPayment(invoiceId, payment, actor) {
 export async function listAudit(filters) {
   const conditions = [];
   const values = [];
-  for (const [field, value] of Object.entries(filters)) {
-    if (!value) continue;
-    values.push(value);
-    conditions.push(`${field} = $${values.length}`);
+  if (filters.entity_type) {
+    values.push(filters.entity_type);
+    conditions.push(`entity_type = $${values.length}`);
+  }
+  if (filters.entity_id) {
+    values.push(filters.entity_id);
+    conditions.push(`entity_id = $${values.length}`);
   }
   values.push(filters.limit ?? 100);
   const limitIndex = values.length;

@@ -1,6 +1,6 @@
 import { getPostgresPool, query } from './postgres.js';
 
-const clientColumns = `id, name, email, phone, services, projects,
+const clientColumns = `id, name, email, phone, services, projects, created_at,
   to_char(updated_at AT TIME ZONE 'UTC',
     'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS updated_at`;
 

@@ -11,7 +11,7 @@ Decisiones tomadas: **planes con precios + facturas manuales + cobro online** (s
 | Etapa | Qué | Por qué primero |
 |---|---|---|
 | 0 | [/] Limpieza técnica (sección 6) | Evita construir sobre deuda y sobre código muerto. |
-| 1 | [/] Tablas nuevas: planes, suscripciones, facturas, pagos, auditoría (sección 2) | Migración escrita; falta validarla contra PostgreSQL antes de avanzar. |
+| 1 | [X] Tablas nuevas: planes, suscripciones, facturas, pagos, auditoría (sección 2) | `002_billing.sql` aplicada y verificada en PostgreSQL 18.6; suites backend y frontend aprobadas. |
 | 2 | Admin: planes y precios, suscripciones por cliente, facturas manuales | Ya podés operar el negocio sin pasarela. |
 | 3 | Cliente: "Mis servicios", "Facturas", "Soporte" | Autoservicio, menos mensajes por WhatsApp. |
 | 4 | Pagos online con webhooks (sección 5) | Se apoya en facturas ya existentes. |
@@ -174,22 +174,28 @@ POST  /api/webhooks/mercadopago
 
 ## 4. Pantallas
 
-**Cliente (`/area-cliente`)**, con barra lateral: Resumen · Servicios · Facturas · Proyectos · Soporte · Perfil.
-- *Resumen:* próximos vencimientos, facturas pendientes (con botón "Pagar"), próximo hito.
-- *Servicios:* tarjeta por servicio con estado, recurso (dominio, buzón), precio, periodicidad, próxima renovación, botón "Pedir cambio o baja".
-- *Facturas:* tabla (número, fecha, total, estado), detalle, descarga en PDF, botón "Pagar ahora".
+**Cliente (`/area-cliente`)**, con barra lateral:
+- [X] Resumen · Servicios · Facturas · Proyectos · Soporte · Perfil; la navegación usa la barra lateral compartida.
+- [X] El resumen muestra servicios, vencimientos, próximo hito y facturas pendientes con acceso al detalle.
+- [X] Servicios en tarjetas con estado, recurso, precio, periodicidad, próxima renovación y enlace para pedir un cambio o una baja.
+- [/] Facturas con tabla, detalle e impresión/guardado como PDF; el botón de pago inicia el checkout de Mercado Pago. Falta validar con credenciales reales y una base PostgreSQL accesible.
 
-**Admin (`/administracion`)**, con barra lateral única: Panel · Clientes · Suscripciones · Facturas · Planes y precios · Catálogo público · Usuarios · Auditoría.
-- *Panel:* ingresos del mes, MRR, facturas vencidas, servicios que vencen en 30 días, clientes nuevos.
-- *Cliente (ficha):* pestañas Datos · Servicios · Facturas · Proyectos · Historial.
-- *Planes y precios:* tabla editable con moneda, periodicidad, IVA y "visible en el sitio".
-- Unificá `/admin`, `/administracion` y `/configuraciones` bajo `/administracion/*`.
+**Admin (`/administracion`)**, con barra lateral única:
+- [X] Panel · Clientes · Suscripciones · Facturas · Planes y precios · Catálogo público · Usuarios · Auditoría.
+- [X] El panel muestra ingresos del mes, MRR, facturas vencidas, servicios próximos a vencer y clientes nuevos.
+- [X] La ficha permite editar datos, servicios y proyectos, y muestra las facturas y el historial de auditoría del cliente.
+- [X] Planes y precios con edición de moneda, periodicidad, IVA y visibilidad pública.
+- [X] `/admin`, `/administracion` y `/configuraciones` llegan al panel bajo `/administracion/*`.
 
-**Sitio público:** que la página de Servicios muestre los planes (`is_public = true`) con precio real y botón "Contratar", en lugar de "Presupuesto a medida" en todo. Mantené "Presupuesto a medida" solo para web y 3D.
+**Sitio público:**
+- [/] Servicios muestra planes públicos activos con precio, moneda, periodicidad y enlace de consulta por email. El botón no inicia una contratación ni se reemplazaron todos los precios estáticos del catálogo.
 
 ---
 
 ## 5. Cobro online: reglas que no se negocian
+
+- [/] Implementé Checkout Pro por factura, validación de firma del webhook, consulta del pago a la API, comparación de monto/moneda/preferencia, idempotencia, auditoría y extensión de renovaciones. El cliente usa saldo calculado en el servidor; faltan credenciales, URL HTTPS pública y prueba completa contra Mercado Pago/PostgreSQL.
+- [/] El webhook tiene un limitador propio por instancia; sigue pendiente compartir el rate limit entre instancias de Vercel.
 
 1. **Nunca marques una factura como pagada por la redirección del navegador** (la URL de "éxito" la puede abrir cualquiera). Solo por webhook verificado o por registro manual del admin.
 2. **Verificá la firma del webhook** con el secreto de la pasarela y, además, **consultá el pago a su API** antes de acreditarlo.
@@ -208,13 +214,13 @@ POST  /api/webhooks/mercadopago
 - [X] Eliminar el soporte residual de Firestore (`typeof x.data === 'function'`) en `dashboardMetrics.js` y `clientProjection.js`.
 - [X] Unificar la regla de vencimientos: los vencidos ya no cuentan como próximos; ahora aparecen en alertas separadas como "Vencido hace N días". Regla documentada en `backend/docs/client-dashboard.md`.
 - [X] Calcular los días contra "hoy" en la zona `America/Montevideo`, no en UTC.
-- [/] Empezar a separar `Admin.jsx` y `ClientArea.jsx`: el cliente ya tiene secciones con rutas y un componente de resumen separado; el admin tiene navegación por rutas, pero todavía no se dividió en un componente por sección.
-- [/] Cambiar el borrado físico por archivado (`archived_at`). El código bloquea clientes con facturas, pero requiere aplicar y validar `002_billing.sql` para que ese bloqueo funcione con la tabla `invoices`.
+- [/] Empezar a separar `Admin.jsx` y `ClientArea.jsx`: el cliente ya tiene secciones con rutas y resumen propio; el admin delega resumen, navegación y contenido por ruta en `AdminDashboardOverview.jsx`, `AdminSidebar.jsx` y `AdminSectionContent.jsx`; aún quedan lógica y estado del cliente/usuarios en el componente principal.
+- [/] Cambiar el borrado físico por archivado (`archived_at`). `002_billing.sql` ya está aplicada; falta una prueba de integración del archivado contra datos con facturas.
 - [/] `.env.example`: se reemplazó el nombre real de la credencial de Firebase por `credentials/service-account.json`. No se verificó si una clave se versionó ni se rotó.
-- [/] Se actualizaron `.gitignore` de backend y frontend para ignorar resultados de pruebas y artefactos de build; `frontend/test-results/.last-run.json` todavía aparece versionado y requiere retirarlo del índice.
-- [ ] `package.json` del frontend: eslint y `@eslint/js` quedaron con versiones que no coinciden (`npm ls` los marca inválidos). Fijalos a una misma versión mayor.
+- [X] Se actualizaron `.gitignore` de backend y frontend para ignorar resultados de pruebas y artefactos de build; `frontend/test-results/.last-run.json` se retiró del índice.
+- [X] `eslint` y `@eslint/js` usan la misma versión mayor; `npm ls eslint @eslint/js --depth=0` finaliza sin dependencias inválidas.
 - [ ] Rate limit compartido (Upstash/Redis) para Vercel; el actual es por instancia.
-- [/] Se agregó una prueba que verifica que la proyección omite `internal_notes` y `provider_payload`. Falta implementar y probar el aislamiento de facturas entre clientes y el rechazo/idempotencia del webhook.
+- [/] La proyección omite `internal_notes` y `provider_payload`; las pruebas validan el aislamiento de facturas por cliente y firma/idempotencia del webhook. El esquema ya está validado en PostgreSQL; falta probar el flujo completo con eventos reales de Mercado Pago.
 - [/] `/comments` redirige a proyectos y `/perfil` redirige al acceso; la ruta CV no se modificó.
 
 ---
@@ -223,7 +229,7 @@ POST  /api/webhooks/mercadopago
 
 **Criterios:** una sola voz (primera persona del singular, porque trabajás como persona: "te ayudo", "configuro"), voseo, frases cortas, beneficio antes que jerga, sin promesas que no podés garantizar (consistente con lo que ya hacés en SEO). Reemplazá los `[...]` con datos reales; **no publiques plazos, cifras ni garantías que no puedas cumplir.**
 
-### 7.1 `SITE.home` (`site.js`)
+### 7.1 [X] `SITE.home` (`site.js`)
 
 ```js
 brand: { subtitle: 'Webs, hosting y soporte técnico', ctaLabel: 'Pedir presupuesto' },

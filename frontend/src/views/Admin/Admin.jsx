@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
@@ -20,20 +20,12 @@ import {
   serviceToForm,
 } from './adminModel';
 import AdminAccessState from './components/AdminAccessState';
-import AdminClientList from './components/AdminClientList';
-import AdminClientEditor from './components/AdminClientEditor';
 import AdminConfirmationDialog from './components/AdminConfirmationDialog';
-import AdminContractedServices from './components/AdminContractedServices';
-import AdminUserDirectory from './components/AdminUserDirectory';
-import PortalSidebar from '../../components/PortalSidebar';
-import BillingPlans from './BillingPlans';
-import BillingInvoices from './BillingInvoices';
-import BillingSubscriptions from './BillingSubscriptions';
-import BillingAudit from './BillingAudit';
+import AdminDashboardOverview from './AdminDashboardOverview';
+import AdminSectionContent from './AdminSectionContent';
+import AdminSidebar from './AdminSidebar';
 import useAdminData from './hooks/useAdminData';
 import './admin.css';
-
-const Configurations = lazy(() => import('../Configurations/Configurations'));
 
 const Admin = () => {
   const { pathname } = useLocation();
@@ -101,10 +93,10 @@ const Admin = () => {
     const client = clients.find((item) => item.id === id);
     const form = client
       ? {
-        ...client,
-        services: client.services.map(serviceToForm),
-        projects: (client.projects || []).map(projectToForm),
-      }
+          ...client,
+          services: client.services.map(serviceToForm),
+          projects: (client.projects || []).map(projectToForm),
+        }
       : emptyClient;
     setClientForm(form);
     setClientBaseline(form);
@@ -233,13 +225,13 @@ const Admin = () => {
       projects: current.projects.map((project, currentProjectIndex) =>
         currentProjectIndex === projectIndex
           ? {
-            ...project,
-            milestones: project.milestones.map((milestone, currentMilestoneIndex) =>
-              currentMilestoneIndex === milestoneIndex
-                ? { ...milestone, [field]: value }
-                : milestone,
-            ),
-          }
+              ...project,
+              milestones: project.milestones.map((milestone, currentMilestoneIndex) =>
+                currentMilestoneIndex === milestoneIndex
+                  ? { ...milestone, [field]: value }
+                  : milestone,
+              ),
+            }
           : project,
       ),
     }));
@@ -376,66 +368,8 @@ const Admin = () => {
         </div>
       </header>
 
-      {section === 'dashboard' ? <section className="admin-summary-grid">
-        <div className="admin-summary-card">
-          <span>Clientes</span>
-          <strong>{dashboardStats.clients}</strong>
-        </div>
-        <div className="admin-summary-card">
-          <span>Servicios activos</span>
-          <strong>{dashboardStats.activeServices}</strong>
-        </div>
-        <div className="admin-summary-card">
-          <span>Proyectos</span>
-          <strong>{dashboardStats.projects}</strong>
-        </div>
-        <div className="admin-summary-card">
-          <span>Prioridades</span>
-          <strong>{dashboardStats.priorityItems}</strong>
-        </div>
-        <div className="admin-summary-card">
-          <span>Vencidos</span>
-          <strong>{dashboardStats.overdueItems}</strong>
-        </div>
-      </section> : null}
-
-      {section === 'dashboard' && dashboard?.priorityItems?.length ? (
-        <section className="admin-priority-panel">
-          <div className="admin-panel-heading">
-            <h2>Prioridades del negocio</h2>
-          </div>
-          <ul className="admin-priority-list">
-            {dashboard.priorityItems.slice(0, 5).map((item, index) => (
-              <li key={`${item.client}-${item.title}-${index}`}>
-                <span className="admin-priority-badge">{item.kind === 'milestone' ? 'Hito' : 'Servicio'}</span>
-                <div>
-                  <strong>{item.client}</strong>
-                  <small>{item.title}</small>
-                </div>
-                <em>{item.diffDays <= 0 ? 'Hoy' : `En ${item.diffDays} días`}</em>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-      {section === 'dashboard' && dashboard?.overdueItems?.length ? (
-        <section className="admin-priority-panel" role="alert">
-          <div className="admin-panel-heading">
-            <h2>Vencimientos atrasados</h2>
-          </div>
-          <ul className="admin-priority-list">
-            {dashboard.overdueItems.map((item, index) => (
-              <li key={`${item.client}-${item.title}-${index}`}>
-                <span className="admin-priority-badge">Vencido</span>
-                <div>
-                  <strong>{item.client}</strong>
-                  <small>{item.title}</small>
-                </div>
-                <em>Hace {item.daysOverdue} días</em>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {section === 'dashboard' ? (
+        <AdminDashboardOverview dashboard={dashboard} stats={dashboardStats} />
       ) : null}
 
       {sessionExpired ? (
@@ -459,85 +393,43 @@ const Admin = () => {
       )}
 
       <div className="admin-portal-layout">
-        <PortalSidebar
-          label="Secciones administrativas"
-          items={[
-            { to: '/administracion/dashboard', label: 'Panel' },
-            { to: '/administracion/clients', label: 'Clientes', badge: clients.length },
-            { to: '/administracion/subscriptions', label: 'Suscripciones' },
-            { to: '/administracion/invoices', label: 'Facturas' },
-            { to: '/administracion/plans', label: 'Planes y precios' },
-            { to: '/administracion/configuraciones/catalogo', label: 'Catálogo público' },
-            { to: '/administracion/contracts', label: 'Servicios heredados', badge: contractedServices.length },
-            { to: '/administracion/users', label: 'Usuarios', badge: users.length },
-            { to: '/administracion/audit', label: 'Auditoría' },
-          ]}
+        <AdminSidebar
+          clientCount={clients.length}
+          legacyServiceCount={contractedServices.length}
+          userCount={users.length}
         />
-        <section className="admin-section-content">
-      {section === 'plans' ? (
-        <BillingPlans />
-      ) : section === 'subscriptions' ? (
-        <BillingSubscriptions clients={clients} />
-      ) : section === 'invoices' ? (
-        <BillingInvoices clients={clients} />
-      ) : section === 'audit' ? (
-        <BillingAudit />
-      ) : section === 'configuraciones' ? (
-        <Suspense fallback={<p role="status">Cargando catálogo…</p>}>
-          <Configurations />
-        </Suspense>
-      ) : section === 'dashboard' ? (
-        <section className="billing-admin-section">
-          <div className="admin-panel-heading">
-            <div><span className="eyebrow">Resumen</span><h2>Panel de administración</h2></div>
-          </div>
-          <p>Revisá clientes, servicios y vencimientos desde las secciones del menú.</p>
-        </section>
-      ) : section === 'users' ? (
-        <AdminUserDirectory
+        <AdminSectionContent
+          section={section}
+          clients={clients}
+          dashboard={dashboard}
           users={users}
-          selectedUid={selectedUserUid}
-          search={userSearch}
-          onSearchChange={setUserSearch}
-          onSelect={setSelectedUserUid}
-          onToggleDisabled={handleUserStatusChange}
+          usersError={usersError}
+          firebaseUid={firebaseUser.uid}
+          busy={busy}
+          selectedUserUid={selectedUserUid}
+          setSelectedUserUid={setSelectedUserUid}
+          userSearch={userSearch}
+          setUserSearch={setUserSearch}
+          onToggleUserStatus={handleUserStatusChange}
           onManageClient={manageClient}
           onCreateClient={createClientForUser}
           onRetry={refreshData}
-          currentUid={firebaseUser.uid}
-          busy={busy}
-          error={usersError}
+          onManageContractedClient={manageClient}
+          filteredClients={filteredClients}
+          selectedClientId={selectedClientId}
+          clientSearch={clientSearch}
+          setClientSearch={setClientSearch}
+          onChooseClient={chooseClient}
+          clientForm={clientForm}
+          setClientForm={setClientForm}
+          clientIsDirty={clientIsDirty}
+          sessionExpired={sessionExpired}
+          onSubmitClient={handleClientSubmit}
+          onDeleteClient={handleClientDelete}
+          onUpdateService={updateClientService}
+          onUpdateProject={updateClientProject}
+          onUpdateMilestone={updateProjectMilestone}
         />
-      ) : section === 'contracts' ? (
-        <AdminContractedServices clients={clients} onManageClient={manageClient} />
-      ) : section === 'clients' ? (
-        <section className="admin-workspace">
-          <AdminClientList
-            clients={clients}
-            filteredClients={filteredClients}
-            selectedClientId={selectedClientId}
-            search={clientSearch}
-            onSearchChange={setClientSearch}
-            onNew={() => chooseClient('')}
-            onSelect={chooseClient}
-          />
-
-          <AdminClientEditor
-            selectedClientId={selectedClientId}
-            client={clientForm}
-            setClient={setClientForm}
-            isDirty={clientIsDirty}
-            busy={busy}
-            sessionExpired={sessionExpired}
-            onSubmit={handleClientSubmit}
-            onDelete={handleClientDelete}
-            onUpdateService={updateClientService}
-            onUpdateProject={updateClientProject}
-            onUpdateMilestone={updateProjectMilestone}
-          />
-        </section>
-      ) : null}
-        </section>
       </div>
     </main>
   );

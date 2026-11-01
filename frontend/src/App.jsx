@@ -72,7 +72,6 @@ function LoginRouter() {
   const AdminComponent = useContext(AdminContext) || Admin;
   const { pathname } = useLocation();
   const isAdminRoute = pathname.startsWith('/administracion');
-  const isConfigurationRoute = pathname.startsWith('/administracion/configuraciones');
   const isClientRoute = pathname.startsWith('/area-cliente');
   const requiredRole = isAdminRoute ? 'admin' : isClientRoute ? 'client' : null;
   const [isAdmin, setIsAdmin] = useState(false);

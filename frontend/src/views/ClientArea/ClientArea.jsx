@@ -9,7 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { auth, googleProvider, firebaseReady } from '../../firebase';
-import { NavLink, Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useContact } from '../../config/useContact';
 import { mailtoUrl, whatsappUrl } from '../../config/site';
 import { updateClientProfile } from '../../services/authApi';
@@ -20,6 +20,10 @@ import BackendStatusCard from './components/BackendStatusCard';
 import ClientProjectsPanel from './components/ClientProjectsPanel';
 import ClientServicesList from './components/ClientServicesList';
 import ClientOverview from './ClientOverview';
+import ClientBilling from './ClientBilling';
+import ClientSubscriptions from './ClientSubscriptions';
+import ClientSupport from './ClientSupport';
+import PortalSidebar from '../../components/PortalSidebar';
 import { getClientAreaGuidance } from './clientAreaHelpers';
 import useClientAccount from './hooks/useClientAccount';
 import './client-area.css';
@@ -29,7 +33,9 @@ const isDevelopment = import.meta.env.DEV;
 
 const ClientArea = () => {
   const { pathname } = useLocation();
-  const section = pathname.replace(/^\/area-cliente\/?/, '').split('/')[0] || 'overview';
+  const routeParts = pathname.replace(/^\/area-cliente\/?/, '').split('/');
+  const section = routeParts[0] || 'overview';
+  const invoiceId = section === 'invoices' ? routeParts[1] : undefined;
   const contact = useContact();
   const supportEmail = mailtoUrl(contact, 'Consulta sobre el área de clientes');
   const accessEmail = mailtoUrl(contact, 'Solicitud de acceso al portal');
@@ -387,16 +393,22 @@ const ClientArea = () => {
       )}
 
       <div className="client-area-layout">
-        <nav className="client-section-nav" aria-label="Secciones del área de cliente">
-          <NavLink to="/area-cliente" end>Resumen</NavLink>
-          <NavLink to="/area-cliente/services">Servicios</NavLink>
-          <NavLink to="/area-cliente/projects">Proyectos</NavLink>
-          <NavLink to="/area-cliente/profile">Perfil</NavLink>
-        </nav>
+        <PortalSidebar
+          label="Secciones del área de cliente"
+          items={[
+            { to: '/area-cliente', label: 'Resumen', end: true },
+            { to: '/area-cliente/services', label: 'Servicios' },
+            { to: '/area-cliente/invoices', label: 'Facturas' },
+            { to: '/area-cliente/projects', label: 'Proyectos' },
+            { to: '/area-cliente/support', label: 'Soporte' },
+            { to: '/area-cliente/profile', label: 'Perfil' },
+          ]}
+        />
 
         <section className="client-section-content">
           {section === 'overview' ? (
             <ClientOverview
+              firebaseUser={firebaseUser}
               dashboardData={dashboardData}
               totals={totals}
               guidance={guidance}
@@ -404,11 +416,17 @@ const ClientArea = () => {
               supportWhatsApp={supportWhatsApp}
             />
           ) : section === 'services' ? (
+            <ClientSubscriptions firebaseUser={firebaseUser} />
+          ) : section === 'legacy-services' ? (
             <ClientServicesList
               services={clientData.services}
               clientId={clientData.id}
               userId={user.uid}
             />
+          ) : section === 'invoices' ? (
+            <ClientBilling firebaseUser={firebaseUser} invoiceId={invoiceId} />
+          ) : section === 'support' ? (
+            <ClientSupport />
           ) : section === 'projects' ? (
             <ClientProjectsPanel projects={clientData.projects} />
           ) : section === 'profile' ? (
