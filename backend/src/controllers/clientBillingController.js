@@ -259,6 +259,43 @@ export function createMercadoPagoWebhookProcessor(
             !payment.preference_id ||
             !['UYU', 'USD'].includes(payment.currency_id)
           ) {
+            await repository.recordUnappliedMercadoPagoPayment(
+              {
+                provider_payment_id: event.provider_payment_id,
+                external_reference:
+                  typeof payment.external_reference === 'string'
+                    ? payment.external_reference.slice(0, 150)
+                    : null,
+                preference_id:
+                  typeof payment.preference_id === 'string'
+                    ? payment.preference_id.slice(0, 150)
+                    : null,
+                amount_cents: amountCents,
+                currency: ['UYU', 'USD'].includes(payment.currency_id)
+                  ? payment.currency_id
+                  : null,
+                provider_payload: {
+                  status: payment.status,
+                  transaction_amount:
+                    typeof payment.transaction_amount === 'number'
+                      ? payment.transaction_amount
+                      : null,
+                  currency_id:
+                    typeof payment.currency_id === 'string'
+                      ? payment.currency_id.slice(0, 10)
+                      : null,
+                  external_reference:
+                    typeof payment.external_reference === 'string'
+                      ? payment.external_reference.slice(0, 150)
+                      : null,
+                  preference_id:
+                    typeof payment.preference_id === 'string'
+                      ? payment.preference_id.slice(0, 150)
+                      : null,
+                },
+              },
+              'invalid_provider_payment_fields',
+            );
             log.warn('mercadopago_payment_rejected', {
               requestId: req.id,
               reason: 'invalid_provider_payment_fields',
@@ -286,6 +323,24 @@ export function createMercadoPagoWebhookProcessor(
             },
           });
           if (outcome.status !== 'approved' && outcome.status !== 'duplicate') {
+            await repository.recordUnappliedMercadoPagoPayment(
+              {
+                provider_payment_id: event.provider_payment_id,
+                external_reference: payment.external_reference,
+                amount_cents: amountCents,
+                currency: payment.currency_id,
+                provider_payload: {
+                  status: payment.status,
+                  transaction_amount: payment.transaction_amount,
+                  currency_id: payment.currency_id,
+                  external_reference: payment.external_reference,
+                  preference_id: payment.preference_id,
+                  date_approved: payment.date_approved || null,
+                  payment_method_id: payment.payment_method_id || null,
+                },
+              },
+              outcome.status,
+            );
             log.warn('mercadopago_payment_not_applied', {
               requestId: req.id,
               reason: outcome.status,

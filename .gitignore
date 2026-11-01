@@ -30,3 +30,6 @@ frontend/.env.local
 backend/.env.local
 frontend/README.md
 frontend/docs/Profile.pdf
+paquetes/
+auditoria-mandalestart-v2.md
+mandalestart-mejoras.md

@@ -6,6 +6,8 @@ const migrationUrl = new URL('../migrations/002_billing.sql', import.meta.url);
 const migration = (await readFile(migrationUrl, 'utf8')).toLowerCase();
 const webhookQueueMigrationUrl = new URL('../migrations/003_mercadopago_webhook_queue.sql', import.meta.url);
 const webhookQueueMigration = (await readFile(webhookQueueMigrationUrl, 'utf8')).toLowerCase();
+const unappliedPaymentsMigrationUrl = new URL('../migrations/004_unapplied_mercadopago_payments.sql', import.meta.url);
+const unappliedPaymentsMigration = (await readFile(unappliedPaymentsMigrationUrl, 'utf8')).toLowerCase();
 
 test('billing migration defines integer money, currency checks and required billing tables', () => {
   for (const table of [
@@ -45,4 +47,12 @@ test('webhook queue and shared rate-limit migration persist events and counters'
   assert.match(webhookQueueMigration, /available_at timestamptz/);
   assert.match(webhookQueueMigration, /create table if not exists api_rate_limit_windows/);
   assert.match(webhookQueueMigration, /create index if not exists api_rate_limit_windows_reset_idx/);
+});
+
+test('unapplied payment migration stores approved provider payments for review idempotently', () => {
+  assert.match(unappliedPaymentsMigration, /create table if not exists unapplied_payments/);
+  assert.match(unappliedPaymentsMigration, /provider_payment_id text not null unique/);
+  assert.match(unappliedPaymentsMigration, /status text not null default 'pending_review'/);
+  assert.match(unappliedPaymentsMigration, /'applied', 'refunded', 'dismissed'/);
+  assert.match(unappliedPaymentsMigration, /create index if not exists unapplied_payments_pending_idx/);
 });

@@ -36,6 +36,18 @@
     {
       "source": "/configuraciones/catalogo",
       "destination": "/index.html"
+    },
+    {
+      "source": "/area-cliente/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/administracion/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/configuraciones/:path*",
+      "destination": "/index.html"
     }
   ],
   "headers": [

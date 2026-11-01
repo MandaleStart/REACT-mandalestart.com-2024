@@ -17,6 +17,8 @@ Configurá `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_WEBHOOK_URL`, `PUBLIC_APP
 
 El checkout usa el saldo calculado en PostgreSQL, no un importe del navegador. Se conserva la preferencia durante 30 minutos y solicitudes concurrentes reutilizan el mismo enlace. Mientras una preferencia está activa no se permite editar, anular ni registrar pagos manuales en esa factura. El proveedor debe devolver un pago aprobado que coincida con factura, preferencia, moneda y saldo; solo entonces se actualizan pago, factura, suscripciones mensuales/anuales vinculadas y auditoría en una transacción. La fecha de renovación se extiende desde la fecha más tardía entre el vencimiento actual y hoy en `America/Montevideo`. La redirección de éxito del navegador nunca acredita el pago. Los webhooks repetidos son idempotentes por el índice `payments_provider_unique`.
 
+Los pagos aprobados que no puedan asociarse o aplicarse se guardan idempotentemente en `unapplied_payments`, con el motivo y datos de proveedor limitados para revisión. Aplicá `004_unapplied_mercadopago_payments.sql` antes de procesar esos casos. Todavía no hay pantalla administrativa, acciones de conciliación/reembolso ni notificación por email; hasta incorporarlas, hay que revisar la tabla directamente.
+
 El webhook valida la firma y guarda el identificador de notificación en `mercadopago_webhook_events`, respondiendo `200` después de la escritura durable, sin esperar una llamada externa. El cron de Vercel ejecuta `GET /api/jobs/mercadopago-webhooks` cada minuto; el endpoint exige `Authorization: Bearer <CRON_SECRET>`, reclama eventos con bloqueo y reintenta fallas transitorias con espera exponencial. El procesador consulta el pago a la API de Mercado Pago antes de aplicar cualquier cambio. Eventos repetidos se reconocen y los pagos ya procesados siguen protegidos por `payments_provider_unique`. Las inconsistencias se registran como advertencia y se confirman para evitar reintentos inútiles; revisá `mercadopago_payment_not_applied`. El limitador del webhook usa `api_rate_limit_windows` en PostgreSQL y comparte sus ventanas entre instancias.
 
 La respuesta rápida requiere que `003_mercadopago_webhook_queue.sql` esté aplicada y que el cron esté habilitado en el proyecto Vercel. El procesador puede invocarse manualmente con el mismo header de autorización para validar eventos en desarrollo.
@@ -44,7 +46,7 @@ Los totales y el IVA de cada concepto se calculan en el servidor con aritmética
 ## Puesta en marcha
 
 1. Hacé un respaldo y probá primero en una base PostgreSQL de desarrollo.
-2. Desde `backend/`, ejecutá `npm run db:migrate`; el runner aplica las migraciones pendientes (`001`, `002` y `003`) en transacciones protegidas por advisory lock y registra cada archivo en `schema_migrations`.
+2. Desde `backend/`, ejecutá `npm run db:migrate`; el runner aplica las migraciones pendientes (`001` a `004`) en transacciones protegidas por advisory lock y registra cada archivo en `schema_migrations`.
 3. La migración importa los servicios JSONB una sola vez. Revisá las notas internas y completá precio, moneda y periodicidad antes de emitir comprobantes.
 4. Corré `npm test` desde `backend/` y comprobá que `GET /api/health` informa una conexión PostgreSQL disponible.
 

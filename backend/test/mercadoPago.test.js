@@ -361,6 +361,98 @@ test('processor retries provider failures and rejects requests without its secre
   assert.deepEqual(retryEvent, [9, 'MERCADOPAGO_REQUEST_FAILED']);
 });
 
+test('processor persists approved payments that cannot be applied before completing the webhook', async () => {
+  const operations = [];
+  const processor = createMercadoPagoWebhookProcessor(
+    {
+      async claimMercadoPagoWebhookEvents() {
+        return [{ id: 11, provider_payment_id: '12345' }];
+      },
+      async approveMercadoPagoPayment() {
+        return { status: 'amount-mismatch' };
+      },
+      async recordUnappliedMercadoPagoPayment(payment, reason) {
+        operations.push({ type: 'record', payment, reason });
+      },
+      async completeMercadoPagoWebhookEvent(id) {
+        operations.push({ type: 'complete', id });
+      },
+    },
+    {
+      async getPayment(id) {
+        return {
+          id,
+          status: 'approved',
+          external_reference: 'invoice-1',
+          preference_id: 'preference-1',
+          currency_id: 'UYU',
+          transaction_amount: 100,
+          card: { number: 'sensitive' },
+        };
+      },
+    },
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
+    { warn() {} },
+  );
+  const res = response();
+
+  await processor({ id: 'api-request-3', get: () => 'Bearer cron-secret' }, res, (error) => {
+    throw error;
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(operations[0].type, 'record');
+  assert.equal(operations[0].reason, 'amount-mismatch');
+  assert.equal(operations[0].payment.provider_payload.card, undefined);
+  assert.deepEqual(operations[1], { type: 'complete', id: 11 });
+});
+
+test('processor stores approved payments missing a preference id for manual review', async () => {
+  let recorded;
+  const processor = createMercadoPagoWebhookProcessor(
+    {
+      async claimMercadoPagoWebhookEvents() {
+        return [{ id: 12, provider_payment_id: '12345' }];
+      },
+      async recordUnappliedMercadoPagoPayment(payment, reason) {
+        recorded = { payment, reason };
+      },
+      async completeMercadoPagoWebhookEvent() {},
+    },
+    {
+      async getPayment(id) {
+        return {
+          id,
+          status: 'approved',
+          external_reference: 'invoice-1',
+          currency_id: 'UYU',
+          transaction_amount: 100,
+        };
+      },
+    },
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
+    { warn() {} },
+  );
+  const res = response();
+
+  await processor({ id: 'api-request-4', get: () => 'Bearer cron-secret' }, res, (error) => {
+    throw error;
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(recorded.reason, 'invalid_provider_payment_fields');
+  assert.equal(recorded.payment.external_reference, 'invoice-1');
+  assert.equal(recorded.payment.preference_id, null);
+});
+
 test('processor completes non-approved payments without applying them', async () => {
   const warnings = [];
   let approved = false;

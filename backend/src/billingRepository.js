@@ -691,6 +691,30 @@ export async function retryMercadoPagoWebhookEvent(id, errorCode) {
   );
 }
 
+export async function recordUnappliedMercadoPagoPayment(payment, reason) {
+  const invoiceResult = payment.external_reference
+    ? await query('SELECT id FROM invoices WHERE id = $1', [payment.external_reference])
+    : { rows: [] };
+  const result = await query(
+    `INSERT INTO unapplied_payments
+       (provider_payment_id, invoice_id, external_reference, reason,
+        amount_cents, currency, provider_payload)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+     ON CONFLICT (provider_payment_id) DO NOTHING
+     RETURNING id`,
+    [
+      payment.provider_payment_id,
+      invoiceResult.rows[0]?.id || null,
+      payment.external_reference || null,
+      reason,
+      payment.amount_cents,
+      payment.currency,
+      JSON.stringify(payment.provider_payload),
+    ],
+  );
+  return result.rowCount > 0;
+}
+
 export async function updateInvoice(id, changes, updatedAt, actor) {
   return transaction(async (connection) => {
     const currentResult = await connection.query(
