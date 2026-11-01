@@ -9,7 +9,6 @@ import { initFirebase } from './firebase.js';
 import { logger } from './logger.js';
 import apiRoutes from './routes/api.js';
 import { projectClientRecord } from './services/clientProjection.js';
-import { PostgresRateLimitStore } from './middleware/postgresRateLimitStore.js';
 
 const env = getValidatedEnv(process.env);
 const allowedOrigins = getAllowedOrigins(env);
@@ -64,7 +63,6 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: 'Demasiadas solicitudes. Esperá un momento y volvé a intentar.' },
   skip: (req) => env.NODE_ENV === 'test' || req.path === '/health',
-  store: new PostgresRateLimitStore({ keyPrefix: 'api' }),
 });
 
 app.use('/api', apiLimiter);

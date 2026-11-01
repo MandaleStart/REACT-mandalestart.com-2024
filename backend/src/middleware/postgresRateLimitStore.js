@@ -5,7 +5,6 @@ export class PostgresRateLimitStore {
     this.keyPrefix = keyPrefix;
     this.query = queryFn;
     this.windowMs = 0;
-    this.nextCleanupAt = 0;
   }
 
   init(options) {
@@ -31,11 +30,6 @@ export class PostgresRateLimitStore {
       [rateKey, this.windowMs],
     );
 
-    if (Date.now() >= this.nextCleanupAt) {
-      this.nextCleanupAt = Date.now() + this.windowMs;
-      await this.query('DELETE FROM api_rate_limit_windows WHERE reset_at < now()');
-    }
-
     return {
       totalHits: Number(result.rows[0].hits),
       resetTime: result.rows[0].reset_at,
@@ -55,5 +49,10 @@ export class PostgresRateLimitStore {
     await this.query('DELETE FROM api_rate_limit_windows WHERE rate_key = $1', [
       `${this.keyPrefix}:${key}`,
     ]);
+  }
+
+  async cleanupExpired() {
+    const result = await this.query('DELETE FROM api_rate_limit_windows WHERE reset_at < now()');
+    return result.rowCount;
   }
 }

@@ -43,6 +43,7 @@ const contactLimiter = rateLimit({
         message: 'Se alcanzó el límite de consultas. Intentá nuevamente más tarde.',
     },
     skip: () => process.env.NODE_ENV === 'test',
+    passOnStoreError: true,
     store: new PostgresRateLimitStore({ keyPrefix: 'contact' }),
 });
 const mercadopagoWebhookLimiter = rateLimit({
@@ -54,7 +55,20 @@ const mercadopagoWebhookLimiter = rateLimit({
         message: 'Demasiadas notificaciones. Intentá nuevamente más tarde.',
     },
     skip: () => process.env.NODE_ENV === 'test',
+    passOnStoreError: true,
     store: new PostgresRateLimitStore({ keyPrefix: 'mercadopago-webhook' }),
+});
+const checkoutLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: {
+        message: 'Se alcanzó el límite de intentos de pago. Esperá un momento y volvé a intentar.',
+    },
+    skip: () => process.env.NODE_ENV === 'test',
+    passOnStoreError: true,
+    store: new PostgresRateLimitStore({ keyPrefix: 'invoice-checkout' }),
 });
 
 router.get('/health', getHealth);
@@ -84,6 +98,7 @@ router.get(
 );
 router.post(
     '/clients/me/invoices/:id/checkout',
+    checkoutLimiter,
     requireVerifiedFirebaseUser,
     clientBillingControllers.createCheckout,
 );
@@ -131,7 +146,27 @@ router.post(
     adminBillingControllers.recordManualPayment,
 );
 router.post('/admin/invoices/:id/void', requireFirebaseAdmin, adminBillingControllers.voidInvoice);
+router.get(
+    '/admin/unapplied-payments',
+    requireFirebaseAdmin,
+    adminBillingControllers.listUnappliedPayments,
+);
+router.post(
+    '/admin/unapplied-payments/:id/apply',
+    requireFirebaseAdmin,
+    adminBillingControllers.applyUnappliedPayment,
+);
+router.post(
+    '/admin/unapplied-payments/:id/dismiss',
+    requireFirebaseAdmin,
+    adminBillingControllers.dismissUnappliedPayment,
+);
 router.get('/admin/reports/revenue', requireFirebaseAdmin, adminBillingControllers.revenueReport);
+router.get(
+    '/admin/reports/receivables',
+    requireFirebaseAdmin,
+    adminBillingControllers.receivablesReport,
+);
 router.get('/admin/audit', requireFirebaseAdmin, adminBillingControllers.listAudit);
 router.post('/contact', contactLimiter, submitContact);
 router.get('/', apiLanding);

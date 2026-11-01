@@ -4,7 +4,6 @@ function pickString(value) {
 
 export function projectClientRecord(client, email) {
     const clientData = client;
-    const services = Array.isArray(clientData.services) ? clientData.services : [];
     const clientEmail = email || pickString(clientData.email);
 
     return {
@@ -12,23 +11,10 @@ export function projectClientRecord(client, email) {
         name: pickString(clientData.name),
         email: clientEmail,
         phone: pickString(clientData.phone),
-        services: services.map((service, index) => ({
-            id: pickString(service.id) || `${pickString(service.type) || 'service'}-${index}`,
-            type: pickString(service.type),
-            title: pickString(service.title),
-            name: pickString(service.name),
-            cost: pickString(service.cost),
-            expiry: pickString(service.expiry),
-            status: pickString(service.status),
-            details: Array.isArray(service.details)
-                ? service.details
-                    .filter((detail) => detail && typeof detail === 'object')
-                    .map((detail) => ({
-                        label: pickString(detail.label),
-                        value: pickString(detail.value),
-                    }))
-                : [],
-        })),
+        company: pickString(clientData.company),
+        tax_id: pickString(clientData.tax_id),
+        billing_email: pickString(clientData.billing_email),
+        billing_address: pickString(clientData.billing_address),
         projects: Array.isArray(clientData.projects)
             ? clientData.projects.filter((project) => project && typeof project === 'object').slice(0, 50).map((project, projectIndex) => ({
                 id: pickString(project.id) || `project-${projectIndex}`,

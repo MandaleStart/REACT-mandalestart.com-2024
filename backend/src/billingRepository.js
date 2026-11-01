@@ -14,6 +14,11 @@ const invoiceColumns = `id, number, client_id, status, currency, subtotal_cents,
   tax_cents, total_cents, issued_on, due_on, paid_at, notes, created_at,
   to_char(updated_at AT TIME ZONE 'UTC',
     'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS updated_at`;
+const invoiceListColumns = `i.id, i.number, i.client_id, i.status, i.currency,
+  i.subtotal_cents, i.tax_cents, i.total_cents, i.issued_on, i.due_on, i.paid_at,
+  i.notes, i.created_at,
+  to_char(i.updated_at AT TIME ZONE 'UTC',
+    'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS updated_at`;
 const clientPaymentStatus = `CASE
   WHEN i.status = 'paid' OR COALESCE((
     SELECT SUM(p.amount_cents) FROM payments p
@@ -80,7 +85,13 @@ async function hasActiveMercadoPagoCheckout(connection, invoiceId) {
     `SELECT 1 FROM payments
      WHERE invoice_id = $1 AND method = 'mercadopago'
        AND status = 'pending' AND provider_payment_id IS NULL
-       AND (provider_payload->>'expires_at')::timestamptz > now()
+       AND (
+         (provider_payload->>'expires_at')::timestamptz > now()
+         OR (
+           provider_payload->>'checkout_state' = 'creating'
+           AND created_at > now() - interval '2 minutes'
+         )
+       )
      LIMIT 1`,
     [invoiceId],
   );
@@ -260,6 +271,14 @@ export async function listClientSubscriptions(clientId) {
   return result.rows;
 }
 
+export async function listDashboardSubscriptions() {
+  const result = await query(
+    `SELECT id, client_id, label, resource_name, status, renews_on
+     FROM subscriptions ORDER BY client_id, id`,
+  );
+  return result.rows;
+}
+
 export async function createSubscription(subscription, actor) {
   return transaction(async (connection) => {
     const result = await connection.query(
@@ -371,19 +390,44 @@ export async function listInvoices(filters) {
     values.push(value);
     if (field === 'from') conditions.push(`issued_on >= $${values.length}::date`);
     else if (field === 'to') conditions.push(`issued_on <= $${values.length}::date`);
-    else conditions.push(`${field} = $${values.length}`);
+    else conditions.push(`i.${field} = $${values.length}`);
+  }
+  if (filters.search) {
+    const escapedSearch = filters.search.replace(/[\\%_]/g, '\\$&');
+    values.push(`%${escapedSearch}%`);
+    const textParameter = values.length;
+    values.push(filters.amount_cents ?? null);
+    const amountParameter = values.length;
+    conditions.push(
+      `(i.number ILIKE $${textParameter} ESCAPE E'\\\\' OR c.name ILIKE $${textParameter} ESCAPE E'\\\\' OR c.email ILIKE $${textParameter} ESCAPE E'\\\\' OR ($${amountParameter}::bigint IS NOT NULL AND i.total_cents = $${amountParameter}::bigint))`,
+    );
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const countResult = await query(
+    `SELECT COUNT(*)::integer AS total
+     FROM invoices AS i
+     JOIN client_accounts AS c ON c.id = i.client_id
+     ${where}`,
+    values,
+  );
+  const total = countResult.rows[0].total;
   values.push(filters.limit ?? 100);
   const limitParameter = values.length;
   values.push(filters.offset ?? 0);
   const result = await query(
-    `SELECT ${invoiceColumns} FROM invoices ${where}
-     ORDER BY issued_on DESC NULLS LAST, created_at DESC
+    `SELECT ${invoiceListColumns} FROM invoices AS i
+     JOIN client_accounts AS c ON c.id = i.client_id
+     ${where}
+     ORDER BY i.issued_on DESC NULLS LAST, i.created_at DESC
      LIMIT $${limitParameter} OFFSET $${values.length}`,
     values,
   );
-  return result.rows;
+  return {
+    items: result.rows,
+    total,
+    limit: filters.limit ?? 100,
+    offset: filters.offset ?? 0,
+  };
 }
 
 async function buildNextInvoiceNumber(connection) {
@@ -493,7 +537,7 @@ export async function getClientInvoice(clientId, invoiceId) {
 }
 
 export async function createMercadoPagoCheckout(clientId, invoiceId, createPreference) {
-  return transaction(async (connection) => {
+  const reservation = await transaction(async (connection) => {
     const invoiceResult = await connection.query(
       `SELECT i.id, i.number, i.status, i.currency, i.total_cents, c.email
        FROM invoices i
@@ -503,8 +547,10 @@ export async function createMercadoPagoCheckout(clientId, invoiceId, createPrefe
       [invoiceId, clientId],
     );
     const invoice = invoiceResult.rows[0];
-    if (!invoice) return { status: 'not-found' };
-    if (!['open', 'overdue'].includes(invoice.status)) return { status: 'not-payable' };
+    if (!invoice) return { result: { status: 'not-found' } };
+    if (!['open', 'overdue'].includes(invoice.status)) {
+      return { result: { status: 'not-payable' } };
+    }
 
     const paidResult = await connection.query(
       `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
@@ -512,10 +558,10 @@ export async function createMercadoPagoCheckout(clientId, invoiceId, createPrefe
       [invoiceId],
     );
     const balanceCents = BigInt(invoice.total_cents) - BigInt(paidResult.rows[0].paid_cents);
-    if (balanceCents <= 0n) return { status: 'not-payable' };
+    if (balanceCents <= 0n) return { result: { status: 'not-payable' } };
 
     const pendingResult = await connection.query(
-      `SELECT id, amount_cents, provider_payload
+      `SELECT id, amount_cents, provider_payload, created_at
        FROM payments
        WHERE invoice_id = $1 AND method = 'mercadopago'
          AND status = 'pending' AND provider_payment_id IS NULL
@@ -529,28 +575,120 @@ export async function createMercadoPagoCheckout(clientId, invoiceId, createPrefe
         Date.parse(checkout.provider_payload?.expires_at) > Date.now(),
     );
     if (pendingCheckout) {
-      return {
+      return { result: {
         status: 'ready',
         checkout_url: pendingCheckout.provider_payload.init_point,
         expires_at: pendingCheckout.provider_payload.expires_at,
-      };
+      } };
     }
 
-    const preference = await createPreference({
+    const creatingCheckout = pendingResult.rows.find(
+      (checkout) =>
+        checkout.provider_payload?.checkout_state === 'creating' &&
+        Date.parse(checkout.created_at) > Date.now() - 2 * 60 * 1000,
+    );
+    if (creatingCheckout) return { result: { status: 'creating' } };
+
+    await connection.query(
+      `UPDATE payments
+       SET status = 'rejected',
+           provider_payload = COALESCE(provider_payload, '{}'::jsonb) ||
+             jsonb_build_object('checkout_state', 'expired')
+       WHERE invoice_id = $1 AND method = 'mercadopago'
+         AND status = 'pending' AND provider_payment_id IS NULL`,
+      [invoiceId],
+    );
+    const created = await connection.query(
+      `INSERT INTO payments
+        (invoice_id, method, status, currency, amount_cents, provider_payload)
+       VALUES ($1, 'mercadopago', 'pending', $2, $3, $4::jsonb)
+       RETURNING id`,
+      [
+        invoiceId,
+        invoice.currency,
+        Number(balanceCents),
+        JSON.stringify({ checkout_state: 'creating' }),
+      ],
+    );
+    return {
       invoice: { ...invoice, id: invoice.id, email: invoice.email },
       amountCents: Number(balanceCents),
+      paymentId: created.rows[0].id,
+      result: null,
+    };
+  });
+
+  if (reservation.result) return reservation.result;
+
+  let preference;
+  try {
+    preference = await createPreference({
+      invoice: reservation.invoice,
+      amountCents: reservation.amountCents,
+      idempotencyKey: reservation.paymentId,
     });
+  } catch (error) {
+    await query(
+      `UPDATE payments
+       SET status = 'rejected',
+           provider_payload = COALESCE(provider_payload, '{}'::jsonb) ||
+             jsonb_build_object('checkout_state', 'failed')
+       WHERE id = $1 AND status = 'pending' AND provider_payment_id IS NULL`,
+      [reservation.paymentId],
+    );
+    throw error;
+  }
+
+  return transaction(async (connection) => {
+    const invoiceResult = await connection.query(
+      `SELECT id, status, currency, total_cents FROM invoices WHERE id = $1 FOR UPDATE`,
+      [invoiceId],
+    );
+    const invoice = invoiceResult.rows[0];
+    if (!invoice || !['open', 'overdue'].includes(invoice.status)) {
+      await connection.query(
+        `UPDATE payments
+         SET status = 'rejected',
+             provider_payload = COALESCE(provider_payload, '{}'::jsonb) ||
+               jsonb_build_object('checkout_state', 'not-payable')
+         WHERE id = $1 AND status = 'pending' AND provider_payment_id IS NULL`,
+        [reservation.paymentId],
+      );
+      return { status: 'not-payable' };
+    }
+
+    const paidResult = await connection.query(
+      `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
+       FROM payments WHERE invoice_id = $1 AND status = 'approved'`,
+      [invoiceId],
+    );
+    const balanceCents = BigInt(invoice.total_cents) - BigInt(paidResult.rows[0].paid_cents);
+    if (invoice.currency !== reservation.invoice.currency ||
+      balanceCents !== BigInt(reservation.amountCents)) {
+      await connection.query(
+        `UPDATE payments
+         SET status = 'rejected',
+             provider_payload = COALESCE(provider_payload, '{}'::jsonb) ||
+               jsonb_build_object('checkout_state', 'stale')
+         WHERE id = $1 AND status = 'pending' AND provider_payment_id IS NULL`,
+        [reservation.paymentId],
+      );
+      return { status: 'not-payable' };
+    }
+
     const payload = JSON.stringify({
       preference_id: preference.preference_id,
       init_point: preference.init_point,
       expires_at: preference.expires_at,
+      checkout_state: 'ready',
     });
-    await connection.query(
-      `INSERT INTO payments
-        (invoice_id, method, status, currency, amount_cents, provider_payload)
-       VALUES ($1, 'mercadopago', 'pending', $2, $3, $4::jsonb)`,
-      [invoiceId, invoice.currency, Number(balanceCents), payload],
+    const updated = await connection.query(
+      `UPDATE payments SET provider_payload = $2::jsonb
+       WHERE id = $1 AND status = 'pending' AND provider_payment_id IS NULL
+       RETURNING id`,
+      [reservation.paymentId, payload],
     );
+    if (!updated.rowCount) return { status: 'not-payable' };
     return {
       status: 'ready',
       checkout_url: preference.init_point,
@@ -587,11 +725,17 @@ export async function approveMercadoPagoPayment(payment) {
        FROM payments
        WHERE invoice_id = $1 AND method = 'mercadopago'
          AND status = 'pending' AND provider_payment_id IS NULL
-         AND provider_payload->>'preference_id' = $2
+         AND (provider_payload->>'expires_at')::timestamptz > now()
+         AND ($2::text IS NULL OR provider_payload->>'preference_id' = $2)
+       ORDER BY created_at DESC
        FOR UPDATE`,
-      [invoice.id, payment.preference_id],
+      [invoice.id, payment.preference_id || null],
     );
-    const pendingCheckout = pendingResult.rows[0];
+    const matchingCheckouts = pendingResult.rows.filter((checkout) =>
+      BigInt(checkout.amount_cents) === BigInt(payment.amount_cents) &&
+      checkout.currency === payment.currency);
+    const pendingCheckout =
+      matchingCheckouts.length === 1 ? matchingCheckouts[0] : null;
     if (!pendingCheckout) return { status: 'checkout-not-found' };
     if (invoice.currency !== payment.currency || pendingCheckout.currency !== payment.currency) {
       return { status: 'currency-mismatch' };
@@ -713,6 +857,256 @@ export async function recordUnappliedMercadoPagoPayment(payment, reason) {
     ],
   );
   return result.rowCount > 0;
+}
+
+export async function listUnappliedMercadoPagoPayments({ limit = 100, offset = 0 } = {}) {
+  const result = await query(
+    `SELECT up.id, up.provider_payment_id, up.invoice_id, up.external_reference,
+       up.reason, up.amount_cents, up.currency, up.status, up.created_at,
+       up.provider_payload->>'preference_id' AS preference_id,
+       i.number AS invoice_number, c.name AS client_name
+     FROM unapplied_payments up
+     LEFT JOIN invoices i ON i.id = up.invoice_id
+     LEFT JOIN client_accounts c ON c.id = i.client_id
+     WHERE up.status = 'pending_review'
+     ORDER BY up.created_at DESC, up.id DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset],
+  );
+  return result.rows;
+}
+
+export async function countPendingUnappliedMercadoPagoPayments(queryFn = query) {
+  const table = await queryFn(`SELECT to_regclass('unapplied_payments') AS table_name`);
+  if (!table.rows[0]?.table_name) return { available: false, count: null };
+  const result = await queryFn(
+    `SELECT COUNT(*)::integer AS count
+     FROM unapplied_payments WHERE status = 'pending_review'`,
+  );
+  return { available: true, count: result.rows[0].count };
+}
+
+export async function getMercadoPagoWebhookBacklogSummary(queryFn = query) {
+  const table = await queryFn(
+    `SELECT to_regclass('public.mercadopago_webhook_events') AS table_name`,
+  );
+  if (!table.rows[0]?.table_name) {
+    return {
+      available: false,
+      pending_count: null,
+      oldest_pending_age_seconds: null,
+      alert: false,
+    };
+  }
+  const result = await queryFn(
+    `SELECT COUNT(*)::integer AS pending_count,
+       COALESCE(
+         FLOOR(EXTRACT(EPOCH FROM (now() - MIN(received_at))))::bigint,
+         0
+       ) AS oldest_pending_age_seconds
+     FROM mercadopago_webhook_events
+     WHERE processed_at IS NULL`,
+  );
+  const pendingCount = Number(result.rows[0]?.pending_count ?? 0);
+  const oldestAge = Number(result.rows[0]?.oldest_pending_age_seconds ?? 0);
+  return {
+    available: true,
+    pending_count: pendingCount,
+    oldest_pending_age_seconds: oldestAge,
+    alert: pendingCount > 0 && oldestAge > 600,
+  };
+}
+
+export async function applyUnappliedMercadoPagoPayment(id, invoiceId, actor) {
+  return transaction(async (connection) => {
+    const unappliedResult = await connection.query(
+      `SELECT id, provider_payment_id, external_reference, reason, amount_cents,
+         currency, status, provider_payload
+       FROM unapplied_payments WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    const unapplied = unappliedResult.rows[0];
+    if (!unapplied) return { status: 'not-found' };
+    if (unapplied.status !== 'pending_review') return { status: 'not-reviewable' };
+    if (!unapplied.amount_cents || !unapplied.currency) {
+      return { status: 'invalid-payment' };
+    }
+
+    const invoiceResult = await connection.query(
+      `SELECT ${invoiceColumns} FROM invoices WHERE id = $1 FOR UPDATE`,
+      [invoiceId],
+    );
+    const invoice = invoiceResult.rows[0];
+    if (!invoice) return { status: 'invoice-not-found' };
+    if (!['open', 'overdue'].includes(invoice.status)) return { status: 'not-payable' };
+    if (invoice.currency !== unapplied.currency) return { status: 'currency-mismatch' };
+
+    const paidResult = await connection.query(
+      `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
+       FROM payments WHERE invoice_id = $1 AND status = 'approved'`,
+      [invoiceId],
+    );
+    const remaining = BigInt(invoice.total_cents) - BigInt(paidResult.rows[0].paid_cents);
+    const amount = BigInt(unapplied.amount_cents);
+    if (remaining <= 0n || amount > remaining) return { status: 'overpayment' };
+
+    const paymentResult = await connection.query(
+      `INSERT INTO payments
+         (invoice_id, method, status, currency, amount_cents, provider_payment_id,
+          provider_payload, recorded_by)
+       VALUES ($1, 'mercadopago', 'approved', $2, $3, $4, $5::jsonb, $6)
+       RETURNING id, invoice_id, method, status, currency, amount_cents,
+         provider_payment_id, created_at`,
+      [
+        invoiceId,
+        unapplied.currency,
+        unapplied.amount_cents,
+        unapplied.provider_payment_id,
+        JSON.stringify(unapplied.provider_payload),
+        actor.uid,
+      ],
+    );
+    const isPaid = amount === remaining;
+    const invoiceUpdate = await connection.query(
+      `UPDATE invoices
+       SET status = CASE WHEN $2 THEN 'paid' ELSE status END,
+           paid_at = CASE WHEN $2 THEN now() ELSE paid_at END,
+           updated_at = now()
+       WHERE id = $1 RETURNING ${invoiceColumns}`,
+      [invoiceId, isPaid],
+    );
+    await connection.query(
+      `UPDATE unapplied_payments
+       SET status = 'applied', invoice_id = $2, updated_at = now()
+       WHERE id = $1`,
+      [id, invoiceId],
+    );
+    if (isPaid) await extendPaidInvoiceSubscriptions(connection, invoiceId);
+    await writeAudit(connection, actor, 'mercadopago.unapplied_payment.apply', 'invoice', invoiceId, {
+      unapplied_payment_id: id,
+      payment: paymentResult.rows[0],
+      invoice: invoiceUpdate.rows[0],
+    });
+    return {
+      status: 'applied',
+      payment: paymentResult.rows[0],
+      invoice: invoiceUpdate.rows[0],
+    };
+  });
+}
+
+export async function dismissUnappliedMercadoPagoPayment(id, actor) {
+  return transaction(async (connection) => {
+    const result = await connection.query(
+      `SELECT id, provider_payment_id, invoice_id, reason, amount_cents, currency, status
+       FROM unapplied_payments WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    const payment = result.rows[0];
+    if (!payment) return { status: 'not-found' };
+    if (payment.status !== 'pending_review') return { status: 'not-reviewable' };
+    await connection.query(
+      `UPDATE unapplied_payments SET status = 'dismissed', updated_at = now() WHERE id = $1`,
+      [id],
+    );
+    await writeAudit(
+      connection,
+      actor,
+      'mercadopago.unapplied_payment.dismiss',
+      'invoice',
+      payment.invoice_id || payment.provider_payment_id,
+      { unapplied_payment: payment },
+    );
+    return { status: 'dismissed' };
+  });
+}
+
+export async function recordMercadoPagoReversal(reversal) {
+  return transaction(async (connection) => {
+    const paymentResult = await connection.query(
+      `SELECT id, invoice_id, status FROM payments
+       WHERE method = 'mercadopago' AND provider_payment_id = $1
+       FOR UPDATE`,
+      [reversal.provider_payment_id],
+    );
+    const payment = paymentResult.rows[0];
+    if (!payment) {
+      const invoiceResult = reversal.external_reference
+        ? await connection.query('SELECT id FROM invoices WHERE id = $1', [
+            reversal.external_reference,
+          ])
+        : { rows: [] };
+      await connection.query(
+        `INSERT INTO unapplied_payments
+           (provider_payment_id, invoice_id, external_reference, reason,
+            amount_cents, currency, provider_payload)
+         VALUES ($1, $2, $3, 'reversal_without_recorded_payment', $4, $5, $6::jsonb)
+         ON CONFLICT (provider_payment_id) DO NOTHING`,
+        [
+          reversal.provider_payment_id,
+          invoiceResult.rows[0]?.id || null,
+          reversal.external_reference || null,
+          reversal.amount_cents,
+          reversal.currency,
+          JSON.stringify(reversal.provider_payload),
+        ],
+      );
+      return { status: 'unmatched' };
+    }
+
+    const targetStatus = reversal.provider_status === 'charged_back' ? 'charged_back' : 'refunded';
+    if (payment.status === targetStatus) return { status: 'duplicate' };
+    const updatedPayment = await connection.query(
+      `UPDATE payments
+       SET status = $2, provider_payload = $3::jsonb
+       WHERE id = $1
+       RETURNING id, invoice_id, status, amount_cents, currency, provider_payment_id`,
+      [payment.id, targetStatus, JSON.stringify(reversal.provider_payload)],
+    );
+    const invoiceResult = await connection.query(
+      `SELECT ${invoiceColumns} FROM invoices WHERE id = $1 FOR UPDATE`,
+      [payment.invoice_id],
+    );
+    const invoice = invoiceResult.rows[0];
+    let updatedInvoice = invoice;
+    if (invoice?.status === 'paid') {
+      const paidResult = await connection.query(
+        `SELECT COALESCE(SUM(amount_cents), 0)::numeric AS paid_cents
+         FROM payments WHERE invoice_id = $1 AND status = 'approved'`,
+        [invoice.id],
+      );
+      const remainingPaid = BigInt(paidResult.rows[0].paid_cents);
+      const stillPaid = remainingPaid >= BigInt(invoice.total_cents);
+      const newStatus = stillPaid
+        ? 'paid'
+        : invoice.due_on &&
+            invoice.due_on <
+              (await connection.query(
+                `SELECT (now() AT TIME ZONE 'America/Montevideo')::date::text AS today`,
+              )).rows[0].today
+          ? 'overdue'
+          : 'open';
+      const invoiceUpdate = await connection.query(
+        `UPDATE invoices
+         SET status = $2, paid_at = CASE WHEN $2 = 'paid' THEN paid_at ELSE NULL END,
+             updated_at = now()
+         WHERE id = $1 RETURNING ${invoiceColumns}`,
+        [invoice.id, newStatus],
+      );
+      updatedInvoice = invoiceUpdate.rows[0];
+    }
+    await writeAudit(
+      connection,
+      { uid: 'mercadopago-webhook', email: 'mercadopago@system.invalid' },
+      targetStatus === 'charged_back'
+        ? 'invoice.payment_mercadopago_charged_back'
+        : 'invoice.payment_mercadopago_refunded',
+      'invoice',
+      payment.invoice_id,
+      { payment: updatedPayment.rows[0], invoice: updatedInvoice },
+    );
+    return { status: targetStatus, invoice: updatedInvoice };
+  });
 }
 
 export async function updateInvoice(id, changes, updatedAt, actor) {
@@ -888,6 +1282,94 @@ export async function getRevenueReport(from, to) {
        ) ORDER BY currency) FROM mrr), '[]'::jsonb) AS mrr,
        (SELECT count FROM overdue) AS overdue_invoices`,
     [from, to],
+  );
+  return result.rows[0];
+}
+
+export async function getReceivablesReport() {
+  const result = await query(
+    `WITH business_day AS (
+       SELECT (now() AT TIME ZONE 'America/Montevideo')::date AS today
+     ),
+     unpaid AS (
+       SELECT i.id, i.number, i.client_id, c.name AS client_name, i.currency,
+         i.total_cents - COALESCE(SUM(p.amount_cents)
+           FILTER (WHERE p.status = 'approved'), 0) AS balance_cents,
+         i.due_on,
+         CASE
+           WHEN i.due_on < business_day.today THEN business_day.today - i.due_on
+           ELSE 0
+         END AS days_overdue
+       FROM invoices AS i
+       JOIN client_accounts AS c ON c.id = i.client_id
+       CROSS JOIN business_day
+       LEFT JOIN payments AS p ON p.invoice_id = i.id
+       WHERE i.status IN ('open', 'overdue')
+       GROUP BY i.id, c.name, business_day.today
+       HAVING i.total_cents - COALESCE(SUM(p.amount_cents)
+         FILTER (WHERE p.status = 'approved'), 0) > 0
+     ),
+     aging AS (
+       SELECT currency,
+         CASE
+           WHEN days_overdue <= 30 THEN '0-30'
+           WHEN days_overdue <= 60 THEN '31-60'
+           ELSE '61+'
+         END AS bucket,
+         SUM(balance_cents)::numeric AS amount_cents,
+         COUNT(*)::integer AS invoice_count
+       FROM unpaid
+       WHERE days_overdue > 0
+       GROUP BY currency, bucket
+     ),
+     totals AS (
+       SELECT currency, SUM(balance_cents)::numeric AS amount_cents,
+         COUNT(*)::integer AS invoice_count
+       FROM unpaid
+       GROUP BY currency
+     ),
+     due_7 AS (
+       SELECT currency, SUM(balance_cents)::numeric AS amount_cents,
+         COUNT(*)::integer AS invoice_count
+       FROM unpaid, business_day
+       WHERE due_on BETWEEN business_day.today AND business_day.today + 7
+       GROUP BY currency
+     ),
+     due_30 AS (
+       SELECT currency, SUM(balance_cents)::numeric AS amount_cents,
+         COUNT(*)::integer AS invoice_count
+       FROM unpaid, business_day
+       WHERE due_on BETWEEN business_day.today AND business_day.today + 30
+       GROUP BY currency
+     )
+     SELECT
+       COALESCE((SELECT jsonb_agg(jsonb_build_object(
+         'currency', currency, 'amount_cents', amount_cents::text,
+         'invoice_count', invoice_count
+       ) ORDER BY currency) FROM totals), '[]'::jsonb) AS totals,
+       COALESCE((SELECT jsonb_agg(jsonb_build_object(
+         'currency', currency, 'bucket', bucket, 'amount_cents', amount_cents::text,
+         'invoice_count', invoice_count
+       ) ORDER BY currency, bucket) FROM aging), '[]'::jsonb) AS aging,
+       COALESCE((SELECT jsonb_agg(jsonb_build_object(
+         'currency', currency, 'amount_cents', amount_cents::text,
+         'invoice_count', invoice_count
+       ) ORDER BY currency) FROM due_7), '[]'::jsonb) AS due_7_days,
+       COALESCE((SELECT jsonb_agg(jsonb_build_object(
+         'currency', currency, 'amount_cents', amount_cents::text,
+         'invoice_count', invoice_count
+       ) ORDER BY currency) FROM due_30), '[]'::jsonb) AS due_30_days,
+       COALESCE((SELECT jsonb_agg(jsonb_build_object(
+         'id', id, 'number', number, 'client_id', client_id,
+         'client_name', client_name, 'currency', currency,
+         'balance_cents', balance_cents::text, 'due_on', due_on,
+         'days_overdue', days_overdue
+       ) ORDER BY days_overdue DESC, due_on NULLS LAST, number
+       ) FROM (
+         SELECT * FROM unpaid
+         ORDER BY days_overdue DESC, due_on NULLS LAST, number
+         LIMIT 20
+       ) AS open_invoices), '[]'::jsonb) AS invoices`,
   );
   return result.rows[0];
 }

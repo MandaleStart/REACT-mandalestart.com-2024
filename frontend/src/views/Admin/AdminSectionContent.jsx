@@ -3,13 +3,13 @@ import AdminClientHistory from './components/AdminClientHistory';
 import AdminClientInvoices from './components/AdminClientInvoices';
 import AdminClientEditor from './components/AdminClientEditor';
 import AdminClientList from './components/AdminClientList';
-import AdminContractedServices from './components/AdminContractedServices';
 import AdminUserDirectory from './components/AdminUserDirectory';
 import BillingAudit from './BillingAudit';
 import BillingInvoices from './BillingInvoices';
 import BillingPlans from './BillingPlans';
 import BillingSubscriptions from './BillingSubscriptions';
 import BillingDashboard from './BillingDashboard';
+import BillingUnappliedPayments from './BillingUnappliedPayments';
 
 const Configurations = lazy(() => import('../Configurations/Configurations'));
 
@@ -30,7 +30,6 @@ export default function AdminSectionContent({
   onManageClient,
   onCreateClient,
   onRetry,
-  onManageContractedClient,
   filteredClients,
   selectedClientId,
   clientSearch,
@@ -42,7 +41,6 @@ export default function AdminSectionContent({
   sessionExpired,
   onSubmitClient,
   onDeleteClient,
-  onUpdateService,
   onUpdateProject,
   onUpdateMilestone,
 }) {
@@ -56,6 +54,8 @@ export default function AdminSectionContent({
     content = <BillingInvoices clients={clients} />;
   } else if (section === 'audit') {
     content = <BillingAudit />;
+  } else if (section === 'unapplied-payments') {
+    content = <BillingUnappliedPayments />;
   } else if (section === 'configuraciones') {
     content = (
       <Suspense fallback={<p role="status">Cargando catálogo…</p>}>
@@ -63,7 +63,14 @@ export default function AdminSectionContent({
       </Suspense>
     );
   } else if (section === 'dashboard') {
-    content = <BillingDashboard dashboard={dashboard} clients={clients} />;
+    content = (
+      <BillingDashboard
+        dashboard={dashboard}
+        clients={clients}
+        users={users}
+        usersError={usersError}
+      />
+    );
   } else if (section === 'users') {
     content = (
       <AdminUserDirectory
@@ -79,13 +86,6 @@ export default function AdminSectionContent({
         currentUid={firebaseUid}
         busy={busy}
         error={usersError}
-      />
-    );
-  } else if (section === 'contracts') {
-    content = (
-      <AdminContractedServices
-        clients={clients}
-        onManageClient={onManageContractedClient}
       />
     );
   } else if (section === 'clients') {
@@ -109,7 +109,6 @@ export default function AdminSectionContent({
           sessionExpired={sessionExpired}
           onSubmit={onSubmitClient}
           onDelete={onDeleteClient}
-          onUpdateService={onUpdateService}
           onUpdateProject={onUpdateProject}
           onUpdateMilestone={onUpdateMilestone}
         />

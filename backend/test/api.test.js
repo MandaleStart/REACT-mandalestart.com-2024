@@ -85,16 +85,10 @@ test('client projection accepts PostgreSQL rows and omits private fields', () =>
     name: 'Cliente',
     email: 'client@example.com',
     phone: '+598 99 123 456',
-    services: [{
-      id: 'domain-0',
-      type: 'domain',
-      title: '',
-      name: 'example.com',
-      cost: '$100',
-      expiry: '',
-      status: '',
-      details: [{ label: 'DNS', value: 'active' }],
-    }],
+    company: '',
+    tax_id: '',
+    billing_email: '',
+    billing_address: '',
     projects: [{
       id: 'project-1',
       title: 'Sitio web',
@@ -199,8 +193,30 @@ test('admin records are whitelisted and validate nested client services', () => 
     services: [{ type: 'domain', title: 'Dominio', name: 'example.com', expiry: '2026-02-30' }],
   }).ok, false);
   const profile = validateClientProfile({ name: 'Cliente', email: 'other@example.com', phone: '12345' });
-  assert.deepEqual(profile.value, { name: 'Cliente', phone: '12345' });
+  assert.deepEqual(profile.value, {
+    name: 'Cliente',
+    phone: '12345',
+    company: '',
+    tax_id: '',
+    billing_email: '',
+    billing_address: '',
+  });
   assert.equal(validateClientProfile({ name: 'Cliente', phone: 'phone' }).ok, false);
+  assert.equal(validateClientProfile({
+    name: 'Cliente',
+    company: 'Empresa de prueba',
+    tax_id: '21.234.567/0001',
+    billing_email: 'facturacion@example.com',
+    billing_address: 'Av. 18 de Julio 1234',
+  }).ok, true);
+  assert.equal(validateClientProfile({
+    name: 'Cliente',
+    billing_email: 'no-es-un-email',
+  }).ok, false);
+  assert.equal(validateClientProfile({
+    name: 'Cliente',
+    tax_id: '<script>',
+  }).ok, false);
   assert.equal(validateClientProjects([{
     title: 'Proyecto web',
     status: 'in-progress',
@@ -496,7 +512,13 @@ test('client and admin dashboard summaries surface key operational signals', () 
   };
 
   const dashboardNow = new Date('2026-10-01T12:00:00.000Z');
-  const clientDashboard = buildClientDashboard(client, { now: dashboardNow });
+  const subscriptions = [
+    { id: 'sub-1', client_id: 'client-1', label: 'Sitio web', status: 'active', renews_on: '2026-12-01' },
+    { id: 'sub-2', client_id: 'client-1', label: 'Hosting', status: 'active', renews_on: '2026-11-15' },
+    { id: 'sub-3', client_id: 'client-1', label: 'SEO', status: 'cancelled', renews_on: '2026-03-01' },
+    { id: 'sub-4', client_id: 'client-2', label: 'Correo', status: 'active', renews_on: '2026-10-28' },
+  ];
+  const clientDashboard = buildClientDashboard(client, { now: dashboardNow, subscriptions });
   assert.equal(clientDashboard.overview.totalServices, 3);
   assert.equal(clientDashboard.overview.activeServices, 2);
   assert.equal(clientDashboard.nextMilestone.title, 'Entrega');
@@ -517,7 +539,7 @@ test('client and admin dashboard summaries surface key operational signals', () 
         milestones: [{ id: 'm-3', title: 'Planificación', status: 'pending', dueDate: '2026-10-28' }],
       }],
     },
-  ], { now: dashboardNow });
+  ], { now: dashboardNow, subscriptions });
 
   assert.equal(adminDashboard.overview.clients, 2);
   assert.equal(adminDashboard.overview.activeServices, 3);

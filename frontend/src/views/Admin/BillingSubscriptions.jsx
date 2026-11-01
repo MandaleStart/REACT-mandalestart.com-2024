@@ -3,17 +3,24 @@ import {
   cancelBillingSubscription,
   createBillingSubscription,
   listClientSubscriptions,
+  listBillingPlans,
 } from '../../services/billingApi.js';
-import { formatBillingPeriod, formatMoneyCents } from '../../services/billingFormat.js';
+import {
+  amountCentsToInput,
+  formatBillingPeriod,
+  formatMoneyCents,
+  toBillingApiUnits,
+} from '../../services/billingFormat.js';
 
 /* eslint-disable react/prop-types */
 const emptySubscription = {
+  plan_id: '',
   service_type: 'hosting',
   label: '',
   resource_name: '',
   status: 'active',
   currency: 'UYU',
-  amount_cents: '',
+  amount: '',
   billing_period: 'monthly',
   renews_on: '',
   auto_renew: true,
@@ -22,6 +29,7 @@ const emptySubscription = {
 export default function BillingSubscriptions({ clients }) {
   const [clientId, setClientId] = useState('');
   const [subscriptions, setSubscriptions] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [form, setForm] = useState(emptySubscription);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -48,6 +56,20 @@ export default function BillingSubscriptions({ clients }) {
     if (clientId && !clients.some((client) => client.id === clientId)) setClientId('');
   }, [clientId, clients]);
 
+  useEffect(() => {
+    let active = true;
+    listBillingPlans()
+      .then((result) => {
+        if (active) setPlans(result.filter((plan) => plan.is_active));
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message || 'No pude cargar los planes.');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const updateForm = (event) => {
     const { name, value, type, checked } = event.target;
     setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
@@ -59,14 +81,13 @@ export default function BillingSubscriptions({ clients }) {
     setError('');
     setNotice('');
     try {
-      const amount = Number(form.amount_cents);
-      if (!Number.isSafeInteger(amount))
-        throw new Error('Ingresá el precio como centavos enteros.');
+      const { amount_cents } = toBillingApiUnits(form.amount);
       await createBillingSubscription(clientId, {
         ...form,
-        amount_cents: amount,
+        amount_cents,
+        amount: undefined,
         renews_on: form.renews_on || null,
-        plan_id: null,
+        plan_id: form.plan_id || null,
         details: [],
         internal_notes: '',
       });
@@ -138,6 +159,41 @@ export default function BillingSubscriptions({ clients }) {
           <h3>Agregar suscripción</h3>
           <div className="billing-form-grid">
             <label>
+              Plan (opcional)
+              <select
+                name="plan_id"
+                value={form.plan_id}
+                onChange={(event) => {
+                  const plan = plans.find((item) => item.id === event.target.value);
+                  setForm((current) => ({
+                    ...current,
+                    plan_id: event.target.value,
+                    ...(plan
+                      ? {
+                          label: plan.name,
+                          amount: amountCentsToInput(plan.amount_cents),
+                          currency: plan.currency,
+                          billing_period: plan.billing_period,
+                        }
+                      : {}),
+                  }));
+                }}
+              >
+                <option value="">Sin plan asociado</option>
+                {plans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.name} · {formatMoneyCents(plan.amount_cents, plan.currency)}
+                  </option>
+                ))}
+              </select>
+              {form.plan_id && (
+                <small>
+                  IVA heredado del plan:{' '}
+                  {(plans.find((plan) => plan.id === form.plan_id)?.tax_rate_bp ?? 0) / 100} %
+                </small>
+              )}
+            </label>
+            <label>
               Tipo
               <select name="service_type" value={form.service_type} onChange={updateForm}>
                 {[
@@ -192,13 +248,13 @@ export default function BillingSubscriptions({ clients }) {
               </select>
             </label>
             <label>
-              Precio (centavos)
+              Precio
               <input
-                name="amount_cents"
-                type="number"
-                min="0"
-                step="1"
-                value={form.amount_cents}
+                name="amount"
+                type="text"
+                inputMode="decimal"
+                placeholder="0,00"
+                value={form.amount}
                 onChange={updateForm}
                 required
               />

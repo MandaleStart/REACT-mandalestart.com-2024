@@ -25,7 +25,7 @@ test('prefixes rate-limit keys and returns the PostgreSQL counter result', async
   });
   assert.deepEqual(calls[0].values, ['contact:127.0.0.1', 15 * 60 * 1000]);
   assert.match(calls[0].text, /ON CONFLICT \(rate_key\) DO UPDATE/);
-  assert.match(calls[1].text, /DELETE FROM api_rate_limit_windows/);
+  assert.equal(calls.length, 1);
 });
 
 test('decrement and reset use the same isolated rate-limit key', async () => {
@@ -45,4 +45,17 @@ test('decrement and reset use the same isolated rate-limit key', async () => {
     ['api:127.0.0.1'],
     ['api:127.0.0.1'],
   ]);
+});
+
+test('expired rate-limit windows can be cleaned outside request handling', async () => {
+  let cleanupQuery;
+  const store = new PostgresRateLimitStore({
+    queryFn: async (text) => {
+      cleanupQuery = text;
+      return { rows: [], rowCount: 4 };
+    },
+  });
+
+  assert.equal(await store.cleanupExpired(), 4);
+  assert.match(cleanupQuery, /DELETE FROM api_rate_limit_windows WHERE reset_at < now\(\)/);
 });

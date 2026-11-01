@@ -1,6 +1,4 @@
 /* eslint-disable react/prop-types */
-import { clientServiceTypes, serviceToForm } from '../adminModel';
-
 export default function AdminClientEditor({
   selectedClientId,
   client,
@@ -10,7 +8,6 @@ export default function AdminClientEditor({
   sessionExpired,
   onSubmit,
   onDelete,
-  onUpdateService,
   onUpdateProject,
   onUpdateMilestone,
 }) {
@@ -62,116 +59,6 @@ export default function AdminClientEditor({
           maxLength="40"
         />
       </label>
-
-      <div className="admin-panel-heading admin-services-heading">
-        <h3>Servicios contratados</h3>
-        <button
-          type="button"
-          onClick={() =>
-            setClient((current) => ({
-              ...current,
-              services: [
-                ...current.services,
-                serviceToForm({
-                  id: '',
-                  type: 'other',
-                  title: '',
-                  name: '',
-                  cost: '',
-                  expiry: '',
-                  status: 'Activo',
-                  details: [],
-                }),
-              ],
-            }))
-          }
-        >
-          Agregar servicio
-        </button>
-      </div>
-
-      {client.services.map((service, index) => (
-        <fieldset className="admin-client-service" key={service.id || `new-service-${index}`}>
-          <legend>Servicio {index + 1}</legend>
-          <div className="admin-form-grid">
-            <label>
-              Tipo
-              <select
-                value={service.type}
-                onChange={(event) => onUpdateService(index, 'type', event.target.value)}
-              >
-                {clientServiceTypes.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Título
-              <input
-                value={service.title}
-                onChange={(event) => onUpdateService(index, 'title', event.target.value)}
-                maxLength="120"
-                required
-              />
-            </label>
-            <label className="admin-wide-field">
-              Nombre o recurso
-              <input
-                value={service.name}
-                onChange={(event) => onUpdateService(index, 'name', event.target.value)}
-                maxLength="200"
-                required
-              />
-            </label>
-            <label>
-              Costo
-              <input
-                value={service.cost}
-                onChange={(event) => onUpdateService(index, 'cost', event.target.value)}
-                maxLength="100"
-              />
-            </label>
-            <label>
-              Vencimiento
-              <input
-                type="date"
-                value={service.expiry}
-                onChange={(event) => onUpdateService(index, 'expiry', event.target.value)}
-              />
-            </label>
-            <label>
-              Estado
-              <input
-                value={service.status}
-                onChange={(event) => onUpdateService(index, 'status', event.target.value)}
-                maxLength="40"
-              />
-            </label>
-            <label className="admin-wide-field">
-              Detalles (una línea por dato: Etiqueta: valor)
-              <textarea
-                value={service.detailsText}
-                onChange={(event) => onUpdateService(index, 'detailsText', event.target.value)}
-                rows="3"
-              />
-            </label>
-          </div>
-          <button
-            type="button"
-            className="admin-danger-button"
-            onClick={() =>
-              setClient((current) => ({
-                ...current,
-                services: current.services.filter((_, serviceIndex) => serviceIndex !== index),
-              }))
-            }
-          >
-            Quitar servicio
-          </button>
-        </fieldset>
-      ))}
 
       <div className="admin-panel-heading admin-services-heading">
         <h3>Proyectos y entregas</h3>

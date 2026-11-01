@@ -10,14 +10,11 @@ import {
 } from '../../services/adminApi';
 import {
   emptyClient,
-  getContractedServices,
   expiredSessionMessage,
   forbiddenMessage,
   isAuthorizationError,
   isSessionError,
-  parseDetails,
   projectToForm,
-  serviceToForm,
 } from './adminModel';
 import AdminAccessState from './components/AdminAccessState';
 import AdminConfirmationDialog from './components/AdminConfirmationDialog';
@@ -64,8 +61,6 @@ const Admin = () => {
     priorityItems: 0,
     overdueItems: 0,
   };
-  const contractedServices = useMemo(() => getContractedServices(clients), [clients]);
-
   const clientIsDirty = useMemo(
     () => JSON.stringify(clientForm) !== JSON.stringify(clientBaseline),
     [clientBaseline, clientForm],
@@ -94,7 +89,6 @@ const Admin = () => {
     const form = client
       ? {
           ...client,
-          services: client.services.map(serviceToForm),
           projects: (client.projects || []).map(projectToForm),
         }
       : emptyClient;
@@ -136,10 +130,6 @@ const Admin = () => {
         name: clientForm.name,
         email: clientForm.email,
         phone: clientForm.phone,
-        services: clientForm.services.map(({ detailsText, ...service }) => ({
-          ...service,
-          details: parseDetails(detailsText),
-        })),
         projects: clientForm.projects,
       };
       const saved = selectedClientId
@@ -149,7 +139,6 @@ const Admin = () => {
       setSelectedClientId(saved.id);
       const savedForm = {
         ...saved,
-        services: saved.services.map(serviceToForm),
         projects: (saved.projects || []).map(projectToForm),
       };
       setClientForm(savedForm);
@@ -207,15 +196,6 @@ const Admin = () => {
       confirmLabel: 'Archivar cliente',
       onConfirm: deleteClient,
     });
-  };
-
-  const updateClientService = (index, field, value) => {
-    setClientForm((current) => ({
-      ...current,
-      services: current.services.map((service, serviceIndex) =>
-        serviceIndex === index ? { ...service, [field]: value } : service,
-      ),
-    }));
   };
 
   const updateClientProject = (index, field, value) => {
@@ -341,9 +321,9 @@ const Admin = () => {
   const sections = [
     'dashboard',
     'clients',
-    'contracts',
     'subscriptions',
     'invoices',
+    'unapplied-payments',
     'plans',
     'configuraciones',
     'users',
@@ -398,7 +378,6 @@ const Admin = () => {
       <div className="admin-portal-layout">
         <AdminSidebar
           clientCount={clients.length}
-          legacyServiceCount={contractedServices.length}
           userCount={users.length}
           onLogout={handleLogout}
         />
@@ -418,7 +397,6 @@ const Admin = () => {
           onManageClient={manageClient}
           onCreateClient={createClientForUser}
           onRetry={refreshData}
-          onManageContractedClient={manageClient}
           filteredClients={filteredClients}
           selectedClientId={selectedClientId}
           clientSearch={clientSearch}
@@ -430,7 +408,6 @@ const Admin = () => {
           sessionExpired={sessionExpired}
           onSubmitClient={handleClientSubmit}
           onDeleteClient={handleClientDelete}
-          onUpdateService={updateClientService}
           onUpdateProject={updateClientProject}
           onUpdateMilestone={updateProjectMilestone}
         />

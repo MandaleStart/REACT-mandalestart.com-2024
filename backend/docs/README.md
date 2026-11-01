@@ -27,20 +27,26 @@ Crear un proyecto Vercel con `backend/` como Root Directory y asignarle `https:/
 - `FIREBASE_PROJECT_ID`
 - Una credencial de Firebase Admin mediante identidad de carga de trabajo o la variable secreta `FIREBASE_SERVICE_ACCOUNT` con el JSON de la cuenta de servicio. `FIREBASE_SERVICE_ACCOUNT_PATH` es para desarrollo local; Vercel excluye `credentials/` del despliegue.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE`, y opcionalmente `SMTP_FROM` y `CONTACT_TO`
+- `CRON_SECRET` para los jobs protegidos de facturación y Mercado Pago
 - `PUBLIC_CONTACT_EMAIL` (opcional; predeterminado `info@mandalestart.com`), `PUBLIC_CONTACT_PHONE_E164` y `PUBLIC_CONTACT_PHONE_DISPLAY` (configurar ambos para publicar el teléfono comercial; nunca usar un teléfono privado)
 
 Ejecutar `npm run db:migrate` desde el directorio del backend con la misma `DATABASE_URL` antes de desplegar. Las migraciones son seguras para volver a ejecutar. Los secretos se configuran en Vercel, nunca en el repositorio ni en variables `VITE_*`. En local, `.env.example` muestra la ruta de la credencial existente; mantené el archivo dentro de `backend/credentials/`, que está excluida de Git. La lista de orígenes CORS contiene los dominios conocidos; añadir cualquier dominio nuevo explícitamente.
 
-Los límites generales de la API, el formulario de contacto y el webhook usan ventanas compartidas en PostgreSQL, por lo que se mantienen entre instancias de Vercel. Aplicá la migración `003_mercadopago_webhook_queue.sql` antes de habilitar estos endpoints. `/api/health` queda fuera del limitador general para que siga informando si la base de datos no está disponible.
+El límite general de solicitudes usa memoria por instancia para no depender de PostgreSQL en las rutas públicas. El formulario de contacto, el webhook y el inicio de checkout usan ventanas compartidas en PostgreSQL; esos limitadores tienen `passOnStoreError` para no convertir una falla del store en un 500 antes de que la ruta maneje su propia dependencia. Aplicá `003_mercadopago_webhook_queue.sql` para compartir esos límites entre instancias. Las ventanas vencidas se deben limpiar desde el job protegido, no durante cada solicitud.
+
+El cron diario de facturación corre a las 06:00 UTC (03:00 en Uruguay) y usa el mismo SMTP del formulario de contacto. Requiere `005_recurring_billing.sql`; no se agrega una clave externa ni un secreto distinto. Las suscripciones `active` con `auto_renew` y periodicidad mensual/anual reciben una factura `open` siete días antes de `renews_on` (la fecha de vencimiento). Facturas impagas pasan a `overdue` en la fecha de vencimiento; se programan recordatorios D-7/D-1/D+1/D+7 y las suscripciones de renovación se suspenden al cumplirse siete días de mora. Las operaciones quedan en `audit_log` bajo el actor `system`. Restricciones únicas y una cola de envío reclamada con bloqueo hacen idempotentes los reintentos.
+
+El webhook de Mercado Pago sigue configurado cada minuto para procesamiento oportuno; Vercel Hobby no admite esa frecuencia. Si el proyecto usa Hobby, el cron de webhooks requiere cambiar a Pro o invocarse desde un cron externo autorizado. El endpoint de salud permite monitorear la cola, pero no sustituye un proveedor externo de alertas.
 
 ## Rutas
 
-- `GET /api/health`: disponibilidad de Firebase Admin y conexión PostgreSQL (`databaseConfigured`, `databaseReady`).
+- `GET /api/health`: disponibilidad de Firebase Admin y PostgreSQL (`databaseConfigured`, `databaseReady`); también informa si la cola webhook está disponible, los eventos pendientes y la antigüedad del más viejo. `pendingWebhookAlert` y `alerts` señalan una espera superior a 10 minutos.
 - `GET /api/site-config`: email, teléfono comercial opcional y número de WhatsApp públicos, configurados con `PUBLIC_CONTACT_EMAIL`, `PUBLIC_CONTACT_PHONE_E164` y `PUBLIC_CONTACT_PHONE_DISPLAY`. El teléfono se omite si ambas variables telefónicas están vacías; si se configuran, deben ser válidas y completarse juntas. La respuesta se cachea por cinco minutos.
 - `GET /api/services` y `GET /api/services/:slug`: catálogo público.
 - `GET /api/clients/me`: cuenta asociada al token Firebase verificado; exige correo confirmado y proyecta solo los campos públicos del perfil, servicios y proyectos.
 - `PUT /api/clients/me/profile`: actualiza solo nombre y teléfono de la ficha asociada; no permite cambiar email, servicios ni proyectos.
 - `POST /api/contact`: envío de consulta por SMTP, con validación, honeypot y límite de solicitudes.
+- `GET /api/jobs/recurring-billing`: job diario protegido por `Authorization: Bearer $CRON_SECRET`; genera facturas de renovación, actualiza vencimientos, registra auditoría, envía recordatorios y limpia ventanas PostgreSQL vencidas del rate limit.
 
 Los endpoints demo `/api/auth/register`, `/api/auth/email`, `/api/auth/google` y `/api/auth/me` se eliminaron. El acceso usa Firebase Authentication directamente desde el frontend.
 Los usuarios pueden crear su cuenta desde el portal con email y contraseña, pero deben verificar el email. El registro no crea una ficha ni da acceso automáticamente: los datos solo se muestran cuando un administrador asocia previamente una ficha de cliente al mismo email verificado. Las cuentas sin ficha reciben una respuesta sin datos y una indicación para solicitar acceso.

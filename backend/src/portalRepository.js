@@ -1,6 +1,7 @@
 import { getPostgresPool, query } from './postgres.js';
 
-const clientColumns = `id, name, email, phone, services, projects, created_at,
+const clientColumns = `id, name, email, phone, company, tax_id, billing_email,
+  billing_address, projects, created_at,
   to_char(updated_at AT TIME ZONE 'UTC',
     'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS updated_at`;
 
@@ -40,14 +41,13 @@ export async function createClient(client, actor) {
   try {
     await connection.query('BEGIN');
     const result = await connection.query(
-      `INSERT INTO client_accounts (name, email, phone, services, projects)
-       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
+      `INSERT INTO client_accounts (name, email, phone, projects)
+       VALUES ($1, $2, $3, $4::jsonb)
        RETURNING ${clientColumns}`,
       [
         client.name,
         client.email,
         client.phone,
-        JSON.stringify(client.services),
         JSON.stringify(client.projects),
       ],
     );
@@ -82,8 +82,8 @@ export async function updateClient(id, client, updatedAt, actor) {
     }
     const result = await connection.query(
       `UPDATE client_accounts
-       SET name = $2, email = $3, phone = $4, services = $5::jsonb,
-           projects = $6::jsonb, updated_at = now()
+       SET name = $2, email = $3, phone = $4,
+           projects = $5::jsonb, updated_at = now()
        WHERE id = $1 AND archived_at IS NULL
        RETURNING ${clientColumns}`,
       [
@@ -91,7 +91,6 @@ export async function updateClient(id, client, updatedAt, actor) {
         client.name,
         client.email,
         client.phone,
-        JSON.stringify(client.services),
         JSON.stringify(client.projects),
       ],
     );
@@ -113,10 +112,19 @@ export async function updateClient(id, client, updatedAt, actor) {
 export async function updateClientProfile(id, profile) {
   const result = await query(
     `UPDATE client_accounts
-     SET name = $2, phone = $3, updated_at = now()
+     SET name = $2, phone = $3, company = $4, tax_id = $5,
+         billing_email = $6, billing_address = $7, updated_at = now()
      WHERE id = $1 AND archived_at IS NULL
      RETURNING ${clientColumns}`,
-    [id, profile.name, profile.phone],
+    [
+      id,
+      profile.name,
+      profile.phone,
+      profile.company,
+      profile.tax_id,
+      profile.billing_email,
+      profile.billing_address,
+    ],
   );
   return result.rows[0] || null;
 }

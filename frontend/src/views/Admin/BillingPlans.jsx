@@ -5,7 +5,12 @@ import {
   listBillingPlans,
   updateBillingPlan,
 } from '../../services/billingApi.js';
-import { formatBillingPeriod, formatMoneyCents } from '../../services/billingFormat.js';
+import {
+  amountCentsToInput,
+  formatBillingPeriod,
+  formatMoneyCents,
+  toBillingApiUnits,
+} from '../../services/billingFormat.js';
 
 const emptyPlan = {
   service_slug: '',
@@ -13,9 +18,9 @@ const emptyPlan = {
   name: '',
   description: '',
   currency: 'UYU',
-  amount_cents: '',
+  amount: '',
   billing_period: 'monthly',
-  tax_rate_bp: '2200',
+  vat_rate: '22',
   features: '',
   is_public: false,
   is_active: true,
@@ -24,30 +29,26 @@ const emptyPlan = {
 function toForm(plan) {
   return {
     ...plan,
-    amount_cents: String(plan.amount_cents),
-    tax_rate_bp: String(plan.tax_rate_bp),
+    amount: amountCentsToInput(plan.amount_cents),
+    vat_rate: String(plan.tax_rate_bp / 100),
     features: (plan.features || []).join('\n'),
   };
 }
 
 function toPayload(form) {
-  if (form.is_public && !form.amount_cents.trim()) {
+  if (form.is_public && !form.amount.trim()) {
     throw new Error('Completá el precio y la moneda antes de publicar el plan.');
   }
-  const amount = Number(form.amount_cents);
-  const taxRate = Number(form.tax_rate_bp);
-  if (!Number.isSafeInteger(amount) || !Number.isInteger(taxRate)) {
-    throw new Error('Ingresá el precio y el IVA como enteros.');
-  }
+  const { amount_cents, tax_rate_bp } = toBillingApiUnits(form.amount, form.vat_rate);
   return {
     service_slug: form.service_slug,
     code: form.code,
     name: form.name,
     description: form.description,
     currency: form.currency,
-    amount_cents: amount,
+    amount_cents,
     billing_period: form.billing_period,
-    tax_rate_bp: taxRate,
+    tax_rate_bp,
     features: form.features
       .split('\n')
       .map((feature) => feature.trim())
@@ -112,7 +113,8 @@ export default function BillingPlans() {
   };
 
   const deactivate = async (plan) => {
-    if (!window.confirm(`¿Querés desactivar el plan ${plan.name}? No se borrará su historial.`)) return;
+    if (!window.confirm(`¿Querés desactivar el plan ${plan.name}? No se borrará su historial.`))
+      return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -175,13 +177,13 @@ export default function BillingPlans() {
             </select>
           </label>
           <label>
-            Precio (centavos)
+            Precio
             <input
-              name="amount_cents"
-              type="number"
-              min="0"
-              step="1"
-              value={form.amount_cents}
+              name="amount"
+              type="text"
+              inputMode="decimal"
+              placeholder="0,00"
+              value={form.amount}
               onChange={updateForm}
               required
             />
@@ -195,17 +197,12 @@ export default function BillingPlans() {
             </select>
           </label>
           <label>
-            IVA (puntos básicos)
-            <input
-              name="tax_rate_bp"
-              type="number"
-              min="0"
-              max="10000"
-              step="1"
-              value={form.tax_rate_bp}
-              onChange={updateForm}
-              required
-            />
+            IVA
+            <select name="vat_rate" value={form.vat_rate} onChange={updateForm}>
+              <option value="22">22 %</option>
+              <option value="10">10 %</option>
+              <option value="0">0 % · Exento</option>
+            </select>
           </label>
           <label className="billing-form-wide">
             Descripción

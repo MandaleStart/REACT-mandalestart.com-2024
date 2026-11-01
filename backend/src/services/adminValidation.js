@@ -65,11 +65,34 @@ export function validateClientProfile(input) {
   }
   const name = text(input.name, 120);
   const phone = text(input.phone, 40);
+  const company = text(input.company, 160);
+  const taxId = text(input.tax_id, 30);
+  const billingEmail = text(input.billing_email, 254).toLowerCase();
+  const billingAddress = text(input.billing_address, 240);
   if (!name) return invalid('El nombre es obligatorio.');
   if (phone && !/^[+0-9().\s-]{5,40}$/.test(phone)) {
     return invalid('Ingresá un número de teléfono válido.');
   }
-  return { ok: true, value: { name, phone } };
+  if ([company, billingAddress].some((value) => /[\u0000-\u001f\u007f<>]/u.test(value))) {
+    return invalid('Revisá la razón social y la dirección de facturación.');
+  }
+  if (taxId && !/^[\p{L}\p{N} ./-]{1,30}$/u.test(taxId)) {
+    return invalid('Ingresá un RUT o documento válido.');
+  }
+  if (billingEmail && !emailPattern.test(billingEmail)) {
+    return invalid('Ingresá un email de facturación válido.');
+  }
+  return {
+    ok: true,
+    value: {
+      name,
+      phone,
+      company,
+      tax_id: taxId,
+      billing_email: billingEmail,
+      billing_address: billingAddress,
+    },
+  };
 }
 
 export function validateClientProjects(projects) {
@@ -156,13 +179,14 @@ export function validateClientRecord(input) {
   if (!profile.ok) return profile;
   if (!projects.ok) return projects;
   if (!emailPattern.test(email)) return invalid('Ingresá un email válido para el cliente.');
-  if (!Array.isArray(input.services) || input.services.length > 100) {
+  const legacyServices = input.services === undefined ? [] : input.services;
+  if (!Array.isArray(legacyServices) || legacyServices.length > 100) {
     return invalid('Los servicios del cliente deben ser una lista de hasta 100 elementos.');
   }
 
   const services = [];
   const serviceIds = new Set();
-  for (const service of input.services) {
+  for (const service of legacyServices) {
     if (!service || typeof service !== 'object' || Array.isArray(service)) {
       return invalid('Cada servicio contratado debe ser un objeto válido.');
     }

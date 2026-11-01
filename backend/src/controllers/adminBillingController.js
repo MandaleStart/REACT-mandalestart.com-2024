@@ -238,6 +238,19 @@ export function createAdminBillingControllers(
       const page = pagination(req.query, res);
       if (!page) return;
       const filters = { ...page };
+      if (req.query.search !== undefined) {
+        if (typeof req.query.search !== 'string' || req.query.search.trim().length > 100) {
+          return res.status(400).json({
+            message: 'La búsqueda debe ser texto de hasta 100 caracteres.',
+          });
+        }
+        filters.search = req.query.search.trim();
+        if (/^\d+(?:[.,]\d{1,2})?$/.test(filters.search)) {
+          const [whole, fraction = ''] = filters.search.replace(',', '.').split('.');
+          const amountCents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
+          if (Number.isSafeInteger(amountCents)) filters.amount_cents = amountCents;
+        }
+      }
       if (req.query.status) {
         if (!invoiceStatuses.has(req.query.status))
           return res.status(400).json({ message: 'El estado de factura no es válido.' });
@@ -368,6 +381,70 @@ export function createAdminBillingControllers(
       }
     },
 
+    async listUnappliedPayments(req, res, next) {
+      if (!prepare(req, res)) return;
+      const page = pagination({ limit: req.query.limit, offset: req.query.offset }, res);
+      if (!page) return;
+      try {
+        return res.json(await repository.listUnappliedMercadoPagoPayments(page));
+      } catch (error) {
+        return sendRepositoryError(error, res, next);
+      }
+    },
+
+    async applyUnappliedPayment(req, res, next) {
+      if (!prepare(req, res)) return;
+      if (!validId(req.params.id))
+        return res.status(400).json({ message: 'El identificador del pago no es válido.' });
+      if (!req.body || !validId(req.body.invoice_id))
+        return res.status(400).json({ message: 'Indicá una factura de destino válida.' });
+      try {
+        const outcome = await repository.applyUnappliedMercadoPagoPayment(
+          req.params.id,
+          req.body.invoice_id,
+          actor(req),
+        );
+        if (outcome.status === 'not-found')
+          return res.status(404).json({ message: 'El pago pendiente de revisión no existe.' });
+        if (outcome.status === 'not-reviewable')
+          return res.status(409).json({ message: 'El pago ya fue resuelto.' });
+        if (outcome.status === 'invalid-payment')
+          return res.status(409).json({ message: 'El pago no tiene importe o moneda válidos.' });
+        if (outcome.status === 'invoice-not-found')
+          return res.status(404).json({ message: 'Factura de destino no encontrada.' });
+        if (outcome.status === 'not-payable')
+          return res.status(409).json({ message: 'La factura de destino no admite pagos.' });
+        if (outcome.status === 'currency-mismatch')
+          return res.status(400).json({ message: 'La moneda no coincide con la factura.' });
+        if (outcome.status === 'overpayment')
+          return res.status(409).json({
+            message: 'El pago supera el saldo pendiente de la factura de destino.',
+          });
+        return res.json(outcome);
+      } catch (error) {
+        return sendRepositoryError(error, res, next);
+      }
+    },
+
+    async dismissUnappliedPayment(req, res, next) {
+      if (!prepare(req, res)) return;
+      if (!validId(req.params.id))
+        return res.status(400).json({ message: 'El identificador del pago no es válido.' });
+      try {
+        const outcome = await repository.dismissUnappliedMercadoPagoPayment(
+          req.params.id,
+          actor(req),
+        );
+        if (outcome.status === 'not-found')
+          return res.status(404).json({ message: 'El pago pendiente de revisión no existe.' });
+        if (outcome.status === 'not-reviewable')
+          return res.status(409).json({ message: 'El pago ya fue resuelto.' });
+        return res.json(outcome);
+      } catch (error) {
+        return sendRepositoryError(error, res, next);
+      }
+    },
+
     async voidInvoice(req, res, next) {
       if (!prepare(req, res)) return;
       if (!validId(req.params.id))
@@ -422,6 +499,15 @@ export function createAdminBillingControllers(
         return res.json(await repository.getRevenueReport(from, to));
       } catch (error) {
         return next(error);
+      }
+    },
+
+    async receivablesReport(req, res, next) {
+      if (!prepare(req, res)) return;
+      try {
+        return res.json(await repository.getReceivablesReport());
+      } catch (error) {
+        return sendRepositoryError(error, res, next);
       }
     },
   };

@@ -15,7 +15,7 @@ export default function AdminClientInvoices({ clientId }) {
     setInvoices([]);
     listBillingInvoices({ client_id: clientId, limit: 500 })
       .then((result) => {
-        if (active) setInvoices(result);
+        if (active) setInvoices(result.items);
       })
       .catch((loadError) => {
         if (active) setError(loadError.message || 'No pude cargar las facturas de este cliente.');

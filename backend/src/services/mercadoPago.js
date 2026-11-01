@@ -44,7 +44,10 @@ function requireAccessToken(accessToken) {
   return accessToken.trim();
 }
 
-async function requestMercadoPago(path, { method = 'GET', body, accessToken, fetchImpl }) {
+async function requestMercadoPago(
+  path,
+  { method = 'GET', body, accessToken, fetchImpl, extraHeaders = {} },
+) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
   try {
@@ -53,6 +56,7 @@ async function requestMercadoPago(path, { method = 'GET', body, accessToken, fet
       headers: {
         Authorization: `Bearer ${requireAccessToken(accessToken)}`,
         ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...extraHeaders,
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
       signal: controller.signal,
@@ -87,7 +91,7 @@ export function createMercadoPagoClient({
   fetchImpl = globalThis.fetch,
 } = {}) {
   return {
-    async createPreference({ invoice, amountCents, publicAppUrl, webhookUrl }) {
+    async createPreference({ invoice, amountCents, publicAppUrl, webhookUrl, idempotencyKey }) {
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
       const now = new Date();
       const invoicePath = `/area-cliente/invoices/${encodeURIComponent(invoice.id)}`;
@@ -95,6 +99,7 @@ export function createMercadoPagoClient({
         method: 'POST',
         accessToken,
         fetchImpl,
+        extraHeaders: idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {},
         body: {
           items: [
             {
@@ -109,6 +114,9 @@ export function createMercadoPagoClient({
           expires: true,
           expiration_date_from: now.toISOString(),
           expiration_date_to: expiresAt.toISOString(),
+          payment_methods: {
+            excluded_payment_types: [{ id: 'ticket' }],
+          },
           notification_url: webhookUrl,
           back_urls: {
             success: `${publicAppUrl}${invoicePath}`,

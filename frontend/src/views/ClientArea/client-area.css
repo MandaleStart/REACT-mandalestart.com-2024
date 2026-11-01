@@ -627,7 +627,9 @@
   font-weight: 600;
 }
 
-.client-profile-form input {
+.client-profile-form input,
+.client-profile-form textarea {
+  width: 100%;
   min-height: 46px;
   margin-bottom: 0.55rem;
   padding: 0.7rem;
@@ -635,6 +637,10 @@
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.04);
   color: #f4f8ff;
+}
+
+.client-profile-form textarea {
+  resize: vertical;
 }
 
 .client-profile-form input[readonly] {

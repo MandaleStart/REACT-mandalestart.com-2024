@@ -81,9 +81,25 @@ function repository() {
       assert.deepEqual(currentActor, actor);
       return { status: 'recorded', payment: row, invoice_paid: true };
     },
+    listUnappliedMercadoPagoPayments: async () => [row],
+    applyUnappliedMercadoPagoPayment: async (_id, _invoiceId, currentActor) => {
+      assert.deepEqual(currentActor, actor);
+      return { status: 'applied', payment: row };
+    },
+    dismissUnappliedMercadoPagoPayment: async (_id, currentActor) => {
+      assert.deepEqual(currentActor, actor);
+      return { status: 'dismissed' };
+    },
     voidInvoice: async () => ({ status: 'voided', record: row }),
     listAudit: async () => [row],
     getRevenueReport: async () => ({ monthly_revenue: [], mrr: [], overdue_invoices: 0 }),
+    getReceivablesReport: async () => ({
+      totals: [],
+      aging: [],
+      due_7_days: [],
+      due_30_days: [],
+      invoices: [],
+    }),
   };
 }
 
@@ -126,9 +142,13 @@ test('every admin billing controller responds using the repository contract', as
     ['getInvoice', request({ params: { id: 'invoice-1' } }), 200],
     ['updateInvoice', request({ params: { id: 'invoice-1' }, body: { notes: 'Actualizada' }, headers: { 'if-match': timestamp } }), 200],
     ['recordManualPayment', request({ params: { id: 'invoice-1' }, body: { method: 'transfer', currency: 'UYU', amount_cents: 1000 } }), 201],
+    ['listUnappliedPayments', request({ query: { limit: '25', offset: '0' } }), 200],
+    ['applyUnappliedPayment', request({ params: { id: '12' }, body: { invoice_id: 'invoice-1' } }), 200],
+    ['dismissUnappliedPayment', request({ params: { id: '12' } }), 200],
     ['voidInvoice', request({ params: { id: 'invoice-1' } }), 200],
     ['listAudit', request({ query: { entity_type: 'invoice', entity_id: 'invoice-1', limit: '5' } }), 200],
     ['revenueReport', request({ query: { from: '2026-01-01', to: '2026-12-31' } }), 200],
+    ['receivablesReport', request(), 200],
   ];
 
   for (const [name, req, expectedStatus] of cases) {
@@ -177,6 +197,54 @@ test('admin billing controllers reject invalid filters and malformed payloads be
   const invalidDateRange = response();
   await controllers.revenueReport(request({ query: { from: '2026-12-31', to: '2026-01-01' } }), invalidDateRange, (error) => { throw error; });
   assert.equal(invalidDateRange.statusCode, 400);
+});
+
+test('invoice list validates and forwards text, exact amount, client, dates and pagination filters', async () => {
+  const stub = repository();
+  let receivedFilters;
+  stub.listInvoices = async (filters) => {
+    receivedFilters = filters;
+    return { items: [row], total: 1, limit: filters.limit, offset: filters.offset };
+  };
+  const controllers = createAdminBillingControllers(stub, () => true);
+  const res = response();
+
+  await controllers.listInvoices(
+    request({
+      query: {
+        search: '1500,25',
+        status: 'open',
+        client_id: 'client-1',
+        from: '2026-01-01',
+        to: '2026-10-31',
+        limit: '20',
+        offset: '40',
+      },
+    }),
+    res,
+    (error) => { throw error; },
+  );
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(receivedFilters, {
+    limit: 20,
+    offset: 40,
+    search: '1500,25',
+    amount_cents: 150025,
+    status: 'open',
+    client_id: 'client-1',
+    from: '2026-01-01',
+    to: '2026-10-31',
+  });
+  assert.deepEqual(res.body, { items: [row], total: 1, limit: 20, offset: 40 });
+
+  const invalidSearch = response();
+  await controllers.listInvoices(
+    request({ query: { search: 'x'.repeat(101) } }),
+    invalidSearch,
+    (error) => { throw error; },
+  );
+  assert.equal(invalidSearch.statusCode, 400);
 });
 
 test('admin billing controllers surface database configuration failures', async () => {

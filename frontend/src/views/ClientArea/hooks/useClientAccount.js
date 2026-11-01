@@ -2,18 +2,27 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, firebaseReady } from '../../../firebase';
 import { getBackendHealth, getClientAccount, getClientDashboard } from '../../../services/authApi';
+import { getClientSubscriptions } from '../../../services/billingApi.js';
 
 export default function useClientAccount() {
   const [user, setUser] = useState(null);
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [clientData, setClientData] = useState(null);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [dashboardData, setDashboardData] = useState({
     overview: { totalServices: 0, activeServices: 0, totalProjects: 0, upcomingMilestones: 0 },
     alerts: [],
     activeServices: [],
     nextMilestone: null,
   });
-  const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    company: '',
+    tax_id: '',
+    billing_email: '',
+    billing_address: '',
+  });
   const [accountPending, setAccountPending] = useState(false);
   const [backendStatus, setBackendStatus] = useState('checking');
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -67,6 +76,7 @@ export default function useClientAccount() {
     if (!firebaseUser || backendStatus !== 'ready') {
       setUser(null);
       setClientData(null);
+      setSubscriptions([]);
       setError('');
       setLoading(false);
       return undefined;
@@ -78,9 +88,10 @@ export default function useClientAccount() {
 
       try {
         const idToken = await firebaseUser.getIdToken();
-        const [account, dashboard] = await Promise.all([
+        const [account, dashboard, clientSubscriptions] = await Promise.all([
           getClientAccount(idToken),
           getClientDashboard(idToken),
+          getClientSubscriptions(idToken),
         ]);
         if (!active) return;
 
@@ -94,13 +105,21 @@ export default function useClientAccount() {
             'Cliente',
         });
         setClientData(account);
+        setSubscriptions(clientSubscriptions);
         setDashboardData(dashboard || {
           overview: { totalServices: 0, activeServices: 0, totalProjects: 0, upcomingMilestones: 0 },
           alerts: [],
           activeServices: [],
           nextMilestone: null,
         });
-        setProfileForm({ name: account.name || '', phone: account.phone || '' });
+        setProfileForm({
+          name: account.name || '',
+          phone: account.phone || '',
+          company: account.company || '',
+          tax_id: account.tax_id || '',
+          billing_email: account.billing_email || '',
+          billing_address: account.billing_address || '',
+        });
         setAccountPending(false);
       } catch (accountError) {
         if (!active) return;
@@ -110,6 +129,7 @@ export default function useClientAccount() {
           name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Cliente',
         });
         setClientData(null);
+        setSubscriptions([]);
         setAccountPending(accountError?.status === 404);
         setError(accountError?.message || 'No se pudo cargar la información de tu cuenta.');
       } finally {
@@ -129,6 +149,7 @@ export default function useClientAccount() {
     firebaseUser,
     clientData,
     setClientData,
+    subscriptions,
     dashboardData,
     profileForm,
     setProfileForm,

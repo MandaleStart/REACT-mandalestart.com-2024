@@ -2,6 +2,7 @@ import {
     getClientByEmail,
     updateClientProfile,
 } from '../portalRepository.js';
+import { listClientSubscriptions } from '../billingRepository.js';
 import { isPostgresConfigured } from '../postgres.js';
 import { validateClientProfile } from '../services/adminValidation.js';
 import { projectClientRecord } from '../services/clientProjection.js';
@@ -20,7 +21,10 @@ export async function getClientDashboard(req, res, next) {
             return res.status(404).json({ message: 'No encontramos servicios asociados a esta cuenta.' });
         }
 
-        return res.json(buildClientDashboard(projectClientRecord(client, req.auth.email)));
+        const subscriptions = await listClientSubscriptions(client.id);
+        return res.json(
+            buildClientDashboard(projectClientRecord(client, req.auth.email), { subscriptions }),
+        );
     } catch (error) {
         return next(error);
     }

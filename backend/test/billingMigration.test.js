@@ -8,6 +8,10 @@ const webhookQueueMigrationUrl = new URL('../migrations/003_mercadopago_webhook_
 const webhookQueueMigration = (await readFile(webhookQueueMigrationUrl, 'utf8')).toLowerCase();
 const unappliedPaymentsMigrationUrl = new URL('../migrations/004_unapplied_mercadopago_payments.sql', import.meta.url);
 const unappliedPaymentsMigration = (await readFile(unappliedPaymentsMigrationUrl, 'utf8')).toLowerCase();
+const reversalsMigrationUrl = new URL('../migrations/006_mercadopago_reversals.sql', import.meta.url);
+const reversalsMigration = (await readFile(reversalsMigrationUrl, 'utf8')).toLowerCase();
+const clientBillingProfileMigrationUrl = new URL('../migrations/007_client_billing_profile.sql', import.meta.url);
+const clientBillingProfileMigration = (await readFile(clientBillingProfileMigrationUrl, 'utf8')).toLowerCase();
 
 test('billing migration defines integer money, currency checks and required billing tables', () => {
   for (const table of [
@@ -55,4 +59,14 @@ test('unapplied payment migration stores approved provider payments for review i
   assert.match(unappliedPaymentsMigration, /status text not null default 'pending_review'/);
   assert.match(unappliedPaymentsMigration, /'applied', 'refunded', 'dismissed'/);
   assert.match(unappliedPaymentsMigration, /create index if not exists unapplied_payments_pending_idx/);
+});
+
+test('Mercado Pago reversal migration supports charged-back payment status', () => {
+  assert.match(reversalsMigration, /drop constraint if exists payments_status_check/);
+  assert.match(reversalsMigration, /'refunded', 'charged_back'/);
+});
+
+test('client billing profile migration adds optional billing address and email fields', () => {
+  assert.match(clientBillingProfileMigration, /add column if not exists billing_email text not null default ''/);
+  assert.match(clientBillingProfileMigration, /add column if not exists billing_address text not null default ''/);
 });

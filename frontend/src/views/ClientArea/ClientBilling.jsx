@@ -145,14 +145,20 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
           ))}
         </ul>
         {['open', 'overdue'].includes(invoice.status) && (
-          <button
-            type="button"
-            className="primary-button"
-            onClick={startCheckout}
-            disabled={checkoutBusy}
-          >
-            {checkoutBusy ? 'Conectando con Mercado Pago…' : 'Pagar ahora'}
-          </button>
+          <>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={startCheckout}
+              disabled={checkoutBusy}
+            >
+              {checkoutBusy ? 'Conectando con Mercado Pago…' : 'Pagar ahora'}
+            </button>
+            <p className="client-payment-pending">
+              Este enlace no admite pagos en efectivo ni redes de cobranza. Si preferís una
+              transferencia, escribime para coordinarla.
+            </p>
+          </>
         )}
       </section>
     );

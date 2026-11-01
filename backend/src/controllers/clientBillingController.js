@@ -12,6 +12,10 @@ import {
   centsFromProviderAmount,
 } from '../services/mercadoPago.js';
 import { logger } from '../logger.js';
+import {
+  sendAdminMercadoPagoReversalAlert,
+  sendAdminUnappliedPaymentAlert,
+} from '../services/contactMail.js';
 import { setPrivateNoStore } from './responseCache.js';
 
 function validId(value) {
@@ -106,12 +110,13 @@ export function createClientBillingControllers(
         const outcome = await repository.createMercadoPagoCheckout(
           client.id,
           req.params.id,
-          ({ invoice, amountCents }) =>
+          ({ invoice, amountCents, idempotencyKey }) =>
             mercadoPago.createPreference({
               invoice,
               amountCents,
               publicAppUrl,
               webhookUrl,
+              idempotencyKey,
             }),
         );
         if (outcome.status === 'not-found') {
@@ -119,6 +124,12 @@ export function createClientBillingControllers(
         }
         if (outcome.status === 'not-payable') {
           return res.status(409).json({ message: 'La factura no admite pagos online.' });
+        }
+        if (outcome.status === 'creating') {
+          res.set('Retry-After', '2');
+          return res.status(202).json({
+            message: 'Estamos preparando el enlace de pago. Volvé a intentar en unos segundos.',
+          });
         }
         return res.json({
           checkout_url: outcome.checkout_url,
@@ -218,6 +229,8 @@ export function createMercadoPagoWebhookProcessor(
   mercadoPago = createMercadoPagoClient(),
   getConfig = getMercadoPagoWebhookConfig,
   log = logger,
+  notifyAdmin = sendAdminUnappliedPaymentAlert,
+  notifyAdminReversal = sendAdminMercadoPagoReversalAlert,
 ) {
   return async function processMercadoPagoWebhooks(req, res, next) {
     const config = getConfig();
@@ -244,6 +257,41 @@ export function createMercadoPagoWebhookProcessor(
             completed += 1;
             continue;
           }
+          if (['refunded', 'charged_back'].includes(payment.status)) {
+            const reversal = {
+              provider_payment_id: event.provider_payment_id,
+              provider_status: payment.status,
+              external_reference:
+                typeof payment.external_reference === 'string'
+                  ? payment.external_reference.slice(0, 150)
+                  : null,
+              amount_cents: centsFromProviderAmount(payment.transaction_amount),
+              currency: ['UYU', 'USD'].includes(payment.currency_id)
+                ? payment.currency_id
+                : null,
+              provider_payload: {
+                status: payment.status,
+                transaction_amount:
+                  typeof payment.transaction_amount === 'number'
+                    ? payment.transaction_amount
+                    : null,
+                currency_id:
+                  typeof payment.currency_id === 'string'
+                    ? payment.currency_id.slice(0, 10)
+                    : null,
+                external_reference:
+                  typeof payment.external_reference === 'string'
+                    ? payment.external_reference.slice(0, 150)
+                    : null,
+                date_last_updated: payment.date_last_updated || null,
+              },
+            };
+            await repository.recordMercadoPagoReversal(reversal);
+            await notifyAdminReversal(reversal);
+            await repository.completeMercadoPagoWebhookEvent(event.id);
+            completed += 1;
+            continue;
+          }
           if (payment.status !== 'approved') {
             await repository.completeMercadoPagoWebhookEvent(event.id);
             completed += 1;
@@ -255,12 +303,11 @@ export function createMercadoPagoWebhookProcessor(
             amountCents === null ||
             typeof payment.external_reference !== 'string' ||
             !validId(payment.external_reference) ||
-            typeof payment.preference_id !== 'string' ||
-            !payment.preference_id ||
+            (payment.preference_id !== undefined &&
+              (typeof payment.preference_id !== 'string' || !payment.preference_id)) ||
             !['UYU', 'USD'].includes(payment.currency_id)
           ) {
-            await repository.recordUnappliedMercadoPagoPayment(
-              {
+            const unappliedPayment = {
                 provider_payment_id: event.provider_payment_id,
                 external_reference:
                   typeof payment.external_reference === 'string'
@@ -293,9 +340,15 @@ export function createMercadoPagoWebhookProcessor(
                       ? payment.preference_id.slice(0, 150)
                       : null,
                 },
-              },
+              };
+            await repository.recordUnappliedMercadoPagoPayment(
+              unappliedPayment,
               'invalid_provider_payment_fields',
             );
+            await notifyAdmin({
+              ...unappliedPayment,
+              reason: 'invalid_provider_payment_fields',
+            });
             log.warn('mercadopago_payment_rejected', {
               requestId: req.id,
               reason: 'invalid_provider_payment_fields',
@@ -309,7 +362,7 @@ export function createMercadoPagoWebhookProcessor(
           const outcome = await repository.approveMercadoPagoPayment({
             provider_payment_id: event.provider_payment_id,
             external_reference: payment.external_reference,
-            preference_id: payment.preference_id,
+            preference_id: payment.preference_id || null,
             currency: payment.currency_id,
             amount_cents: amountCents,
             provider_payload: {
@@ -323,8 +376,7 @@ export function createMercadoPagoWebhookProcessor(
             },
           });
           if (outcome.status !== 'approved' && outcome.status !== 'duplicate') {
-            await repository.recordUnappliedMercadoPagoPayment(
-              {
+            const unappliedPayment = {
                 provider_payment_id: event.provider_payment_id,
                 external_reference: payment.external_reference,
                 amount_cents: amountCents,
@@ -338,9 +390,9 @@ export function createMercadoPagoWebhookProcessor(
                   date_approved: payment.date_approved || null,
                   payment_method_id: payment.payment_method_id || null,
                 },
-              },
-              outcome.status,
-            );
+              };
+            await repository.recordUnappliedMercadoPagoPayment(unappliedPayment, outcome.status);
+            await notifyAdmin({ ...unappliedPayment, reason: outcome.status });
             log.warn('mercadopago_payment_not_applied', {
               requestId: req.id,
               reason: outcome.status,

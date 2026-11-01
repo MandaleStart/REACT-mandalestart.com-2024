@@ -55,6 +55,8 @@ export const listBillingInvoices = (filters = {}) => {
 };
 export const createBillingInvoice = (invoice) =>
   adminRequest('/api/admin/invoices', { method: 'POST', body: invoice });
+export const getBillingInvoice = (invoiceId) =>
+  adminRequest(`/api/admin/invoices/${encodeURIComponent(invoiceId)}`);
 export const recordBillingPayment = (invoiceId, payment) =>
   adminRequest(`/api/admin/invoices/${encodeURIComponent(invoiceId)}/payments`, {
     method: 'POST',
@@ -66,12 +68,24 @@ export const getBillingRevenue = (from, to) => {
   const query = new URLSearchParams({ from, to });
   return adminRequest(`/api/admin/reports/revenue?${query}`);
 };
+export const getBillingReceivables = () => adminRequest('/api/admin/reports/receivables');
 export const listBillingAudit = (filters = {}) => {
   const query = new URLSearchParams(
     Object.entries(filters).filter(([, value]) => value !== undefined && value !== ''),
   );
   return adminRequest(`/api/admin/audit${query.size ? `?${query}` : ''}`);
 };
+export const listUnappliedMercadoPagoPayments = () =>
+  adminRequest('/api/admin/unapplied-payments');
+export const applyUnappliedMercadoPagoPayment = (id, invoiceId) =>
+  adminRequest(`/api/admin/unapplied-payments/${encodeURIComponent(id)}/apply`, {
+    method: 'POST',
+    body: { invoice_id: invoiceId },
+  });
+export const dismissUnappliedMercadoPagoPayment = (id) =>
+  adminRequest(`/api/admin/unapplied-payments/${encodeURIComponent(id)}/dismiss`, {
+    method: 'POST',
+  });
 export const getPublicBillingPlans = () => apiRequest('/api/plans/public');
 
 async function clientRequest(idToken, path) {

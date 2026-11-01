@@ -4,6 +4,10 @@
     {
       "path": "/api/jobs/mercadopago-webhooks",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/jobs/recurring-billing",
+      "schedule": "0 6 * * *"
     }
   ]
 }

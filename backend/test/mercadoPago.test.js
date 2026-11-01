@@ -118,13 +118,16 @@ test('creates a Mercado Pago preference using only server-supplied invoice balan
     amountCents: 12345,
     publicAppUrl: 'https://mandalestart.com',
     webhookUrl: 'https://api.mandalestart.com/api/webhooks/mercadopago',
+    idempotencyKey: 'checkout-123',
   });
 
   assert.equal(request.url, 'https://api.mercadopago.com/checkout/preferences');
   assert.equal(request.options.headers.Authorization, 'Bearer server-token');
+  assert.equal(request.options.headers['X-Idempotency-Key'], 'checkout-123');
   assert.equal(request.body.external_reference, 'invoice-1');
   assert.equal(request.body.items[0].unit_price, 123.45);
   assert.equal(request.body.items[0].currency_id, 'UYU');
+  assert.deepEqual(request.body.payment_methods.excluded_payment_types, [{ id: 'ticket' }]);
   assert.equal(
     request.body.notification_url,
     'https://api.mandalestart.com/api/webhooks/mercadopago',
@@ -363,6 +366,7 @@ test('processor retries provider failures and rejects requests without its secre
 
 test('processor persists approved payments that cannot be applied before completing the webhook', async () => {
   const operations = [];
+  const notifications = [];
   const processor = createMercadoPagoWebhookProcessor(
     {
       async claimMercadoPagoWebhookEvents() {
@@ -397,6 +401,7 @@ test('processor persists approved payments that cannot be applied before complet
       webhookProcessorSecret: 'cron-secret',
     }),
     { warn() {} },
+    async (payment) => notifications.push(payment),
   );
   const res = response();
 
@@ -408,15 +413,19 @@ test('processor persists approved payments that cannot be applied before complet
   assert.equal(operations[0].type, 'record');
   assert.equal(operations[0].reason, 'amount-mismatch');
   assert.equal(operations[0].payment.provider_payload.card, undefined);
+  assert.equal(notifications[0].reason, 'amount-mismatch');
   assert.deepEqual(operations[1], { type: 'complete', id: 11 });
 });
 
-test('processor stores approved payments missing a preference id for manual review', async () => {
+test('processor matches approved payments without preference id and persists unmatched data for review', async () => {
   let recorded;
   const processor = createMercadoPagoWebhookProcessor(
     {
       async claimMercadoPagoWebhookEvents() {
         return [{ id: 12, provider_payment_id: '12345' }];
+      },
+      async approveMercadoPagoPayment() {
+        return { status: 'checkout-not-found' };
       },
       async recordUnappliedMercadoPagoPayment(payment, reason) {
         recorded = { payment, reason };
@@ -440,6 +449,7 @@ test('processor stores approved payments missing a preference id for manual revi
       webhookProcessorSecret: 'cron-secret',
     }),
     { warn() {} },
+    async () => {},
   );
   const res = response();
 
@@ -448,9 +458,57 @@ test('processor stores approved payments missing a preference id for manual revi
   });
 
   assert.equal(res.statusCode, 200);
-  assert.equal(recorded.reason, 'invalid_provider_payment_fields');
+  assert.equal(recorded.reason, 'checkout-not-found');
   assert.equal(recorded.payment.external_reference, 'invoice-1');
-  assert.equal(recorded.payment.preference_id, null);
+  assert.equal(recorded.payment.preference_id, undefined);
+});
+
+test('processor records provider refunds and chargebacks instead of ignoring non-approved updates', async () => {
+  const operations = [];
+  const notifications = [];
+  const processor = createMercadoPagoWebhookProcessor(
+    {
+      async claimMercadoPagoWebhookEvents() {
+        return [{ id: 13, provider_payment_id: '12345' }];
+      },
+      async recordMercadoPagoReversal(reversal) {
+        operations.push({ type: 'reversal', reversal });
+      },
+      async completeMercadoPagoWebhookEvent(id) {
+        operations.push({ type: 'complete', id });
+      },
+    },
+    {
+      async getPayment(id) {
+        return {
+          id,
+          status: 'charged_back',
+          external_reference: 'invoice-1',
+          transaction_amount: 100,
+          currency_id: 'UYU',
+        };
+      },
+    },
+    () => ({
+      accessToken: 'access-token',
+      webhookSecret: 'test-secret',
+      webhookProcessorSecret: 'cron-secret',
+    }),
+    { warn() {} },
+    async () => {},
+    async (reversal) => notifications.push(reversal),
+  );
+  const res = response();
+
+  await processor({ id: 'api-request-5', get: () => 'Bearer cron-secret' }, res, (error) => {
+    throw error;
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(operations[0].reversal.provider_status, 'charged_back');
+  assert.equal(operations[0].reversal.amount_cents, 10000);
+  assert.equal(notifications[0].provider_status, 'charged_back');
+  assert.deepEqual(operations[1], { type: 'complete', id: 13 });
 });
 
 test('processor completes non-approved payments without applying them', async () => {

@@ -12,19 +12,20 @@ import { auth, googleProvider, firebaseReady } from '../../firebase';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useContact } from '../../config/useContact';
 import { mailtoUrl, whatsappUrl } from '../../config/site';
-import { updateClientProfile } from '../../services/authApi';
+import { getClientAccount, updateClientProfile } from '../../services/authApi';
+import { getClientInvoices, getClientSubscriptions } from '../../services/billingApi.js';
 import { getDaysFromToday, isExpiringWithinDays } from './dateUtils';
 import ClientAuthCard from './components/ClientAuthCard';
 import ClientProfileForm from './components/ClientProfileForm';
 import BackendStatusCard from './components/BackendStatusCard';
 import ClientProjectsPanel from './components/ClientProjectsPanel';
-import ClientServicesList from './components/ClientServicesList';
 import ClientOverview from './ClientOverview';
 import ClientBilling from './ClientBilling';
 import ClientSubscriptions from './ClientSubscriptions';
 import ClientSupport from './ClientSupport';
 import PortalSidebar from '../../components/PortalSidebar';
 import { getClientAreaGuidance } from './clientAreaHelpers';
+import { buildClientDataExport } from './clientDataExport.js';
 import useClientAccount from './hooks/useClientAccount';
 import './client-area.css';
 
@@ -51,6 +52,7 @@ const ClientArea = () => {
     firebaseUser,
     clientData,
     setClientData,
+    subscriptions,
     dashboardData,
     profileForm,
     setProfileForm,
@@ -66,6 +68,7 @@ const ClientArea = () => {
   } = useClientAccount();
   const [authMode, setAuthMode] = useState('login');
   const [submitting, setSubmitting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [notice, setNotice] = useState('');
   const [form, setForm] = useState(emptyForm);
 
@@ -83,12 +86,13 @@ const ClientArea = () => {
     if (!clientData) return { services: 0, expiresSoon: 0, overdue: 0, projects: 0, pendingMilestones: 0 };
 
     const projects = Array.isArray(clientData.projects) ? clientData.projects : [];
-    const services = Array.isArray(clientData.services) ? clientData.services : [];
     return {
-      services: services.length,
-      expiresSoon: services.filter((service) => isExpiringWithinDays(service.expiry)).length,
-      overdue: services.filter((service) => {
-        const diffDays = getDaysFromToday(service.expiry);
+      services: subscriptions.length,
+      expiresSoon: subscriptions.filter(
+        (service) => service.status === 'active' && isExpiringWithinDays(service.renews_on),
+      ).length,
+      overdue: subscriptions.filter((service) => {
+        const diffDays = getDaysFromToday(service.renews_on);
         return diffDays !== null && diffDays < 0;
       }).length,
       projects: projects.filter((project) => project.status !== 'completed').length,
@@ -102,7 +106,7 @@ const ClientArea = () => {
         0,
       ),
     };
-  }, [clientData, dashboardData]);
+  }, [clientData, dashboardData, subscriptions]);
 
   const guidance = getClientAreaGuidance({
     servicesCount: totals.services,
@@ -191,12 +195,57 @@ const ClientArea = () => {
       const updatedAccount = await updateClientProfile(idToken, profileForm);
       setClientData(updatedAccount);
       setUser((current) => ({ ...current, name: updatedAccount.name }));
-      setProfileForm({ name: updatedAccount.name, phone: updatedAccount.phone || '' });
-      setNotice('Tus datos de contacto se actualizaron.');
+      setProfileForm({
+        name: updatedAccount.name,
+        phone: updatedAccount.phone || '',
+        company: updatedAccount.company || '',
+        tax_id: updatedAccount.tax_id || '',
+        billing_email: updatedAccount.billing_email || '',
+        billing_address: updatedAccount.billing_address || '',
+      });
+      setNotice('Tus datos personales y de facturación se actualizaron.');
     } catch (profileError) {
       setError(profileError.message || 'No se pudo actualizar el perfil.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDataExport = async () => {
+    if (!firebaseUser) return;
+    setExporting(true);
+    setError('');
+    setNotice('');
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      const [account, subscriptionsData, invoices] = await Promise.all([
+        getClientAccount(idToken),
+        getClientSubscriptions(idToken),
+        getClientInvoices(idToken),
+      ]);
+      const exportData = buildClientDataExport({
+        account,
+        subscriptions: subscriptionsData,
+        invoices,
+        exportedAt: new Date().toISOString(),
+      });
+      const file = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json;charset=utf-8',
+      });
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `mandalestart-datos-${new Date().toISOString().slice(0, 10)}.json`;
+      link.hidden = true;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setNotice('Descargué una copia de tus datos de perfil, proyectos, servicios y facturas.');
+    } catch (exportError) {
+      setError(exportError.message || 'No se pudo preparar la descarga de tus datos.');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -419,12 +468,6 @@ const ClientArea = () => {
             />
           ) : section === 'services' ? (
             <ClientSubscriptions firebaseUser={firebaseUser} />
-          ) : section === 'legacy-services' ? (
-            <ClientServicesList
-              services={clientData.services}
-              clientId={clientData.id}
-              userId={user.uid}
-            />
           ) : section === 'invoices' ? (
             <ClientBilling firebaseUser={firebaseUser} invoiceId={invoiceId} />
           ) : section === 'support' ? (
@@ -438,6 +481,8 @@ const ClientArea = () => {
               email={user.email}
               onSubmit={handleProfileSubmit}
               submitting={submitting}
+              onExport={handleDataExport}
+              exporting={exporting}
             />
           ) : (
             <Navigate to="/area-cliente" replace />
