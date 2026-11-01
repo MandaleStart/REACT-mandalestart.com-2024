@@ -54,6 +54,7 @@ test('client billing controllers bind every query to the verified email mapping'
         status: 'open',
         currency: 'UYU',
         total_cents: '10000',
+        payment_status: 'pending',
         internal_notes: 'staff only',
         provider_payload: { token: 'private' },
       }];
@@ -67,6 +68,7 @@ test('client billing controllers bind every query to the verified email mapping'
         status: 'open',
         currency: 'UYU',
         total_cents: '10000',
+        payment_status: 'rejected',
         notes: 'Nota para el cliente',
         provider_payload: { token: 'private' },
         payments: [{ provider_payload: { token: 'private' } }],
@@ -97,6 +99,7 @@ test('client billing controllers bind every query to the verified email mapping'
   assert.equal(invoicesResponse.statusCode, 200);
   assert.equal('internal_notes' in invoicesResponse.body[0], false);
   assert.equal('provider_payload' in invoicesResponse.body[0], false);
+  assert.equal(invoicesResponse.body[0].payment_status, 'pending');
 
   const invoiceResponse = response();
   await controllers.getInvoice(
@@ -107,6 +110,7 @@ test('client billing controllers bind every query to the verified email mapping'
   assert.equal(invoiceResponse.statusCode, 200);
   assert.equal('provider_payload' in invoiceResponse.body, false);
   assert.equal('payments' in invoiceResponse.body, false);
+  assert.equal(invoiceResponse.body.payment_status, 'rejected');
   assert.equal('internal_notes' in invoiceResponse.body.items[0], false);
   assert.deepEqual(queriedClientIds, [
     'token-owned-client',
@@ -137,6 +141,7 @@ test('client billing controllers reject missing client associations and invalid 
   const missing = response();
   await controllers.listInvoices(request(), missing, (error) => { throw error; });
   assert.equal(missing.statusCode, 404);
+  assert.match(missing.body.message, /vinculada a este correo/i);
 
   const invalid = response();
   const invalidIdControllers = createClientBillingControllers({

@@ -12,7 +12,7 @@ Decisiones tomadas: **planes con precios + facturas manuales + cobro online** (s
 |---|---|---|
 | 0 | [/] Limpieza técnica (sección 6) | Evita construir sobre deuda y sobre código muerto. |
 | 1 | [X] Tablas nuevas: planes, suscripciones, facturas, pagos, auditoría (sección 2) | `002_billing.sql` aplicada y verificada en PostgreSQL 18.6; suites backend y frontend aprobadas. |
-| 2 | Admin: planes y precios, suscripciones por cliente, facturas manuales | Ya podés operar el negocio sin pasarela. |
+| 2 | [X] Admin: planes y precios, suscripciones por cliente, facturas manuales | Endpoints y pantallas implementados; 62/62 pruebas backend, lecturas PostgreSQL y 16 pruebas frontend focalizadas pasan. Falta un flujo de escritura autenticado de punta a punta con datos de prueba. |
 | 3 | Cliente: "Mis servicios", "Facturas", "Soporte" | Autoservicio, menos mensajes por WhatsApp. |
 | 4 | Pagos online con webhooks (sección 5) | Se apoya en facturas ya existentes. |
 | 5 | Roles y varios usuarios por cliente, tickets | Crecimiento. |
@@ -153,6 +153,12 @@ GET             /api/admin/reports/revenue?from=&to=     (ingresos por mes, MRR,
 GET             /api/admin/audit?entity_type=&entity_id=
 ```
 
+**Estado de la etapa 2 (Admin):**
+- [X] Rutas protegidas para planes, suscripciones, facturas, pagos manuales, reportes y auditoría.
+- [X] Escrituras transaccionales con auditoría y validación de montos/monedas; `If-Match` evita pisar cambios concurrentes.
+- [X] Pantallas de administración para operar planes, suscripciones, facturas y ver auditoría.
+- [/] Falta probar una escritura completa desde la interfaz con una sesión admin real y datos de prueba; la base de desarrollo está vacía y no se alteraron datos para esta comprobación.
+
 **Cliente** (con `requireVerifiedFirebaseUser`, siempre filtrando por el `client_id` del token, nunca por un id del request):
 
 ```
@@ -229,6 +235,8 @@ POST  /api/webhooks/mercadopago
 
 **Criterios:** una sola voz (primera persona del singular, porque trabajás como persona: "te ayudo", "configuro"), voseo, frases cortas, beneficio antes que jerga, sin promesas que no podés garantizar (consistente con lo que ya hacés en SEO). Reemplazá los `[...]` con datos reales; **no publiques plazos, cifras ni garantías que no puedas cumplir.**
 
+**Estado de integración:** actualicé y probé los textos de los subpasos aplicables. No publiqué precios de respaldo, plazos garantizados, políticas de cancelación ni funciones que el sistema no tiene. Los mensajes de soporte siguen abriendo un email; no se afirma que exista un sistema de tickets.
+
 ### 7.1 [X] `SITE.home` (`site.js`)
 
 ```js
@@ -256,7 +264,9 @@ home: {
 },
 ```
 
-### 7.2 Pasos del proceso (`Home.jsx`)
+### 7.2 [X] Pasos del proceso (`Home.jsx`)
+
+Aplicados los cuatro pasos y los textos de infraestructura. Se conservaron los alcances de la propuesta sin agregar garantías sobre resultados o tiempos.
 
 ```js
 const steps = [
@@ -274,7 +284,9 @@ const infrastructure = [
 ];
 ```
 
-### 7.3 Catálogo (`serviceCatalog.js` y `serviceCatalogFallback.js`)
+### 7.3 [X] Catálogo (`serviceCatalog.js` y `serviceCatalogFallback.js`)
+
+Los campos públicos `description`, `summary`, `outcome`, `includes` y `price` quedaron alineados en ambos catálogos. Eliminé precios estáticos no confirmados y reemplacé las funciones mal ubicadas de monitoreo. La prueba `serviceCatalog.test.js` compara ambas fuentes.
 
 Los `includes` pasan a lenguaje de beneficio; `price` queda como respaldo cuando el servicio no tiene planes.
 
@@ -291,7 +303,9 @@ Los `includes` pasan a lenguaje de beneficio; `price` queda como respaldo cuando
 
 Notas: en `monitoring.points` cambiá "Domótica y automatización" por "Alertas por mail o mensaje" (domótica no es un servicio del catálogo). Cambiá "Servidor optimizado" por algo que puedas respaldar, como "Servidor administrado".
 
-### 7.4 Servicios (`Services.jsx`)
+### 7.4 [X] Servicios (`Services.jsx`)
+
+Actualicé el título, la introducción, los chips, la guía y los botones. Los planes públicos muestran importes reales con moneda y periodicidad; los servicios sin plan muestran "Presupuesto a medida", no un precio heredado.
 
 ```
 Título:    Servicios y planes
@@ -307,7 +321,9 @@ Etiqueta de precio: "Desde {precio} / mes"  ·  "Desde {precio} / año"  ·  "Pr
 Botón tarjeta: "Ver qué incluye"  ·  Botón plan: "Contratar"
 ```
 
-### 7.5 Preguntas frecuentes (`homeFaq.js`)
+### 7.5 [X] Preguntas frecuentes (`homeFaq.js`)
+
+Integré las nueve preguntas. La respuesta sobre cancelaciones invita a revisar las condiciones caso a caso porque todavía no hay una política confirmada; no publiqué el placeholder del documento.
 
 ```js
 [
@@ -332,7 +348,9 @@ Botón tarjeta: "Ver qué incluye"  ·  Botón plan: "Contratar"
 ]
 ```
 
-### 7.6 Sobre mí (`AboutMe.jsx`)
+### 7.6 [X] Sobre mí (`AboutMe.jsx`)
+
+Actualicé el H1, la presentación, la tarjeta de trabajo, la forma de trabajar y el CTA, manteniendo el enlace real a Contacto.
 
 ```
 H1:  Soy Nicolás. Hago webs y me ocupo de todo lo que las hace funcionar.
@@ -349,7 +367,9 @@ Bloque "Mi forma de trabajar":
 CTA: ¿Tenés algo en mente? → Contame qué querés lograr o qué no funciona y vemos los próximos pasos.
 ```
 
-### 7.7 Contacto (`Contact.jsx`)
+### 7.7 [X] Contacto (`Contact.jsx`)
+
+Actualicé el H1, la introducción y la barra de confianza. El texto explica los próximos pasos sin inventar un tiempo de respuesta.
 
 ```
 H1:  Contame qué necesitás.
@@ -361,7 +381,9 @@ Barra de confianza:
   Paso 3 · Propuesta clara    → Alcance, plazo y costo por escrito, antes de empezar.
 ```
 
-### 7.8 Proyectos (`Projects.jsx`)
+### 7.8 [X] Proyectos (`Projects.jsx`)
+
+Actualicé el H1 y el párrafo del proyecto propio; se mantiene la aclaración sobre la autorización de clientes.
 
 ```
 H1:  Mi proyecto más reciente: este sitio.
@@ -369,25 +391,29 @@ P:   Todavía no publico trabajos de clientes porque prefiero hacerlo solo con s
 ```
 (Cuando tengas un cliente que lo autorice, agregá un caso con: problema → qué hice → resultado, **sin cifras que no puedas comprobar**.)
 
-### 7.9 Textos del área de cliente (microcopy)
+### 7.9 [X] Textos del área de cliente (microcopy)
+
+Integré el encabezado, resumen vacío, renovaciones, vencimientos, importes pendientes, mensajes de pago y solicitud de baja/cambio. El backend calcula un estado de pago acotado (`pending`, `approved`, `rejected`) desde sus registros y solo expone ese estado derivado; no expone `provider_payload`. El pago pendiente informa que depende de la confirmación de Mercado Pago, sin prometer minutos. Soporte sigue siendo por email, no un ticket, como corresponde a la funcionalidad disponible.
 
 ```
 Título:                 Tu cuenta
-Sin ficha asociada:     Tu cuenta está creada, pero todavía no tiene servicios asociados. Escribime a {email} y la vinculo a tu correo.
+Sin ficha asociada:     No encontramos una ficha de cliente vinculada a este correo. Si ya sos cliente, escribime para que pueda asociarla.
 Resumen vacío:          Todavía no tenés servicios contratados.
 Servicio activo:        Activo · Se renueva el {fecha}
-Servicio por vencer:    Vence en {n} días. Podés renovarlo desde Facturas.
+Servicio por vencer:    Vence en {n} días. Escribime si querés renovarlo.
 Servicio vencido:       Venció el {fecha}. Escribime para reactivarlo.
-Factura pendiente:      Tenés {n} factura(s) pendiente(s) por {monto}.
+Factura pendiente:      Tenés {n} factura(s) pendiente(s), con el total agrupado por moneda.
 Botón de pago:          Pagar ahora
-Pago en revisión:       Estamos confirmando tu pago. Se actualiza solo en unos minutos.
+Pago en revisión:       Estamos confirmando tu pago. El estado se actualizará cuando Mercado Pago lo confirme.
 Pago acreditado:        ¡Listo! Recibimos tu pago. Gracias.
-Pago rechazado:         No pudimos procesar el pago. Probá con otro medio o pagá por transferencia.
+Pago rechazado:         No pudimos procesar el pago. Probá con otro medio o escribime para coordinar una transferencia.
 Pedir baja:             Pedir baja o cambio
 Soporte (nuevo ticket): Contame qué pasó. Cuantos más detalles, más rápido lo resuelvo.
 ```
 
-### 7.10 Textos del panel admin (microcopy)
+### 7.10 [X] Textos del panel admin (microcopy)
+
+Actualicé confirmaciones de pago y archivado, conflictos `If-Match`, validación de precio y mensaje de filtros vacíos. La confirmación de archivado explica que la ficha sale del listado y conserva el historial, y no promete restauración: no existe una acción de restaurar y el backend no permite archivar clientes con facturas.
 
 ```
 Confirmar borrado:      ¿Archivar a {cliente}? Sus facturas se conservan y podés restaurarlo después.

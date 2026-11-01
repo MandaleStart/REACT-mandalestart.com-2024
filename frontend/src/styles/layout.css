@@ -2,3 +2,8 @@
   width: min(var(--page-width), calc(100% - var(--page-gutter) - var(--page-gutter)));
   margin: 0 auto;
 }
+
+.page-shell--portal {
+  --page-width: 1600px;
+  --page-gutter: clamp(0.75rem, 2vw, 1.5rem);
+}

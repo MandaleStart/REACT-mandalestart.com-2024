@@ -17,15 +17,15 @@ const AboutMe = () => {
       <section className="about-hero">
         <div className="about-copy">
           <span className="eyebrow">Sobre mí</span>
-          <h1>Soy Nicolás. Desarrollo sitios web y también resuelvo lo que hay detrás.</h1>
+          <h1>Soy Nicolás. Hago webs y me ocupo de todo lo que las hace funcionar.</h1>
           <p>
-            Trabajo con personas y negocios de todo Uruguay en sitios web, hosting y redes. A veces
-            el proyecto empieza con una web nueva; otras, con algo que no funciona o que hace falta
-            ordenar.
+            Trabajo con personas y negocios de todo Uruguay. A veces el proyecto empieza con una
+            web nueva; otras, con algo que dejó de funcionar o que hay que ordenar.
           </p>
           <p>
-            Soy Nicolás Jorge, desarrollador frontend formado en Jóvenes a Programar de Ceibal.
-            Combino desarrollo web con soporte técnico, redes y servidores.
+            Soy desarrollador frontend, formado en Jóvenes a Programar de Ceibal. Además de
+            programar, me encargo de hosting, redes y servidores, así que no tenés que coordinar
+            con tres proveedores distintos.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ const AboutMe = () => {
           <div className="cta-box">
             <span>¿Tenés algo en mente?</span>
             <strong>
-              Contame qué querés hacer o qué no está funcionando y vemos los próximos pasos.
+              Contame qué querés lograr o qué no funciona y vemos los próximos pasos.
             </strong>
           </div>
         </div>
@@ -67,17 +67,16 @@ const AboutMe = () => {
       <section className="about-story">
         <div>
           <span className="eyebrow small">Mi forma de trabajar</span>
-          <h2>Soluciones claras, con una base técnica.</h2>
+          <h2>Soluciones simples, con una base técnica sólida.</h2>
         </div>
         <div className="about-story-copy">
           <p>
-            Trabajo principalmente con HTML, CSS, JavaScript y React. También me formé con Node.js,
-            Express, Firebase, MongoDB, Git y GitHub; elijo las herramientas de acuerdo con el
-            alcance de cada proyecto.
+            Uso HTML, CSS, JavaScript y React, y también Node.js, Express, Firebase y bases de datos.
+            Elijo las herramientas según lo que tu proyecto necesita, no al revés.
           </p>
           <p>
-            Si ya tenés un sitio, un dominio o un proveedor, puedo revisar lo existente antes de
-            sugerir cambios. Para empezar, contame qué querés resolver desde la página de{' '}
+            Si ya tenés un sitio, un dominio o un proveedor, primero reviso lo que hay y recién
+            después te propongo cambios. Para empezar, escribime desde la página de{' '}
             <Link to="/contact">contacto</Link>.
           </p>
         </div>

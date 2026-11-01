@@ -14,6 +14,13 @@ const ClientOverview = ({
 }) => {
   const [pendingInvoices, setPendingInvoices] = useState([]);
   const [invoiceError, setInvoiceError] = useState('');
+  const pendingAmounts = pendingInvoices.reduce((totals, invoice) => {
+    const amount = Number(invoice.total_cents);
+    if (!Number.isSafeInteger(amount) || !['UYU', 'USD'].includes(invoice.currency)) return totals;
+    const nextAmount = (totals[invoice.currency] || 0) + amount;
+    if (Number.isSafeInteger(nextAmount)) totals[invoice.currency] = nextAmount;
+    return totals;
+  }, {});
 
   useEffect(() => {
     let active = true;
@@ -85,15 +92,26 @@ const ClientOverview = ({
       {!invoiceError && pendingInvoices.length === 0 ? (
         <p>No tenés facturas pendientes.</p>
       ) : (
-        <ul>
-          {pendingInvoices.map((invoice) => (
-            <li key={invoice.id}>
-              <span><strong>{invoice.number}</strong> · {invoice.status === 'overdue' ? 'Vencida' : 'Pendiente'}</span>
-              <strong>{formatMoneyCents(invoice.total_cents, invoice.currency)}</strong>
-              <Link to={`/area-cliente/invoices/${encodeURIComponent(invoice.id)}`}>Ver factura</Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p>
+            Tenés {pendingInvoices.length} factura{pendingInvoices.length === 1 ? '' : 's'} pendiente
+            {pendingInvoices.length === 1 ? '' : 's'}
+            {Object.entries(pendingAmounts).map(([currency, amount]) =>
+              ` · ${formatMoneyCents(amount, currency)}`,
+            )}.
+          </p>
+          <ul>
+            {pendingInvoices.map((invoice) => (
+              <li key={invoice.id}>
+                <span>
+                  <strong>{invoice.number}</strong> · {invoice.status === 'overdue' ? 'Vencida' : 'Pendiente'}
+                </span>
+                <strong>{formatMoneyCents(invoice.total_cents, invoice.currency)}</strong>
+                <Link to={`/area-cliente/invoices/${encodeURIComponent(invoice.id)}`}>Ver factura</Link>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
 

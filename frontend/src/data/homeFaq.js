@@ -2,32 +2,47 @@ const homeFaq = [
   {
     question: '¿Qué servicios ofrecés?',
     answer:
-      'Desarrollo web, hosting, dominios, correo, SEO, redes, servidores, acceso remoto y diseño e impresión 3D. La disponibilidad depende de cada necesidad.',
+      'Webs y tiendas online, dominios, hosting, correo con tu dominio, SEO, redes y servidores, acceso remoto y diseño e impresión 3D. Podés contratar uno solo o varios juntos.',
   },
   {
-    question: '¿Trabajás con personas y negocios de todo Uruguay?',
+    question: '¿Trabajás con todo Uruguay?',
     answer:
-      'Sí. Atiendo consultas de todo Uruguay y coordinamos cada trabajo según sus requisitos.',
+      'Sí. Casi todo el trabajo es a distancia, así que podés estar en cualquier departamento.',
   },
   {
-    question: '¿Cómo empiezo una consulta?',
+    question: '¿Cómo empiezo?',
     answer:
-      'Contame qué necesitás resolver, qué tenés actualmente y qué resultado esperás. No hace falta que definas de antemano la solución técnica.',
+      'Escribime desde la página de contacto y contame qué necesitás y qué tenés hoy. No hace falta que sepas qué solución técnica elegir; eso lo definimos juntos.',
   },
   {
-    question: '¿Puedo conservar mi dominio o proveedor actual?',
+    question: '¿Puedo seguir con mi dominio y mi proveedor actual?',
     answer:
-      'Podemos revisar los servicios que ya usás y tenerlos en cuenta antes de proponer cambios. Cualquier modificación se conversa previamente.',
+      'Sí. Primero reviso lo que ya usás y te digo si conviene mantenerlo o cambiarlo. No toco nada sin avisarte y sin tu acuerdo.',
   },
   {
-    question: '¿El SEO garantiza aparecer primero en buscadores?',
+    question: '¿El SEO garantiza que voy a aparecer primero en Google?',
     answer:
-      'No. Se pueden revisar y mejorar aspectos técnicos y de contenido, pero la posición depende también de la competencia y de los buscadores.',
+      'No, y desconfiá de quien lo prometa. Puedo mejorar los aspectos técnicos y de contenido de tu sitio, pero la posición depende también de la competencia y de los buscadores.',
   },
   {
-    question: '¿Cómo se acuerdan el alcance y el presupuesto?',
+    question: '¿Cómo se define el precio?',
     answer:
-      'Después de revisar la necesidad, te detallo la propuesta y acordamos el trabajo antes de comenzar.',
+      'Los servicios con plan tienen precio publicado. Para webs y trabajos a medida te envío una propuesta por escrito con alcance, plazo y costo antes de empezar.',
+  },
+  {
+    question: '¿Cómo pago?',
+    answer:
+      'Podés pagar por transferencia o online desde tu área de cliente. Cada pago queda registrado en tu historial de facturas.',
+  },
+  {
+    question: '¿Qué pasa si quiero cancelar un servicio?',
+    answer:
+      'Escribime antes de pedir la baja. Revisamos juntos las condiciones del servicio y qué pasa con tus datos y tu dominio; te confirmo los pasos antes de hacer cualquier cambio.',
+  },
+  {
+    question: '¿Puedo ver el estado de mis servicios?',
+    answer:
+      'Sí. En tu área de cliente podés consultar tus servicios, sus vencimientos, tus facturas y el avance de tus proyectos.',
   },
 ];
 

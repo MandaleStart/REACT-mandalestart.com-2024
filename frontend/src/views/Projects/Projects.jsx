@@ -6,10 +6,10 @@ const Projects = () => (
   <main className="projects-page">
     <section className="projects-header">
       <span className="eyebrow">Proyectos</span>
-      <h1>Un proyecto propio, sin métricas inventadas.</h1>
+      <h1>Mi proyecto más reciente: este sitio.</h1>
       <p>
-        Por ahora comparto el sitio de MandaleStart como proyecto propio. No hay casos de clientes
-        publicados; agregaré otros cuando pueda presentar su trabajo con autorización.
+        Todavía no publico trabajos de clientes porque prefiero hacerlo solo con su autorización.
+        Mientras tanto, podés ver cómo está hecho este sitio.
       </p>
     </section>
 

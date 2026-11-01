@@ -195,7 +195,7 @@ const Admin = () => {
   const handleClientDelete = () => {
     if (!selectedClientId) return;
     setPendingConfirmation({
-      message: `¿Archivar la ficha de ${clientForm.name || 'este cliente'}? Dejará de aparecer en el listado, pero se conservará su historial. No se puede archivar un cliente con facturas.`,
+      message: `¿Archivar a ${clientForm.name || 'este cliente'}? Sus servicios y su historial se conservarán. Dejará de aparecer en el listado; no se puede archivar si tiene facturas.`,
       confirmLabel: 'Archivar cliente',
       onConfirm: deleteClient,
     });

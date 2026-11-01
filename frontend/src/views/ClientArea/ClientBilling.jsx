@@ -8,6 +8,21 @@ import {
 import { formatMoneyCents } from '../../services/billingFormat.js';
 
 /* eslint-disable react/prop-types */
+const invoiceStatusLabels = {
+  draft: 'Borrador',
+  open: 'Pendiente',
+  overdue: 'Vencida',
+  paid: 'Pagada',
+  void: 'Anulada',
+};
+
+const paymentMessages = {
+  pending: 'Estamos confirmando tu pago. El estado se actualizará cuando Mercado Pago lo confirme.',
+  approved: '¡Listo! Recibimos tu pago. Gracias.',
+  rejected:
+    'No pudimos procesar el pago. Probá con otro medio o escribime para coordinar una transferencia.',
+};
+
 export default function ClientBilling({ firebaseUser, invoiceId }) {
   const [invoices, setInvoices] = useState([]);
   const [invoice, setInvoice] = useState(null);
@@ -84,7 +99,7 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
         <dl>
           <div>
             <dt>Estado</dt>
-            <dd>{invoice.status}</dd>
+            <dd>{invoiceStatusLabels[invoice.status] || 'En revisión'}</dd>
           </div>
           <div>
             <dt>Emitida</dt>
@@ -103,6 +118,20 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
             <dd>{formatMoneyCents(invoice.tax_cents, invoice.currency)}</dd>
           </div>
         </dl>
+        {paymentMessages[invoice.payment_status] && (
+          <p
+            className={
+              invoice.payment_status === 'rejected'
+                ? 'error-box'
+                : invoice.payment_status === 'approved'
+                  ? 'client-success-box'
+                    : 'client-payment-pending'
+            }
+            role={invoice.payment_status === 'rejected' ? 'alert' : 'status'}
+          >
+            {paymentMessages[invoice.payment_status]}
+          </p>
+        )}
         {invoice.notes && <p>{invoice.notes}</p>}
         <h3>Conceptos</h3>
         <ul className="client-invoice-items">
@@ -151,7 +180,7 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
                 <td>{item.issued_on || '—'}</td>
                 <td>{item.due_on || '—'}</td>
                 <td>{formatMoneyCents(item.total_cents, item.currency)}</td>
-                <td>{item.status}</td>
+                <td>{invoiceStatusLabels[item.status] || 'En revisión'}</td>
                 <td>
                   <Link to={`/area-cliente/invoices/${encodeURIComponent(item.id)}`}>
                     Ver detalle
@@ -161,7 +190,7 @@ export default function ClientBilling({ firebaseUser, invoiceId }) {
             ))}
             {invoices.length === 0 && (
               <tr>
-                <td colSpan="6">Todavía no tenés facturas.</td>
+                <td colSpan="6">Todavía no tenés facturas emitidas.</td>
               </tr>
             )}
           </tbody>

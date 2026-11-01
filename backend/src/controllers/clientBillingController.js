@@ -35,7 +35,8 @@ export function createClientBillingControllers(
     const client = await resolveClient(email);
     if (!client) {
       res.status(404).json({
-        message: 'No encontramos una ficha de cliente asociada a tu cuenta.',
+        message:
+          'No encontramos una ficha de cliente vinculada a este correo. Escribime para que pueda asociarla.',
       });
       return null;
     }

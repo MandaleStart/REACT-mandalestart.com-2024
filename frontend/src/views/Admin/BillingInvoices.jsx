@@ -109,13 +109,28 @@ export default function BillingInvoices({ clients }) {
 
   const addPayment = async (invoice) => {
     const payment = paymentForms[invoice.id] || {};
+    const amount = Number(payment.amount_cents);
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+      setError('Ingresá el importe en centavos enteros.');
+      return;
+    }
+    const methods = {
+      transfer: 'transferencia',
+      cash: 'efectivo',
+      paypal: 'PayPal',
+      other: 'otro medio',
+    };
+    if (
+      !window.confirm(
+        `¿Registrar un pago de ${formatMoneyCents(amount, payment.currency || invoice.currency)} por ${
+          methods[payment.method || 'transfer'] || 'otro medio'
+        }? El movimiento quedará en el historial.`,
+      )
+    ) return;
     setBusy(true);
     setError('');
     setNotice('');
     try {
-      const amount = Number(payment.amount_cents);
-      if (!Number.isSafeInteger(amount) || amount <= 0)
-        throw new Error('Ingresá el importe en centavos enteros.');
       await recordBillingPayment(invoice.id, {
         method: payment.method || 'transfer',
         currency: payment.currency || invoice.currency,
@@ -357,7 +372,7 @@ export default function BillingInvoices({ clients }) {
             })}
             {!loading && invoices.length === 0 && (
               <tr>
-                <td colSpan="7">No hay facturas con este filtro.</td>
+                <td colSpan="7">No hay resultados con estos filtros.</td>
               </tr>
             )}
             {loading && (

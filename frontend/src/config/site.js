@@ -120,7 +120,11 @@ export function whatsappShareUrl(text) {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
-export function mailtoUrl(contact, subject = '') {
-  const query = subject ? `?subject=${encodeURIComponent(subject)}` : '';
+export function mailtoUrl(contact, subject = '', body = '') {
+  const parameters = new URLSearchParams();
+  if (subject) parameters.set('subject', subject);
+  if (body) parameters.set('body', body);
+  const encodedParameters = parameters.toString().replace(/\+/g, '%20');
+  const query = encodedParameters ? `?${encodedParameters}` : '';
   return `mailto:${contact.email}${query}`;
 }

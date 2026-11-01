@@ -70,7 +70,7 @@ export default function BillingAudit() {
             )}
             {!loading && entries.length === 0 && (
               <tr>
-                <td colSpan="5">Todavía no hay movimientos.</td>
+                <td colSpan="5">Todavía no hay movimientos en la bitácora.</td>
               </tr>
             )}
           </tbody>

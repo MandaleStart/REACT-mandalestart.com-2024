@@ -7,25 +7,25 @@ const Contact = () => {
     <main className="contact-page">
       <section className="contact-header">
         <span className="eyebrow">Contacto</span>
-        <h1>Contame qué necesitás resolver.</h1>
+        <h1>Contame qué necesitás.</h1>
         <p>
           Atiendo a personas y negocios de todo Uruguay. Puede ser una web nueva, un proyecto en
-          marcha o un problema técnico. Contame un poco y vemos qué hace falta.
+          marcha o un problema técnico. Escribime unas líneas y te respondo con los próximos pasos.
         </p>
       </section>
 
       <section className="contact-trustbar">
         <div>
-          <strong>Primer paso</strong>
-          <span>Me contás qué necesitás y en qué plazo</span>
+          <strong>Me escribís</strong>
+          <span>Me contás qué necesitás y para cuándo.</span>
         </div>
         <div>
-          <strong>Alcance y presupuesto</strong>
-          <span>Te los detallo antes de empezar</span>
+          <strong>Te respondo</strong>
+          <span>Te cuento los próximos pasos.</span>
         </div>
         <div>
-          <strong>Próximos pasos</strong>
-          <span>Te cuento cómo seguimos</span>
+          <strong>Propuesta clara</strong>
+          <span>Alcance, plazo y costo por escrito, antes de empezar.</span>
         </div>
       </section>
 

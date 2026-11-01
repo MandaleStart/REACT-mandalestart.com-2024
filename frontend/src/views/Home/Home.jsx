@@ -9,16 +9,16 @@ import './home.css';
 const infrastructure = [
   {
     title: 'Servidores',
-    text: 'Instalo, configuro y mantengo servidores según las necesidades de tu proyecto.',
+    text: 'Los instalo, los configuro y los mantengo al día.',
   },
   {
     title: 'Routers y redes',
-    text: 'Configuro routers y VLAN para conectar tus equipos y servicios.',
+    text: 'Configuro routers y redes para que tus equipos se conecten de forma segura.',
   },
-  { title: 'Domótica', text: 'Automatizo dispositivos y rutinas en tu casa o espacio de trabajo.' },
+  { title: 'Domótica', text: 'Automatizo luces, equipos y rutinas en tu casa o en tu local.' },
   {
     title: 'Monitoreo',
-    text: 'Configuro alertas para detectar cuándo un servidor o servicio deja de responder.',
+    text: 'Te aviso cuando un servidor o un servicio deja de responder.',
   },
 ];
 
@@ -26,22 +26,22 @@ const steps = [
   {
     number: '01',
     title: 'Me contás',
-    text: 'Vemos qué necesitás y qué tenés hoy. Con eso, definimos por dónde conviene empezar.',
+    text: 'Me explicás qué necesitás y qué tenés hoy. No hace falta saber de tecnología.',
   },
   {
     number: '02',
-    title: 'Acordamos el trabajo',
-    text: 'Te detallo el alcance, los tiempos y el presupuesto antes de empezar.',
+    title: 'Te hago una propuesta',
+    text: 'Recibís por escrito qué incluye, cuánto cuesta y cuánto demora. Sin letra chica.',
   },
   {
     number: '03',
     title: 'Lo pongo en marcha',
-    text: 'Desarrollo o configuro lo acordado y te muestro cómo queda.',
+    text: 'Desarrollo o configuro lo acordado y te muestro cómo quedó antes de dar el trabajo por terminado.',
   },
   {
     number: '04',
-    title: 'Seguimos en contacto',
-    text: 'Después de la entrega, podés consultarme por ajustes, mantenimiento o soporte.',
+    title: 'Me quedo a tu lado',
+    text: 'Si después necesitás cambios, mantenimiento o ayuda, me escribís desde tu área de cliente.',
   },
 ];
 

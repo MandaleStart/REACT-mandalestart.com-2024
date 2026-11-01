@@ -3,6 +3,7 @@ import { getClientSubscriptions } from '../../services/billingApi.js';
 import { formatBillingPeriod, formatMoneyCents } from '../../services/billingFormat.js';
 import { useContact } from '../../config/useContact';
 import { mailtoUrl } from '../../config/site';
+import { getClientServiceStatus } from './clientAreaHelpers.js';
 
 /* eslint-disable react/prop-types */
 export default function ClientSubscriptions({ firebaseUser }) {
@@ -45,24 +46,27 @@ export default function ClientSubscriptions({ firebaseUser }) {
       )}
       {loading && <p role="status">Cargando servicios…</p>}
       {!loading && !error && subscriptions.length === 0 && (
-        <p>Todavía no hay servicios asociados a tu cuenta.</p>
+        <p>Todavía no tenés servicios contratados.</p>
       )}
       <div className="services-client-list">
-        {subscriptions.map((subscription) => (
-          <article className="client-service-card" key={subscription.id}>
-            <div className="client-service-top">
-              <span className="panel-tag">{subscription.status}</span>
-              <span>{formatBillingPeriod(subscription.billing_period)}</span>
-            </div>
-            <h3>{subscription.label}</h3>
-            <p>{subscription.resource_name || subscription.service_type}</p>
-            <strong>{formatMoneyCents(subscription.amount_cents, subscription.currency)}</strong>
-            <p>Próxima renovación: {subscription.renews_on || 'Sin fecha'}</p>
-            <a href={mailtoUrl(contact, `Consulta sobre ${subscription.label}`)}>
-              Pedir cambio o baja
-            </a>
-          </article>
-        ))}
+        {subscriptions.map((subscription) => {
+          const serviceStatus = getClientServiceStatus(subscription);
+          return (
+            <article className="client-service-card" key={subscription.id}>
+              <div className="client-service-top">
+                <span className="panel-tag">{serviceStatus.label}</span>
+                <span>{formatBillingPeriod(subscription.billing_period)}</span>
+              </div>
+              <h3>{subscription.label}</h3>
+              <p>{subscription.resource_name || subscription.service_type}</p>
+              <strong>{formatMoneyCents(subscription.amount_cents, subscription.currency)}</strong>
+              {serviceStatus.description && <p>{serviceStatus.description}</p>}
+              <a href={mailtoUrl(contact, `Consulta sobre ${subscription.label}`)}>
+                Pedir baja o cambio
+              </a>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

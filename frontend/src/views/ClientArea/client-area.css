@@ -106,6 +106,16 @@
   line-height: 1.6;
 }
 
+.client-payment-pending {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(255, 206, 102, 0.35);
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #ffe2a8;
+  line-height: 1.6;
+}
+
 .client-forgot-password {
   display: block;
   margin: 0.9rem auto 0;

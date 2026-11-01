@@ -140,7 +140,7 @@ export function createAdminBillingControllers(
           return res.status(404).json({ message: 'Plan no encontrado.' });
         if (outcome.status === 'conflict') {
           return res.status(409).json({
-            message: 'El plan cambió desde que lo cargaste. Actualizá la vista y volvé a intentar.',
+            message: 'Otra persona modificó este registro mientras lo editabas. Recargá para ver los cambios.',
           });
         }
         return res.json(outcome.record);
@@ -207,7 +207,7 @@ export function createAdminBillingControllers(
         if (outcome.status === 'conflict') {
           return res.status(409).json({
             message:
-              'La suscripción cambió desde que la cargaste. Actualizá la vista y volvé a intentar.',
+              'Otra persona modificó este registro mientras lo editabas. Recargá para ver los cambios.',
           });
         }
         return res.json(outcome.record);
@@ -319,7 +319,7 @@ export function createAdminBillingControllers(
         if (outcome.status === 'conflict') {
           return res.status(409).json({
             message:
-              'La factura cambió desde que la cargaste. Actualizá la vista y volvé a intentar.',
+              'Otra persona modificó este registro mientras lo editabas. Recargá para ver los cambios.',
           });
         }
         if (outcome.status === 'not-editable') {

@@ -39,6 +39,9 @@ function projectInvoiceItem(item) {
 }
 
 export function projectClientInvoice(invoice) {
+  const paymentStatus = ['pending', 'approved', 'rejected'].includes(invoice.payment_status)
+    ? invoice.payment_status
+    : undefined;
   return {
     id: text(invoice.id),
     number: text(invoice.number),
@@ -50,6 +53,7 @@ export function projectClientInvoice(invoice) {
     issued_on: invoice.issued_on,
     due_on: invoice.due_on,
     paid_at: invoice.paid_at,
+    ...(paymentStatus ? { payment_status: paymentStatus } : {}),
     created_at: invoice.created_at,
     ...(invoice.notes === undefined ? {} : { notes: text(invoice.notes) }),
     ...(Array.isArray(invoice.items) ? { items: invoice.items.map(projectInvoiceItem) } : {}),

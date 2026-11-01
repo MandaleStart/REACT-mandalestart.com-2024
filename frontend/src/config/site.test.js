@@ -54,6 +54,10 @@ test('builds contact links from the backend-provided public contact details', ()
     mailtoUrl(contact, 'Consulta del área'),
     'mailto:contact@example.com?subject=Consulta%20del%20%C3%A1rea',
   );
+  assert.equal(
+    mailtoUrl(contact, 'Consulta del área', 'Contame qué pasó.'),
+    'mailto:contact@example.com?subject=Consulta%20del%20%C3%A1rea&body=Contame%20qu%C3%A9%20pas%C3%B3.',
+  );
 });
 
 test('creates WhatsApp share links with the shared wa.me endpoint', () => {

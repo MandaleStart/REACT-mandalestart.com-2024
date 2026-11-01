@@ -20,8 +20,6 @@ import Seo from './components/Seo/Seo';
 import ClientAreaContext from './components/ClientAreaContext';
 import AdminContext from './components/AdminContext';
 import StaticRouteComponentsContext from './components/StaticRouteComponentsContext';
-import { getPageMetadata } from './seo/metadata';
-import useServiceCatalog from './data/useServiceCatalog';
 
 const loadAboutMe = () => import('./views/Aboutme/AboutMe');
 const AboutMe = lazy(loadAboutMe);
@@ -33,12 +31,8 @@ const loadAdmin = () => import('./views/Admin/Admin');
 const Admin = lazy(loadAdmin);
 function RouteFocusManager() {
   const { pathname } = useLocation();
-  const { services } = useServiceCatalog();
-  const [routeTitle, setRouteTitle] = useState('');
 
   useEffect(() => {
-    setRouteTitle(getPageMetadata(pathname, services).title);
-
     const content = document.getElementById('contenido');
     content?.focus({ preventScroll: true });
 
@@ -58,13 +52,7 @@ function RouteFocusManager() {
     }
 
     return () => observer.disconnect();
-  }, [pathname, services]);
-
-  return (
-    <span className="visually-hidden" aria-live="polite" aria-atomic="true">
-      {routeTitle}
-    </span>
-  );
+  }, [pathname]);
 }
 
 function LoginRouter() {
@@ -148,8 +136,11 @@ function LegacyConfigurationsRedirect() {
 
 function App() {
   const staticRouteComponents = useContext(StaticRouteComponentsContext);
+  const { pathname } = useLocation();
   const AboutMeComponent = staticRouteComponents.AboutMe || AboutMe;
   const ProjectsComponent = staticRouteComponents.Projects || Projects;
+  const isPortalRoute =
+    pathname.startsWith('/administracion') || pathname.startsWith('/area-cliente');
 
   return (
     <>
@@ -159,7 +150,11 @@ function App() {
           Saltar al contenido
         </a>
         <Navbar />
-        <div className="page-shell" id="contenido" tabIndex="-1">
+        <div
+          className={`page-shell${isPortalRoute ? ' page-shell--portal' : ''}`}
+          id="contenido"
+          tabIndex="-1"
+        >
           <RouteFocusManager />
           <Suspense
             fallback={

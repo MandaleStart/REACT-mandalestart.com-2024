@@ -38,7 +38,11 @@ const ClientArea = () => {
   const invoiceId = section === 'invoices' ? routeParts[1] : undefined;
   const contact = useContact();
   const supportEmail = mailtoUrl(contact, 'Consulta sobre el área de clientes');
-  const accessEmail = mailtoUrl(contact, 'Solicitud de acceso al portal');
+  const accessEmail = mailtoUrl(
+    contact,
+    'Solicitud de acceso al portal',
+    'Hola, soy cliente de MandaleStart y quiero vincular mi cuenta al área de clientes.',
+  );
   const accountHelpEmail = mailtoUrl(contact, 'Problema con mi cuenta');
   const supportWhatsApp = whatsappUrl(contact);
   const {
@@ -289,15 +293,15 @@ const ClientArea = () => {
             <span className="eyebrow">Área de clientes</span>
             <h1>Estamos preparando tu acceso</h1>
             <p>
-              Tu correo está verificado, pero todavía no hay una ficha de cliente asociada a esta
-              cuenta. El administrador debe vincular el mismo email que usaste para registrarte.
+              No encontramos una ficha de cliente vinculada a este correo. Si ya sos cliente,
+              escribime para que pueda asociarla.
             </p>
             <p className="client-state-note">
               Si ya sos cliente, contactanos para revisar la asociación de tu cuenta.
             </p>
             <div className="client-state-actions">
               <a className="primary-button" href={accessEmail}>
-                Solicitar acceso
+                Pedir acceso
               </a>
               <button
                 type="button"
@@ -366,10 +370,10 @@ const ClientArea = () => {
       <section className="client-hero client-logged-in">
         <div>
           <span className="eyebrow">Área de cliente</span>
-          <h1>Hola, {clientData.name || user.name || user.email}</h1>
+          <h1>Tu cuenta</h1>
           <p>
-            Acá podés consultar los servicios asociados a tu cuenta, sus costos y fechas de
-            vencimiento.
+            Hola, {clientData.name || user.name || user.email}. Acá consultás tus servicios,
+            vencimientos, facturas y el avance de tus proyectos.
           </p>
         </div>
 

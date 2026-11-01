@@ -168,7 +168,7 @@ test('adds visible homepage FAQs to FAQPage structured data', () => {
   const faq = entities.find((entity) => entity['@type'] === 'FAQPage');
 
   assert.ok(faq);
-  assert.equal(faq.mainEntity.length, 6);
+  assert.equal(faq.mainEntity.length, 9);
   assert.ok(faq.mainEntity.every((item) => item.acceptedAnswer.text));
 });
 

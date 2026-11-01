@@ -14,6 +14,23 @@ const invoiceColumns = `id, number, client_id, status, currency, subtotal_cents,
   tax_cents, total_cents, issued_on, due_on, paid_at, notes, created_at,
   to_char(updated_at AT TIME ZONE 'UTC',
     'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS updated_at`;
+const clientPaymentStatus = `CASE
+  WHEN i.status = 'paid' OR COALESCE((
+    SELECT SUM(p.amount_cents) FROM payments p
+    WHERE p.invoice_id = i.id AND p.status = 'approved'
+  ), 0) >= i.total_cents THEN 'approved'
+  WHEN EXISTS (
+    SELECT 1 FROM payments p
+    WHERE p.invoice_id = i.id AND p.status = 'pending'
+      AND p.method = 'mercadopago'
+      AND (p.provider_payload->>'expires_at')::timestamptz > now()
+  ) THEN 'pending'
+  WHEN EXISTS (
+    SELECT 1 FROM payments p
+    WHERE p.invoice_id = i.id AND p.status = 'rejected'
+  ) THEN 'rejected'
+  ELSE NULL
+END AS payment_status`;
 
 async function transaction(callback) {
   const connection = await getPostgresPool().connect();
@@ -445,11 +462,12 @@ export async function getInvoice(id) {
 
 export async function listClientInvoices(clientId) {
   const result = await query(
-    `SELECT id, number, status, currency, subtotal_cents, tax_cents,
-      total_cents, issued_on, due_on, paid_at, created_at, updated_at
-     FROM invoices
-     WHERE client_id = $1 AND status NOT IN ('draft', 'void')
-     ORDER BY issued_on DESC NULLS LAST, created_at DESC`,
+    `SELECT i.id, i.number, i.status, i.currency, i.subtotal_cents, i.tax_cents,
+      i.total_cents, i.issued_on, i.due_on, i.paid_at, i.created_at, i.updated_at,
+      ${clientPaymentStatus}
+     FROM invoices i
+     WHERE i.client_id = $1 AND i.status NOT IN ('draft', 'void')
+     ORDER BY i.issued_on DESC NULLS LAST, i.created_at DESC`,
     [clientId],
   );
   return result.rows;
@@ -457,10 +475,11 @@ export async function listClientInvoices(clientId) {
 
 export async function getClientInvoice(clientId, invoiceId) {
   const result = await query(
-    `SELECT id, number, status, currency, subtotal_cents, tax_cents,
-      total_cents, issued_on, due_on, paid_at, notes, created_at, updated_at
-     FROM invoices
-     WHERE id = $1 AND client_id = $2 AND status NOT IN ('draft', 'void')`,
+    `SELECT i.id, i.number, i.status, i.currency, i.subtotal_cents, i.tax_cents,
+      i.total_cents, i.issued_on, i.due_on, i.paid_at, i.notes, i.created_at,
+      i.updated_at, ${clientPaymentStatus}
+     FROM invoices i
+     WHERE i.id = $1 AND i.client_id = $2 AND i.status NOT IN ('draft', 'void')`,
     [invoiceId, clientId],
   );
   const invoice = result.rows[0];

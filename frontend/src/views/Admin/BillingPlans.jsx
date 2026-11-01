@@ -31,6 +31,9 @@ function toForm(plan) {
 }
 
 function toPayload(form) {
+  if (form.is_public && !form.amount_cents.trim()) {
+    throw new Error('Completá el precio y la moneda antes de publicar el plan.');
+  }
   const amount = Number(form.amount_cents);
   const taxRate = Number(form.tax_rate_bp);
   if (!Number.isSafeInteger(amount) || !Number.isInteger(taxRate)) {
@@ -109,7 +112,7 @@ export default function BillingPlans() {
   };
 
   const deactivate = async (plan) => {
-    if (!window.confirm(`¿Querés desactivar el plan ${plan.name}?`)) return;
+    if (!window.confirm(`¿Querés desactivar el plan ${plan.name}? No se borrará su historial.`)) return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -302,7 +305,7 @@ export default function BillingPlans() {
             ))}
             {!loading && plans.length === 0 && (
               <tr>
-                <td colSpan="7">Todavía no hay planes.</td>
+                <td colSpan="7">Todavía no hay planes. Creá el primero desde este formulario.</td>
               </tr>
             )}
             {loading && (

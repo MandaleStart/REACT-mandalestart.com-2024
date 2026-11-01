@@ -14,6 +14,7 @@ const Services = () => {
   const contact = useContact();
   const [plans, setPlans] = useState([]);
   const [plansError, setPlansError] = useState('');
+  const planSlugs = new Set(plans.map((plan) => plan.service_slug));
 
   useEffect(() => {
     let active = true;
@@ -29,18 +30,19 @@ const Services = () => {
     <main className="services-page">
       <section className="services-hero">
         <span className="eyebrow">Servicios</span>
-        <h1>Servicios web y soporte técnico.</h1>
+        <h1>Servicios y planes</h1>
         <p>
-          Atiendo consultas de todo Uruguay. Revisá qué incluye cada servicio y escribime para
-          recibir un presupuesto según tu proyecto.
+          Elegí lo que necesitás. Si tu caso es particular, escribime y te armo una propuesta a
+          medida.
         </p>
 
         <div className="services-summary">
-          <span>Desarrollo web</span>
-          <span>Hosting y dominios</span>
-          <span>Redes y servidores</span>
+          <span>Webs y tiendas</span>
+          <span>Dominio y hosting</span>
+          <span>Correo</span>
           <span>SEO</span>
-          <span>Diseño e impresión 3D</span>
+          <span>Redes y servidores</span>
+          <span>Impresión 3D</span>
         </div>
       </section>
 
@@ -54,7 +56,10 @@ const Services = () => {
           <div className="public-plans-grid">
             {plans.map((plan) => (
               <article className="public-plan-card" key={plan.id}>
-                <span className="service-chip">{plan.service_slug}</span>
+                <span className="service-chip">
+                  {serviceCatalog.find((service) => service.slug === plan.service_slug)?.title ||
+                    plan.service_slug}
+                </span>
                 <h3>{plan.name}</h3>
                 <p>{plan.description}</p>
                 <strong>{formatMoneyCents(plan.amount_cents, plan.currency)}</strong>
@@ -74,7 +79,7 @@ const Services = () => {
 
       <section className="services-list">
         {serviceCatalog.map(
-          ({ slug, icon, title, category, description, price, priceFrom, accent }) => (
+          ({ slug, icon, title, category, description, accent }) => (
             <article key={slug} className={`service-showcase ${accent}`}>
               <div className="service-showcase-top">
                 <span className="service-mini-icon">
@@ -87,9 +92,11 @@ const Services = () => {
               <p>{description}</p>
 
               <div className="service-meta">
-                <strong>{priceFrom ? `Desde ${priceFrom}` : price}</strong>
+                <strong>
+                  {planSlugs.has(slug) ? 'Planes disponibles' : 'Presupuesto a medida'}
+                </strong>
                 <Link to={`/services/${slug}`} className="service-link">
-                  Ver detalle
+                  Ver qué incluye
                 </Link>
               </div>
             </article>
@@ -104,15 +111,15 @@ const Services = () => {
       <section className="services-guide">
         <div className="section-heading left-align">
           <span className="eyebrow small">Cómo elegir</span>
-          <h2>Empezá por el objetivo y sumá solo lo que tu proyecto necesita.</h2>
+          <h2>Empezá por lo que querés lograr.</h2>
         </div>
         <div className="services-guide-copy">
           <p>
-            Elegí un servicio para revisar qué incluye. Si no sabés cuál se ajusta a tu necesidad,
-            contame qué querés resolver y qué servicios o equipos ya usás.
+            Si recién arrancás, lo más común es web + dominio + correo. Si ya tenés algo
+            funcionando, puedo revisarlo y decirte qué conviene cambiar y qué no.
           </p>
           <p>
-            Si ya trabajás con un proveedor, también podemos tomarlo en cuenta al evaluar opciones.
+            ¿Ya tenés un proveedor? No hace falta cambiarlo: lo reviso y trabajo con lo que tengas.
           </p>
         </div>
       </section>
